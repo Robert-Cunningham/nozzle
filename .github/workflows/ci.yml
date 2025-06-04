@@ -20,9 +20,9 @@ jobs:
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
-      - uses: actions/setup-node@v3
+      - uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
 
@@ -53,10 +53,10 @@ jobs:
     needs: ["test"]
     if: "!contains(github.event.head_commit.message, 'skip-release') && !contains(github.event.head_commit.message, 'skip-ci') && github.event_name != 'pull_request'"
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
-          node-version: 18.x
+          node-version: 22.x
       - name: Cache ~/.pnpm-store
         uses: actions/cache@v4
         env:
@@ -70,7 +70,7 @@ jobs:
             ${{ runner.os }}-
       - run: npm i -g pnpm
       - run: pnpm i
-      - run: pnpm dlx semantic-release@20 --branches main
+      - run: pnpm dlx semantic-release@25 --branches main
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
