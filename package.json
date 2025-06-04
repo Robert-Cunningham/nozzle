@@ -19,6 +19,7 @@
     "build-fast": "tsup src/index.ts --format cjs,esm",
     "build": "pnpm run build-fast -- --dts-resolve",
     "test": "vitest run",
+    "docs": "typedoc",
     "prepublishOnly": "pnpm run build"
   },
   "license": "MIT",
@@ -26,6 +27,8 @@
     "@egoist/prettier-config": "1.0.0",
     "prettier": "3.5.3",
     "tsup": "8.5.0",
+    "typedoc": "^0.28.5",
+    "typedoc-plugin-markdown": "^4.6.4",
     "typescript": "5.8.3",
     "vitest": "3.2.1"
   },

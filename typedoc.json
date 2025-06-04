@@ -1,0 +1,11 @@
+{
+  "entryPoints": ["src/index.ts"],
+  "out": "docs/api", // folder for generated files
+  "plugin": ["typedoc-plugin-markdown"],
+  "readme": "none", // don’t graft README.md
+  "excludePrivate": true,
+  "hideBreadcrumbs": true,
+  "includeVersion": true,
+  // –– single-file output ––––––––––––––––––––––––––––
+  "router": "module" // or: "module", or default multipage
+}
