@@ -99,22 +99,18 @@ console.log(result) // => "Hello World"
 ### chunk()
 
 ```ts
-function chunk(
-   source: AsyncIterable<string>, 
-   size: number, 
-separator: string): AsyncIterable<string>;
+function chunk(source: AsyncIterable<string>, size: number): AsyncIterable<string>;
 ```
 
-Buffers tokens from an async iterable source and yields a single merged token
-for every `size` tokens received, joined by the specified `separator`.
+Groups input tokens into chunks of the specified size and yields the joined result.
+Takes N input items and yields N/size output items, where each output is the concatenation of size input items.
 
 #### Parameters
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
 | `source` | `AsyncIterable`\<`string`\> | The async iterable source of strings (tokens). |
-| `size` | `number` | The number of tokens to accumulate before yielding a merged token. |
-| `separator` | `string` | The string to use when joining tokens. |
+| `size` | `number` | The number of input tokens to group together in each output chunk. |
 
 ### diff()
 
@@ -211,4 +207,64 @@ for await (const chunk of stream) {
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
 | `iterator` | `AsyncIterable`\<`string`\> | An asynchronous iterable of strings. |
+
+### split()
+
+```ts
+function split(source: AsyncIterable<string>, separator: string): AsyncIterable<string>;
+```
+
+Takes incoming chunks, merges them, and then splits them by a string separator.
+
+#### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `source` | `AsyncIterable`\<`string`\> | The async iterable source of strings. |
+| `separator` | `string` | The string separator to split by. |
+
+### splitAfter()
+
+```ts
+function splitAfter(source: AsyncIterable<string>, separator: string): AsyncIterable<string>;
+```
+
+Takes incoming chunks, merges them, and then splits them by a string separator,
+keeping the separator at the end of each part (except the last).
+
+#### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `source` | `AsyncIterable`\<`string`\> | The async iterable source of strings. |
+| `separator` | `string` | The string separator to split by. |
+
+### splitBefore()
+
+```ts
+function splitBefore(source: AsyncIterable<string>, separator: string): AsyncIterable<string>;
+```
+
+Takes incoming chunks, merges them, and then splits them by a string separator,
+keeping the separator at the beginning of each part (except the first).
+
+#### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `source` | `AsyncIterable`\<`string`\> | The async iterable source of strings. |
+| `separator` | `string` | The string separator to split by. |
+
+### tee()
+
+```ts
+function tee<T>(iterator: AsyncIterator<T>, n: number): AsyncIterable<T, any, any>[];
+```
+
+#### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `iterator` | `AsyncIterator`\<`T`\> |
+| `n` | `number` |
 
