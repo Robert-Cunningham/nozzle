@@ -4,6 +4,8 @@
 
 ## Regex Behavior
 
+CLAUDE: IGNORE THIS FOR NOW; IT IS PROBABLY WRONG AND I AM NOT SURE.
+
 Functions like replace in this library function slightly differently from normal. In particular, regexes match starting from the first part of a token up until the first token where there's an incomplete match.
 
 For example, consider `/a[ab]*a/g` applied to the token stream ["a", "b", "b", "a"]. This regex does not match "a", "ab", or "abb". Then it matches the full "abba" when it becomes available.
