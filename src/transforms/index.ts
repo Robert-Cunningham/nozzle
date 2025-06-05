@@ -1,5 +1,6 @@
 export { accumulate } from "./accumulate"
 export { after } from "./after"
+export { asyncMap } from "./asyncMap"
 export { before } from "./before"
 export { asString } from "./asString"
 export { asList } from "./asList"

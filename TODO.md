@@ -1,5 +1,4 @@
 - fix before() function, which is subtly broken
-- explain the regex invariant.
   [done] add throttle, which collects all the tokens and lets them through at most once every n ms
 - minimum inter-token delay, which allows you to do stuff like 100ms per token simulated streaming
 - [done] write a .replaceAll function
@@ -10,3 +9,4 @@
 - write a reduce() equivalent?
 - write a good asyncMap function
 - document regex no backreferences, lookaheads, or lookbehinds.
+- generally explain how regexes work
