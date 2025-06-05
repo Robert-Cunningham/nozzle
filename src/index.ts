@@ -3,13 +3,13 @@ import * as tx from "./transforms"
 import { StringIterable } from "./types"
 
 // 1. the callable builder
-function _p<T>(src: StringIterable<T>) {
+function _p(src: StringIterable) {
   return new Pipeline(src)
 }
 
 // 2. merge in the stand-alone helpers *at type level*
 export const p: {
-  <T>(src: StringIterable<T>): Pipeline<T>
+  (src: StringIterable): Pipeline
 } & typeof tx = Object.assign(_p, tx)
 
 // re-export everything else for tree-shaking users

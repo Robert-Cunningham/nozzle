@@ -4,32 +4,32 @@
 
 ## Classes
 
-### Pipeline\<T\>
+### Pipeline
 
 #### Implements
 
-- `AsyncIterable`\<`T`\>
+- `AsyncIterable`\<`string`\>
 
 #### Constructors
 
 ##### Constructor
 
 ```ts
-new Pipeline<T>(src: AnyIterable<T>): Pipeline<T>;
+new Pipeline(src: StringIterable): Pipeline;
 ```
 
 ###### Parameters
 
 | Parameter | Type |
 | ------ | ------ |
-| `src` | `AnyIterable`\<`T`\> |
+| `src` | `StringIterable` |
 
 ###### Methods
 
 ##### \[asyncIterator\]()
 
 ```ts
-asyncIterator: AsyncIterator<T, any, any>;
+asyncIterator: AsyncIterator<string, any, any>;
 ```
 
 #### Variables
@@ -37,7 +37,7 @@ asyncIterator: AsyncIterator<T, any, any>;
 ### p
 
 ```ts
-const p: <T>(src: AnyIterable<T>) => Pipeline<T> & typeof tx;
+const p: (src: StringIterable) => Pipeline & typeof tx;
 ```
 
 ## Functions
@@ -45,7 +45,7 @@ const p: <T>(src: AnyIterable<T>) => Pipeline<T> & typeof tx;
 ### after()
 
 ```ts
-function after<T>(src: AnyIterable<T>, pattern: RegExp): AsyncIterable<T>;
+function after(src: StringIterable, pattern: RegExp): AsyncIterable<string>;
 ```
 
 Emit everything **after** the first chunk that matches `pattern`.
@@ -64,6 +64,6 @@ for await (const chunk of stream) {
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
-| `src` | `AnyIterable`\<`T`\> | stream or iterable to scan |
+| `src` | `StringIterable` | stream or iterable to scan |
 | `pattern` | `RegExp` | first `RegExp` that marks the cut-off |
 
