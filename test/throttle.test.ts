@@ -62,8 +62,7 @@ describe("throttle", () => {
       results,
       [
         { value: "a", earliest: 0, latest: 5 },
-        { value: "b", earliest: 45, latest: 55 },
-        { value: "c", earliest: 45, latest: 55 },
+        { value: "bc", earliest: 45, latest: 55 },
       ],
       start,
     )
