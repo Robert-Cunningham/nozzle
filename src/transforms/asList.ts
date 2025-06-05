@@ -10,8 +10,8 @@
  * console.log(result) // => ["Hello", "World", "!"]
  * ```
  */
-export const asList = async (iterator: AsyncIterable<string>): Promise<string[]> => {
-  const result: string[] = []
+export const asList = async <T>(iterator: AsyncIterable<T>): Promise<T[]> => {
+  const result: T[] = []
   for await (const text of iterator) {
     result.push(text)
   }
