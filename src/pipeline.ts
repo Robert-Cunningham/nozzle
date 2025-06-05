@@ -1,7 +1,7 @@
 import * as tx from "./transforms"
 import { StringIterable } from "./types"
 
-/*
+/** @hidden
  * A pipeline of transformations.
  * @example
  * ```ts

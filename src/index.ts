@@ -8,6 +8,7 @@ function _p(src: StringIterable) {
 }
 
 // 2. merge in the stand-alone helpers *at type level*
+/** @hidden */
 export const p: {
   (src: StringIterable): Pipeline
 } & typeof tx = Object.assign(_p, tx)
