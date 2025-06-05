@@ -12,6 +12,11 @@ export async function* throttle<T>(
   source: AsyncIterable<T>,
   intervalMs: number,
 ): AsyncIterable<T> {
+  if (intervalMs === 0) {
+    yield* source
+    return
+  }
+
   const iterator = source[Symbol.asyncIterator]()
   let isFirstChunk = true
   let lastYieldTime = 0
@@ -38,40 +43,62 @@ export async function* throttle<T>(
         yield value
         lastYieldTime = now
       } else {
-        // Need to batch - start with current item
+        // Need to batch - start with current item and wait for the interval
         const batch = [value]
-        const remainingTime = intervalMs - timeSinceLastYield
+        const targetTime = lastYieldTime + intervalMs
         
-        // Wait for the remaining time
-        await new Promise(resolve => setTimeout(resolve, remainingTime))
-        
-        // Now collect ALL items that are available in the source
-        // This implements true batching by draining available items
-        try {
-          while (true) {
-            const nextResult = await iterator.next()
-            
-            if (nextResult.done) {
-              // Source finished
-              if (nextResult.value !== undefined) {
-                batch.push(nextResult.value)
-              }
-              break
-            } else {
-              // Got another item
-              batch.push(nextResult.value)
+        // Collect items until source is exhausted or timeout
+        let sourceExhausted = false
+        while (!sourceExhausted && Date.now() < targetTime) {
+          const timeRemaining = targetTime - Date.now()
+          
+          // Create timeout for remaining time
+          const timeoutPromise = new Promise<{ timeout: true }>((resolve) => 
+            setTimeout(() => resolve({ timeout: true }), timeRemaining)
+          )
+          
+          // Try to get next item
+          const nextItemPromise = iterator.next()
+          
+          const result = await Promise.race([nextItemPromise, timeoutPromise])
+          
+          if ('timeout' in result) {
+            // Timeout - we're done collecting for this batch
+            break
+          } else if (result.done) {
+            // Source finished
+            if (result.value !== undefined) {
+              batch.push(result.value)
             }
+            sourceExhausted = true
+          } else {
+            // Got another item for the batch
+            batch.push(result.value)
           }
-        } catch {
-          // Iterator might throw when exhausted, that's ok
         }
         
-        // Yield all items in the batch
-        yield* batch
+        // Always wait until target time (even if source is exhausted)
+        const timeRemaining = targetTime - Date.now()
+        if (timeRemaining > 0) {
+          await new Promise(resolve => setTimeout(resolve, timeRemaining))
+        }
+        
+        // Yield the batch (we've waited the full interval)
+        if (batch.length === 1) {
+          yield batch[0]
+        } else if (batch.every(item => typeof item === 'string')) {
+          // All items are strings, concatenate them
+          yield batch.join('') as T
+        } else {
+          // Mixed types or non-strings, yield separately  
+          yield* batch
+        }
         lastYieldTime = Date.now()
         
-        // If source is done, break
-        break
+        // If source is exhausted, we're done
+        if (sourceExhausted) {
+          return
+        }
       }
     }
   }
