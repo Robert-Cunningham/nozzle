@@ -1,6 +1,13 @@
 import * as tx from "./transforms"
 import { AnyIterable } from "./types"
 
+/*
+ * A pipeline of transformations.
+ * @example
+ * ```ts
+ * const pipeline = new Pipeline(streamOf(["a", "b", "c", "d", "e"]))
+ * ```
+ */
 export class Pipeline<T> implements AsyncIterable<T> {
   constructor(private readonly src: AnyIterable<T>) {}
 

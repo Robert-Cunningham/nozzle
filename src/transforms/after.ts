@@ -5,6 +5,14 @@ import { AnyIterable } from "../types"
  * @param src     stream or iterable to scan
  * @param pattern first `RegExp` that marks the cut-off
  * @returns async stream with the leading section removed
+ * @example
+ * ```ts
+ * const stream = after(streamOf(["a", "b", "c", "d", "e"]), /bc/)
+ * for await (const chunk of stream) {
+ *   console.log(chunk)
+ * }
+ * // => ["d", "e"]
+ * ```
  */
 
 export function after<T extends string>(

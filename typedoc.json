@@ -13,12 +13,14 @@
 
   /* nicer code blocks like lodash.com */
   "useCodeBlocks": true,
-
+  "disableSources": true,
+  "theme": "default",
   /* compact indexes – list instead of tables */
   "indexFormat": "list",
 
   /* keep your @example blocks right after the summary text */
   "blockTagsPreserveOrder": ["@example"],
+  "expandParameters": true,
   "parametersFormat": "table",
   "propertiesFormat": "table",
   "typeDeclarationFormat": "table"
