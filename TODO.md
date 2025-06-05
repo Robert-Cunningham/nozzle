@@ -2,6 +2,6 @@
 - explain the regex invariant.
   [done] add throttle, which collects all the tokens and lets them through at most once every n ms
 - minimum inter-token delay, which allows you to do stuff like 100ms per token simulated streaming
-- write a .replaceAll function
+- write a .replaceAll function => does the current
 - write a .endIf function ? which ends if something is detected in the stream?
 - try to write the JSON thing and see if there's any way to make it easier.
