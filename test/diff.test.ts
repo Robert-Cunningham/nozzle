@@ -1,7 +1,7 @@
 import { describe, test, expect } from "vitest"
-import { diff } from "./diff"
-import { fromList } from "./fromList"
-import { asList } from "./asList"
+import { diff } from "../src/transforms/diff"
+import { fromList } from "../src/transforms/fromList"
+import { asList } from "../src/transforms/asList"
 
 describe("diff", () => {
   test("should yield the difference between consecutive strings", async () => {

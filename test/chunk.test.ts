@@ -1,7 +1,7 @@
 import { describe, test, expect } from "vitest"
-import { chunk } from "./chunk"
-import { fromList } from "./fromList"
-import { asList } from "./asList"
+import { chunk } from "../src/transforms/chunk"
+import { fromList } from "../src/transforms/fromList"
+import { asList } from "../src/transforms/asList"
 
 describe("chunk", () => {
   test("should chunk tokens by size with separator", async () => {

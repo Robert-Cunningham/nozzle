@@ -1,6 +1,6 @@
 import { describe, test, expect } from "vitest"
-import { fromList } from "./fromList"
-import { asList } from "./asList"
+import { fromList } from "../src/transforms/fromList"
+import { asList } from "../src/transforms/asList"
 
 describe("fromList", () => {
   test("should convert array to async iterator", async () => {

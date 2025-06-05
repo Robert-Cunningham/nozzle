@@ -1,7 +1,7 @@
 import { describe, test, expect } from "vitest"
-import { last } from "./last"
-import { fromList } from "./fromList"
-import { asList } from "./asList"
+import { last } from "../src/transforms/last"
+import { fromList } from "../src/transforms/fromList"
+import { asList } from "../src/transforms/asList"
 
 describe("last", () => {
   test("should yield only the last value", async () => {

@@ -1,6 +1,6 @@
 import { describe, test, expect } from "vitest"
-import { asString } from "./asString"
-import { fromList } from "./fromList"
+import { asString } from "../src/transforms/asString"
+import { fromList } from "../src/transforms/fromList"
 
 describe("asString", () => {
   test("should accumulate all strings into one", async () => {

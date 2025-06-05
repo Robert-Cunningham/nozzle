@@ -1,7 +1,7 @@
 import { describe, test, expect } from "vitest"
-import { first } from "./first"
-import { fromList } from "./fromList"
-import { asList } from "./asList"
+import { first } from "../src/transforms/first"
+import { fromList } from "../src/transforms/fromList"
+import { asList } from "../src/transforms/asList"
 
 describe("first", () => {
   test("should yield only the first value", async () => {

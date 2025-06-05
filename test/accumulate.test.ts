@@ -1,7 +1,7 @@
 import { describe, test, expect } from "vitest"
-import { accumulate } from "./accumulate"
-import { fromList } from "./fromList"
-import { asList } from "./asList"
+import { accumulate } from "../src/transforms/accumulate"
+import { fromList } from "../src/transforms/fromList"
+import { asList } from "../src/transforms/asList"
 
 describe("accumulate", () => {
   test("should yield the accumulated string at each step", async () => {
