@@ -1,4 +1,4 @@
-import { AnyIterable } from "../types"
+import { StringIterable } from "../types"
 
 /**
  * Emit everything **after** the first chunk that matches `pattern`.
@@ -15,10 +15,10 @@ import { AnyIterable } from "../types"
  * ```
  */
 
-export function after<T extends string>(
-  src: AnyIterable<T>,
+export function after(
+  src: StringIterable,
   pattern: RegExp,
-): AsyncIterable<T> {
+): AsyncIterable<string> {
   async function* gen() {
     let seen = false
     for await (const chunk of src) {

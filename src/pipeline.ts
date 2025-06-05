@@ -1,5 +1,5 @@
 import * as tx from "./transforms"
-import { AnyIterable } from "./types"
+import { StringIterable } from "./types"
 
 /*
  * A pipeline of transformations.
@@ -8,20 +8,20 @@ import { AnyIterable } from "./types"
  * const pipeline = new Pipeline(streamOf(["a", "b", "c", "d", "e"]))
  * ```
  */
-export class Pipeline<T> implements AsyncIterable<T> {
-  constructor(private readonly src: AnyIterable<T>) {}
+export class Pipeline implements AsyncIterable<string> {
+  constructor(private readonly src: StringIterable) {}
 
   // ---- 1-to-1 wrappers ------------------------------------
   after(pattern: RegExp) {
-    return new Pipeline(tx.after(this.src as AnyIterable<string>, pattern))
+    return new Pipeline(tx.after(this.src as StringIterable, pattern))
   }
 
   // ---- terminator -----------------------------------------
-  value(): AnyIterable<T> {
+  value(): StringIterable {
     return this.src
   }
 
   [Symbol.asyncIterator]() {
-    return (this.src as AsyncIterable<T>)[Symbol.asyncIterator]()
+    return (this.src as AsyncIterable<string>)[Symbol.asyncIterator]()
   }
 }
