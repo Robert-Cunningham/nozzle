@@ -1,0 +1,2 @@
+- fix before() function, which is subtly broken
+- explain the regex invariant.
