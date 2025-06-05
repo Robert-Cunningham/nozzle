@@ -1,6 +1,6 @@
 **my-ts-lib v0.0.0**
 
-***
+---
 
 # Partial
 
@@ -11,7 +11,7 @@
 ### after()
 
 ```ts
-function after(src: StringIterable, pattern: RegExp): AsyncIterable<string>;
+function after(src: StringIterable, pattern: RegExp): AsyncIterable<string>
 ```
 
 Emit everything **after** the first chunk that matches `pattern`.
@@ -28,13 +28,7 @@ for await (const chunk of stream) {
 
 #### Parameters
 
-| Parameter | Type | Description |
-| ------ | ------ | ------ |
-| `src` | `StringIterable` | stream or iterable to scan |
-| `pattern` | `RegExp` | first `RegExp` that marks the cut-off |
-
-#### Returns
-
-`AsyncIterable`\<`string`\>
-
-async stream with the leading section removed
+| Parameter | Type             | Description                           |
+| --------- | ---------------- | ------------------------------------- |
+| `src`     | `StringIterable` | stream or iterable to scan            |
+| `pattern` | `RegExp`         | first `RegExp` that marks the cut-off |

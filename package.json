@@ -21,7 +21,7 @@
     "test": "vitest run",
     "docs": "typedoc && pnpm run clean-docs",
     "prepublishOnly": "pnpm run build",
-    "clean-docs": "find docs -name '*.md' -print0 | xargs -0 -I {} perl -i -0777 -pe 's/#### (Type Parameters|Returns)(?:\n((?:(?!^#{2,4} ).)*))?//smg' {}"
+    "clean-docs": "find . -name '*.md' -print0 | xargs -0 -I {} perl -i -0777 -pe 's/#### (Type Parameters|Returns)(?:\n((?:(?!^#{2,4} ).)*))?//smg' {}"
   },
   "license": "MIT",
   "devDependencies": {
