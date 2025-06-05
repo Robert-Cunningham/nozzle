@@ -1,9 +1,11 @@
+import { earliestPossibleMatchIndex } from "../regex"
+
 /**
  * Replaces matches of a regex pattern with a replacement string in the input stream.
  * 
- * The regex matching follows a specific behavior where it always tries to match
- * the longest possible string first. If a longer string doesn't match, it returns
- * the previous successful match.
+ * Uses earliestPossibleMatchIndex to efficiently yield tokens as soon as we know
+ * they don't match the regex, while holding back potential matches until we can
+ * determine if they should be replaced.
  *
  * @param iterator - An asynchronous iterable of strings.
  * @param regex - The regular expression pattern to match.
@@ -20,56 +22,96 @@
  * ```
  */
 export const replace = async function* (iterator: AsyncIterable<string>, regex: RegExp, replacement: string) {
-  let accumulator = ""
-  
-  for await (const chunk of iterator) {
-    accumulator += chunk
-  }
-  
-  // Implement the incremental matching behavior described in header.md
+  let buffer = ""
   const isGlobal = regex.flags.includes('g')
   const nonGlobalRegex = new RegExp(regex.source, regex.flags.replace('g', ''))
+  const partialRegex = (nonGlobalRegex as any).toPartialMatchRegex()
+  let hasReplacedForNonGlobal = false
   
-  let result = ""
-  let pos = 0
-  
-  while (pos < accumulator.length) {
-    let bestMatch: RegExpMatchArray | null = null
-    let bestMatchEnd = pos
-    
-    // Try progressively longer substrings starting from pos
-    for (let end = pos + 1; end <= accumulator.length; end++) {
-      const substring = accumulator.slice(pos, end)
-      const match = substring.match(nonGlobalRegex)
+  async function* processBuffer(isEndOfInput = false) {
+    while (buffer.length > 0) {
+      // If we've already replaced for a non-global regex, yield everything remaining
+      if (!isGlobal && hasReplacedForNonGlobal) {
+        yield buffer
+        buffer = ""
+        break
+      }
       
+      // Check if we have a complete match at position 0
+      const match = buffer.match(nonGlobalRegex)
       if (match && match.index === 0) {
-        // Found a match at the beginning of substring
-        bestMatch = match
-        bestMatchEnd = pos + match[0].length
-      } else if (bestMatch) {
-        // Previous substring matched but this one doesn't - use the previous match
-        break
+        // Find the longest possible match by trying progressively longer substrings
+        let bestMatch = match
+        let bestMatchLength = match[0].length
+        
+        for (let end = bestMatchLength + 1; end <= buffer.length; end++) {
+          const substring = buffer.slice(0, end)
+          const longerMatch = substring.match(nonGlobalRegex)
+          
+          if (longerMatch && longerMatch.index === 0) {
+            bestMatch = longerMatch
+            bestMatchLength = longerMatch[0].length
+          } else {
+            break
+          }
+        }
+        
+        // We have a complete match, replace it
+        const replacedText = bestMatch[0].replace(nonGlobalRegex, replacement)
+        yield replacedText
+        buffer = buffer.slice(bestMatchLength)
+        
+        if (!isGlobal) {
+          hasReplacedForNonGlobal = true
+        }
+        continue
       }
-    }
-    
-    if (bestMatch) {
-      // Replace the match with proper group substitution
-      result += bestMatch[0].replace(nonGlobalRegex, replacement)
-      pos = bestMatchEnd
       
-      // For non-global regex, append the rest and stop
-      if (!isGlobal) {
-        result += accumulator.slice(pos)
+      // No complete match at position 0, check for partial match
+      const partialMatch = buffer.match(partialRegex)
+      if (partialMatch && partialMatch.index === 0) {
+        // There's a partial match starting at position 0
+        if (isEndOfInput) {
+          // At end of input, no more data coming, yield first character
+          yield buffer[0]
+          buffer = buffer.slice(1)
+        } else {
+          // We need more input to determine if this becomes a complete match
+          break
+        }
+        continue
+      }
+      
+      // No match or partial match starting at position 0
+      // Find the earliest possible match position in the buffer
+      const earliestMatchPos = earliestPossibleMatchIndex(buffer, nonGlobalRegex)
+      
+      if (earliestMatchPos === -1) {
+        // No possible match in the entire buffer, yield everything
+        yield buffer
+        buffer = ""
         break
       }
-    } else {
-      // No match at this position, add the character and move forward
-      result += accumulator[pos]
-      pos++
+      
+      // Yield everything before the earliest possible match
+      if (earliestMatchPos > 0) {
+        yield buffer.slice(0, earliestMatchPos)
+        buffer = buffer.slice(earliestMatchPos)
+        continue
+      }
+      
+      // This should not happen - earliestMatchPos is 0 but no match/partial match
+      // Yield first character to make progress
+      yield buffer[0]
+      buffer = buffer.slice(1)
     }
   }
   
-  if (result) {
-    yield result
+  for await (const chunk of iterator) {
+    buffer += chunk
+    yield* processBuffer(false)
   }
+  
+  // Process any remaining buffer after input is exhausted
+  yield* processBuffer(true)
 }
