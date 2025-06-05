@@ -25,7 +25,7 @@ describe("replace", () => {
     )
     // TODO: This should be ["X"] but the longest match detection logic is broken
     // Currently only matches "aa" instead of the full "aabba"
-    expect(result).toEqual(["X", "b", "b", "a"])
+    expect(result).toEqual(["X"])
   })
 
   test("should handle Response whitespace pattern", async () => {

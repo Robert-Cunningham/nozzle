@@ -21,114 +21,65 @@ import { earliestPossibleMatchIndex } from "../regex"
  * // => ["X"]
  * ```
  */
-export const replace = async function* (
-  iterator: AsyncIterable<string>,
+export async function* replace(
+  input: AsyncIterable<string>,
   regex: RegExp,
   replacement: string,
 ) {
+  // Force a non-global clone for the searches we do at buffer-start.
+  const base = new RegExp(regex.source, regex.flags.replace(/g/g, ""))
+  const isGlobal = regex.global
+
   let buffer = ""
-  const isGlobal = regex.flags.includes("g")
-  const nonGlobalRegex = new RegExp(regex.source, regex.flags.replace("g", ""))
-  const partialRegex = (nonGlobalRegex as any).toPartialMatchRegex()
-  let hasReplacedForNonGlobal = false
+  let replaced = false // tracks “done” for non-global mode
 
-  async function* processBuffer(isEndOfInput = false) {
-    while (buffer.length > 0) {
-      // If we've already replaced for a non-global regex, yield everything remaining
-      if (!isGlobal && hasReplacedForNonGlobal) {
+  /** Flush everything we’re *certain* can no longer change */
+  async function* flush(endOfInput = false): AsyncGenerator<string> {
+    while (buffer) {
+      // Non-global: once we’ve replaced once, nothing else changes
+      if (!isGlobal && replaced) {
         yield buffer
         buffer = ""
-        break
+        return
       }
 
-      // Check if we have a complete match at position 0
-      const fullBufferMatch = buffer.match(nonGlobalRegex)
-      if (fullBufferMatch && fullBufferMatch.index === 0) {
-        // We have a match starting at position 0
-        const matchLength = fullBufferMatch[0].length
-
-        // If the match ends at the buffer boundary and we're not at end of input, wait for more data
-        // This ensures we get the longest possible match
-        if (matchLength === buffer.length && !isEndOfInput) {
-          break
-        }
-
-        // For greedy patterns (.*), be more conservative and wait for more input
-        // unless we're confident this is the longest possible match
-        if (!isEndOfInput) {
-          // && regex.source.includes('.*')) {
-          // Check if the buffer could be extended to form a longer match
-          // by testing with potential continuation characters
-          const testBuffer = buffer + "2```" // Test with what would complete another block
-          const testMatch = testBuffer.match(nonGlobalRegex)
-          if (
-            testMatch &&
-            testMatch.index === 0 &&
-            testMatch[0].length > matchLength
-          ) {
-            break
-          }
-        }
-
-        // We have a complete match, replace it
-        const replacedText = fullBufferMatch[0].replace(
-          nonGlobalRegex,
-          replacement,
-        )
-        yield replacedText
-        buffer = buffer.slice(matchLength)
-
-        if (!isGlobal) {
-          hasReplacedForNonGlobal = true
-        }
-        continue
-      }
-
-      // No complete match at position 0, check for partial match
-      const partialMatch = buffer.match(partialRegex)
-      if (partialMatch && partialMatch.index === 0) {
-        // There's a partial match starting at position 0
-        if (isEndOfInput) {
-          // At end of input, no more data coming, yield first character
-          yield buffer[0]
-          buffer = buffer.slice(1)
-        } else {
-          // We need more input to determine if this becomes a complete match
-          break
-        }
-        continue
-      }
-
-      // No match or partial match starting at position 0
-      // Find the earliest possible match position in the buffer
-      const earliestMatch = earliestPossibleMatchIndex(buffer, nonGlobalRegex)
-
-      if (earliestMatch.start === buffer.length) {
-        // No possible match in the entire buffer, yield everything
+      if (endOfInput) {
+        // match anything we have and return.
+        buffer = buffer.replace(base, replacement)
         yield buffer
         buffer = ""
-        break
-      }
-
-      // Yield everything before the earliest possible match
-      if (earliestMatch.start > 0) {
-        yield buffer.slice(0, earliestMatch.start)
-        buffer = buffer.slice(earliestMatch.start)
         continue
       }
 
-      // This should not happen - earliestMatch.start is 0 but no match/partial match
-      // Yield first character to make progress
-      yield buffer[0]
-      buffer = buffer.slice(1)
+      const { start, end } = earliestPossibleMatchIndex(buffer, base)
+      // console.log( "buffer", buffer, "base", base, "start", start, "end", end, "len", buffer.length,)
+
+      // yield anything which cannot be matched.
+      if (start > 0) {
+        yield buffer.slice(0, start)
+        buffer = buffer.slice(start)
+        continue
+      }
+
+      // if end === buffer.length, there's a possible match still being built, and we should do nothing.
+      // if we actually have a match starting at {start} and ending before the end of the buffer, yield it.
+
+      if (end < buffer.length) {
+        const source = buffer.slice(0, end)
+        yield source.replace(base, replacement)
+        buffer = buffer.slice(end)
+        replaced = true
+        continue
+      }
+
+      break
     }
   }
 
-  for await (const chunk of iterator) {
+  // ───────────────────────── Main loop ─────────────────────────
+  for await (const chunk of input) {
     buffer += chunk
-    yield* processBuffer(false)
+    yield* flush() // not end-of-input yet
   }
-
-  // Process any remaining buffer after input is exhausted
-  yield* processBuffer(true)
+  yield* flush(true) // final flush
 }
