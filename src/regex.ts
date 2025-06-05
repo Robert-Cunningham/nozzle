@@ -152,7 +152,12 @@ type PartialMatchRegex = RegExp & {
   return new RegExp(process(), this.flags)
 }
 
-export function earliestPossibleMatchIndex(text: string, regex: RegExp): number {
-  const match = regex.exec(text)
-  return match ? match.index : -1
+export function earliestPossibleMatchIndex(
+  text: string,
+  regex: RegExp,
+): { start: number; end: number } {
+  const match = (regex as PartialMatchRegex).toPartialMatchRegex().exec(text)
+  return match
+    ? { start: match.index, end: match.index + match[0].length }
+    : { start: text.length, end: text.length }
 }

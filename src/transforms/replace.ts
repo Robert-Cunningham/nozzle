@@ -56,6 +56,11 @@ export const replace = async function* (iterator: AsyncIterable<string>, regex: 
           }
         }
         
+        // If the match ends at the buffer boundary and we're not at end of input, wait for more data
+        if (bestMatchLength === buffer.length && !isEndOfInput) {
+          break
+        }
+        
         // We have a complete match, replace it
         const replacedText = bestMatch[0].replace(nonGlobalRegex, replacement)
         yield replacedText
@@ -84,9 +89,9 @@ export const replace = async function* (iterator: AsyncIterable<string>, regex: 
       
       // No match or partial match starting at position 0
       // Find the earliest possible match position in the buffer
-      const earliestMatchPos = earliestPossibleMatchIndex(buffer, nonGlobalRegex)
+      const earliestMatch = earliestPossibleMatchIndex(buffer, nonGlobalRegex)
       
-      if (earliestMatchPos === -1) {
+      if (earliestMatch.start === buffer.length) {
         // No possible match in the entire buffer, yield everything
         yield buffer
         buffer = ""
@@ -94,13 +99,13 @@ export const replace = async function* (iterator: AsyncIterable<string>, regex: 
       }
       
       // Yield everything before the earliest possible match
-      if (earliestMatchPos > 0) {
-        yield buffer.slice(0, earliestMatchPos)
-        buffer = buffer.slice(earliestMatchPos)
+      if (earliestMatch.start > 0) {
+        yield buffer.slice(0, earliestMatch.start)
+        buffer = buffer.slice(earliestMatch.start)
         continue
       }
       
-      // This should not happen - earliestMatchPos is 0 but no match/partial match
+      // This should not happen - earliestMatch.start is 0 but no match/partial match
       // Yield first character to make progress
       yield buffer[0]
       buffer = buffer.slice(1)
