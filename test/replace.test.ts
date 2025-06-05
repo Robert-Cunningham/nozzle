@@ -605,4 +605,22 @@ describe("replace", () => {
       )
     })
   })
+
+  test("should handle json blocks", async () => {
+    const input = fromList(["```json", "{}", "```"])
+    const result = replace(input, /```json\s*\n?.*?\n?```/gs, "[json]")
+    expect(await asString(result)).toBe("[json]")
+  })
+
+  test("should handle double json blocks", async () => {
+    const input = fromList(["```json", "1", "```", "```json", "2", "```"])
+    const result = await asString(replace(input, /```json.*?```/gms, "[json]"))
+    expect(result).toBe("[json][json]")
+  })
+
+  test("should handle double json blocks", async () => {
+    const input = fromList(["```json", "1", "```", "```json", "2", "```"])
+    const result = await asString(replace(input, /```json.*```/gms, "[json]"))
+    expect(result).toBe("[json]")
+  })
 })
