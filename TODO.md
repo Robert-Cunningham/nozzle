@@ -4,9 +4,10 @@
 - [done] write a .replaceAll function
 - [done] write a .match function
 - group functions in a more reasonable way for the documentation / make the docs easier to skim
-- write a .endIf function ? which ends if something is detected in the stream?
-- try to write the JSON thing and see if there's any way to make it easier.
 - write a reduce() equivalent?
-- write a good asyncMap function
+- [done] write a good asyncMap function
 - document regex no backreferences, lookaheads, or lookbehinds.
 - generally explain how regexes work
+
+- write a .endIf function ? which ends if something is detected in the stream?
+- try to write the JSON thing and see if there's any way to make it easier.
