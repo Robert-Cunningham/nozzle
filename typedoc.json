@@ -7,5 +7,19 @@
   "hideBreadcrumbs": true,
   "includeVersion": true,
   // –– single-file output ––––––––––––––––––––––––––––
-  "router": "module" // or: "module", or default multipage
+  "router": "module", // or: "module", or default multipage
+
+  "hidePageTitle": true,
+
+  /* nicer code blocks like lodash.com */
+  "useCodeBlocks": true,
+
+  /* compact indexes – list instead of tables */
+  "indexFormat": "list",
+
+  /* keep your @example blocks right after the summary text */
+  "blockTagsPreserveOrder": ["@example"],
+  "parametersFormat": "table",
+  "propertiesFormat": "table",
+  "typeDeclarationFormat": "table"
 }

@@ -1,20 +1,18 @@
 **my-ts-lib v0.0.0**
 
-***
-
-# my-ts-lib v0.0.0
+---
 
 ## Classes
 
 ### Pipeline\<T\>
 
-Defined in: [pipeline.ts:4](https://github.com/Robert-Cunningham/partial/blob/ee430098f5401b046db6a637f4a926420101ad8c/src/pipeline.ts#L4)
+Defined in: [pipeline.ts:4](https://github.com/Robert-Cunningham/partial/blob/13bf2e98014796b8f841a27e6072095d0d9afae4/src/pipeline.ts#L4)
 
 #### Type Parameters
 
-##### T
-
-`T`
+| Type Parameter |
+| -------------- |
+| `T`            |
 
 #### Implements
 
@@ -24,15 +22,17 @@ Defined in: [pipeline.ts:4](https://github.com/Robert-Cunningham/partial/blob/ee
 
 ##### Constructor
 
-> **new Pipeline**\<`T`\>(`src`): [`Pipeline`](#pipeline)\<`T`\>
+```ts
+new Pipeline<T>(src): Pipeline<T>;
+```
 
-Defined in: [pipeline.ts:5](https://github.com/Robert-Cunningham/partial/blob/ee430098f5401b046db6a637f4a926420101ad8c/src/pipeline.ts#L5)
+Defined in: [pipeline.ts:5](https://github.com/Robert-Cunningham/partial/blob/13bf2e98014796b8f841a27e6072095d0d9afae4/src/pipeline.ts#L5)
 
 ###### Parameters
 
-###### src
-
-`AnyIterable`\<`T`\>
+| Parameter | Type                 |
+| --------- | -------------------- |
+| `src`     | `AnyIterable`\<`T`\> |
 
 ###### Returns
 
@@ -42,9 +42,11 @@ Defined in: [pipeline.ts:5](https://github.com/Robert-Cunningham/partial/blob/ee
 
 ##### \[asyncIterator\]()
 
-> **\[asyncIterator\]**(): `AsyncIterator`\<`T`, `any`, `any`\>
+```ts
+asyncIterator: AsyncIterator<T, any, any>
+```
 
-Defined in: [pipeline.ts:17](https://github.com/Robert-Cunningham/partial/blob/ee430098f5401b046db6a637f4a926420101ad8c/src/pipeline.ts#L17)
+Defined in: [pipeline.ts:17](https://github.com/Robert-Cunningham/partial/blob/13bf2e98014796b8f841a27e6072095d0d9afae4/src/pipeline.ts#L17)
 
 ###### Returns
 
@@ -52,19 +54,23 @@ Defined in: [pipeline.ts:17](https://github.com/Robert-Cunningham/partial/blob/e
 
 ###### Implementation of
 
-`AsyncIterable.[asyncIterator]`
+```ts
+AsyncIterable.[asyncIterator]
+```
 
 ##### after()
 
-> **after**(`pattern`): [`Pipeline`](#pipeline)\<`string`\>
+```ts
+after(pattern): Pipeline<string>;
+```
 
-Defined in: [pipeline.ts:8](https://github.com/Robert-Cunningham/partial/blob/ee430098f5401b046db6a637f4a926420101ad8c/src/pipeline.ts#L8)
+Defined in: [pipeline.ts:8](https://github.com/Robert-Cunningham/partial/blob/13bf2e98014796b8f841a27e6072095d0d9afae4/src/pipeline.ts#L8)
 
 ###### Parameters
 
-###### pattern
-
-`RegExp`
+| Parameter | Type     |
+| --------- | -------- |
+| `pattern` | `RegExp` |
 
 ###### Returns
 
@@ -72,9 +78,11 @@ Defined in: [pipeline.ts:8](https://github.com/Robert-Cunningham/partial/blob/ee
 
 ##### value()
 
-> **value**(): `AnyIterable`\<`T`\>
+```ts
+value(): AnyIterable<T>;
+```
 
-Defined in: [pipeline.ts:13](https://github.com/Robert-Cunningham/partial/blob/ee430098f5401b046db6a637f4a926420101ad8c/src/pipeline.ts#L13)
+Defined in: [pipeline.ts:13](https://github.com/Robert-Cunningham/partial/blob/13bf2e98014796b8f841a27e6072095d0d9afae4/src/pipeline.ts#L13)
 
 ###### Returns
 
@@ -84,39 +92,36 @@ Defined in: [pipeline.ts:13](https://github.com/Robert-Cunningham/partial/blob/e
 
 ### p
 
-> `const` **p**: \<`T`\>(`src`) => [`Pipeline`](#pipeline)\<`T`\> & *typeof* `tx`
+```ts
+const p: <T>(src) => Pipeline<T> & typeof tx
+```
 
-Defined in: [index.ts:11](https://github.com/Robert-Cunningham/partial/blob/ee430098f5401b046db6a637f4a926420101ad8c/src/index.ts#L11)
+Defined in: [index.ts:11](https://github.com/Robert-Cunningham/partial/blob/13bf2e98014796b8f841a27e6072095d0d9afae4/src/index.ts#L11)
 
 ## Functions
 
 ### after()
 
-> **after**\<`T`\>(`src`, `pattern`): `AsyncIterable`\<`T`\>
+```ts
+function after<T>(src, pattern): AsyncIterable<T>
+```
 
-Defined in: [transforms/after.ts:10](https://github.com/Robert-Cunningham/partial/blob/ee430098f5401b046db6a637f4a926420101ad8c/src/transforms/after.ts#L10)
+Defined in: [transforms/after.ts:10](https://github.com/Robert-Cunningham/partial/blob/13bf2e98014796b8f841a27e6072095d0d9afae4/src/transforms/after.ts#L10)
 
 Emit everything **after** the first chunk that matches `pattern`.
 
 #### Type Parameters
 
-##### T
-
-`T` *extends* `string`
+| Type Parameter         |
+| ---------------------- |
+| `T` _extends_ `string` |
 
 #### Parameters
 
-##### src
-
-`AnyIterable`\<`T`\>
-
-stream or iterable to scan
-
-##### pattern
-
-`RegExp`
-
-first `RegExp` that marks the cut-off
+| Parameter | Type                 | Description                           |
+| --------- | -------------------- | ------------------------------------- |
+| `src`     | `AnyIterable`\<`T`\> | stream or iterable to scan            |
+| `pattern` | `RegExp`             | first `RegExp` that marks the cut-off |
 
 #### Returns
 
