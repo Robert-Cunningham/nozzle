@@ -1,8 +1,4 @@
-**partialjs v0.0.0**
-
----
-
-# Partial
+# Partial: Utility functions for handling partial LLM outputs
 
 [![npm version](https://badgen.net/npm/v/partialjs)](https://npm.im/partialjs) [![npm downloads](https://badgen.net/npm/dm/partialjs)](https://npm.im/partialjs)
 

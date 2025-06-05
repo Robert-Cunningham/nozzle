@@ -12,6 +12,7 @@
   "router": "module", // or: "module", or default multipage
 
   "hidePageTitle": true,
+  "hidePageHeader": true,
 
   /* nicer code blocks like lodash.com */
   "useCodeBlocks": true,
