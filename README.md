@@ -20,6 +20,7 @@ for await (const chunk of stream) {
   console.log(chunk)
 }
 // => ["This ", "This is ", "This is a ", "This is a test!"]
+```
 
 #### Parameters
 

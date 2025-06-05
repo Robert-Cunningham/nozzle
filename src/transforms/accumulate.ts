@@ -11,6 +11,7 @@
  *   console.log(chunk)
  * }
  * // => ["This ", "This is ", "This is a ", "This is a test!"]
+ * ```
  */
 // accumulate and yield partials: diffsToPrefixes
 export const accumulate = async function* (iterator: AsyncIterable<string>) {
