@@ -1,1 +1,1 @@
-export type StringIterable = Iterable<string> | AsyncIterable<string>
+export type StringIterable = AsyncIterable<string>

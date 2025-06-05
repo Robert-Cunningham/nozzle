@@ -1,16 +1,39 @@
-# Partial: Utility functions for handling partial LLM outputs
+# Partial
 
 [![npm version](https://badgen.net/npm/v/partialjs)](https://npm.im/partialjs) [![npm downloads](https://badgen.net/npm/dm/partialjs)](https://npm.im/partialjs)
 
 ## Functions
 
+### accumulate()
+
+```ts
+function accumulate(iterator: AsyncIterable<string>): AsyncGenerator<string, void, unknown>;
+```
+
+Yields a cumulative prefix of the input stream.
+
+#### Example
+
+```ts
+const stream = accumulate(streamOf(["This ", "is ", "a ", "test!"]))
+for await (const chunk of stream) {
+  console.log(chunk)
+}
+// => ["This ", "This is ", "This is a ", "This is a test!"]
+
+#### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `iterator` | `AsyncIterable`\<`string`\> | An asynchronous iterable of strings. |
+
 ### after()
 
 ```ts
-function after(src: StringIterable, pattern: RegExp): AsyncIterable<string>
+function after(source: StringIterable, pattern: RegExp): AsyncIterable<string>;
 ```
 
-Emit everything **after** the first chunk that matches `pattern`.
+Emit everything **after** the accumulated prefix that matches `pattern`.
 
 #### Example
 
@@ -24,7 +47,32 @@ for await (const chunk of stream) {
 
 #### Parameters
 
-| Parameter | Type             | Description                           |
-| --------- | ---------------- | ------------------------------------- |
-| `src`     | `StringIterable` | stream or iterable to scan            |
-| `pattern` | `RegExp`         | first `RegExp` that marks the cut-off |
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `source` | `StringIterable` | stream or iterable to scan |
+| `pattern` | `RegExp` | first `RegExp` that marks the cut-off |
+
+### diff()
+
+```ts
+function diff(iterator: AsyncIterable<string>): AsyncGenerator<string, void, unknown>;
+```
+
+Yields the difference between the current and previous string in the input stream.
+
+#### Example
+
+```ts
+const stream = diff(streamOf(["This ", "This is ", "This is a ", "This is a test!"]))
+for await (const chunk of stream) {
+  console.log(chunk)
+}
+// => ["This ", "is ", "a ", "test!"]
+```
+
+#### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `iterator` | `AsyncIterable`\<`string`\> | An asynchronous iterable of strings. |
+

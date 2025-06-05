@@ -1,8 +1,10 @@
 import { StringIterable } from "../types"
+import { accumulate } from "./accumulate"
+import { diff } from "./diff"
 
 /**
- * Emit everything **after** the first chunk that matches `pattern`.
- * @param src     stream or iterable to scan
+ * Emit everything **after** the accumulated prefix that matches `pattern`.
+ * @param source     stream or iterable to scan
  * @param pattern first `RegExp` that marks the cut-off
  * @returns async stream with the leading section removed
  * @example
@@ -15,16 +17,22 @@ import { StringIterable } from "../types"
  * ```
  */
 
-export function after(
-  src: StringIterable,
+export async function* after(
+  source: StringIterable,
   pattern: RegExp,
 ): AsyncIterable<string> {
-  async function* gen() {
-    let seen = false
-    for await (const chunk of src) {
-      if (seen) yield chunk
-      else if (pattern.test(chunk as unknown as string)) seen = true
+  const prefixes = accumulate(source)
+
+  const afterFilter = async function* () {
+    // start yielding after this is first broken.
+    for await (const prefix of prefixes) {
+      const match = pattern.exec(prefix)
+      if (match) {
+        yield prefix.slice(match.index + match[0].length)
+      }
     }
+    return ""
   }
-  return gen()
+
+  yield* diff(afterFilter())
 }
