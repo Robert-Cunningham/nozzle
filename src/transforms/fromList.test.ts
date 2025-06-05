@@ -1,33 +1,29 @@
-import { describe, test } from "vitest"
-import { aiter, assertAsyncIterableEqual } from "../../testing/utils"
+import { describe, test, expect } from "vitest"
 import { fromList } from "./fromList"
+import { asList } from "./asList"
 
 describe("fromList", () => {
   test("should convert array to async iterator", async () => {
-    const list = ["a", "b", "c"]
-    const result = fromList(list)
-    const expected = aiter(["a", "b", "c"])
-    await assertAsyncIterableEqual(result, expected)
+    const result = await asList(fromList(["a", "b", "c"]))
+    const expected = ["a", "b", "c"]
+    expect(result).toEqual(expected)
   })
 
   test("should handle empty array", async () => {
-    const list: string[] = []
-    const result = fromList(list)
-    const expected = aiter([])
-    await assertAsyncIterableEqual(result, expected)
+    const result = await asList(fromList([]))
+    const expected: string[] = []
+    expect(result).toEqual(expected)
   })
 
   test("should handle single item", async () => {
-    const list = ["lonely"]
-    const result = fromList(list)
-    const expected = aiter(["lonely"])
-    await assertAsyncIterableEqual(result, expected)
+    const result = await asList(fromList(["lonely"]))
+    const expected = ["lonely"]
+    expect(result).toEqual(expected)
   })
 
   test("should preserve empty strings", async () => {
-    const list = ["a", "", "b"]
-    const result = fromList(list)
-    const expected = aiter(["a", "", "b"])
-    await assertAsyncIterableEqual(result, expected)
+    const result = await asList(fromList(["a", "", "b"]))
+    const expected = ["a", "", "b"]
+    expect(result).toEqual(expected)
   })
 })
