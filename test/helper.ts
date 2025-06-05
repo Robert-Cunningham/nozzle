@@ -1,6 +1,6 @@
-export function* random(
+export async function* random(
   totalCharacters: number,
-): Generator<string, void, unknown> {
+): AsyncGenerator<string, void, unknown> {
   let remaining = totalCharacters
 
   while (remaining > 0) {
