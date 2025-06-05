@@ -6,7 +6,7 @@ import { asList } from "../src/transforms/asList"
 describe("tap", () => {
   test("should execute side effect for each value without modifying stream", async () => {
     const sideEffect = vi.fn()
-    const result = await asList(tap(sideEffect)(fromList(["a", "b", "c"])))
+    const result = await asList(tap(fromList(["a", "b", "c"]), sideEffect))
     
     expect(result).toEqual(["a", "b", "c"])
     expect(sideEffect).toHaveBeenCalledTimes(3)
@@ -17,7 +17,7 @@ describe("tap", () => {
 
   test("should handle an empty source", async () => {
     const sideEffect = vi.fn()
-    const result = await asList(tap(sideEffect)(fromList([])))
+    const result = await asList(tap(fromList([]), sideEffect))
     
     expect(result).toEqual([])
     expect(sideEffect).not.toHaveBeenCalled()
@@ -25,7 +25,7 @@ describe("tap", () => {
 
   test("should handle a source with a single item", async () => {
     const sideEffect = vi.fn()
-    const result = await asList(tap(sideEffect)(fromList(["lonely"])))
+    const result = await asList(tap(fromList(["lonely"]), sideEffect))
     
     expect(result).toEqual(["lonely"])
     expect(sideEffect).toHaveBeenCalledTimes(1)
@@ -34,7 +34,7 @@ describe("tap", () => {
 
   test("should handle empty strings in the source", async () => {
     const sideEffect = vi.fn()
-    const result = await asList(tap(sideEffect)(fromList(["", "b", ""])))
+    const result = await asList(tap(fromList(["", "b", ""]), sideEffect))
     
     expect(result).toEqual(["", "b", ""])
     expect(sideEffect).toHaveBeenCalledTimes(3)
@@ -45,7 +45,7 @@ describe("tap", () => {
 
   test("should work with console.log as side effect", async () => {
     const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {})
-    const result = await asList(tap(console.log)(fromList(["hello", "world"])))
+    const result = await asList(tap(fromList(["hello", "world"]), console.log))
     
     expect(result).toEqual(["hello", "world"])
     expect(consoleSpy).toHaveBeenCalledTimes(2)
