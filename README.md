@@ -1,10 +1,10 @@
-**my-ts-lib v0.0.0**
+**partialjs v0.0.0**
 
 ---
 
 # Partial
 
-[![npm version](https://badgen.net/npm/v/my-ts-lib)](https://npm.im/my-ts-lib) [![npm downloads](https://badgen.net/npm/dm/my-ts-lib)](https://npm.im/my-ts-lib)
+[![npm version](https://badgen.net/npm/v/partialjs)](https://npm.im/partialjs) [![npm downloads](https://badgen.net/npm/dm/partialjs)](https://npm.im/partialjs)
 
 ## Functions
 
