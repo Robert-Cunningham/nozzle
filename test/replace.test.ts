@@ -24,7 +24,7 @@ describe("replace", () => {
       replace(fromList(["a", "a", "b", "b", "a"]), /a[ab]*a/g, "X"),
     )
     // TODO: This should be ["X"] but the longest match detection logic is broken
-    // Currently only matches "aa" instead of the full "aabba" 
+    // Currently only matches "aa" instead of the full "aabba"
     expect(result).toEqual(["X", "b", "b", "a"])
   })
 
@@ -123,15 +123,28 @@ describe("replace", () => {
       const result = await asString(
         replace(
           fromList([
-            "Call me at (", "555", ")", " ", "123", "-", "4567", 
-            " or reach out to ", "800", ".", "555", ".", "0199", 
-            " for support."
+            "Call me at (",
+            "555",
+            ")",
+            " ",
+            "123",
+            "-",
+            "4567",
+            " or reach out to ",
+            "800",
+            ".",
+            "555",
+            ".",
+            "0199",
+            " for support.",
           ]),
           phoneRegex,
-          "[PHONE]"
-        )
+          "[PHONE]",
+        ),
       )
-      expect(result).toBe("Call me at [PHONE] or reach out to [PHONE] for support.")
+      expect(result).toBe(
+        "Call me at [PHONE] or reach out to [PHONE] for support.",
+      )
     })
 
     test("should replace email addresses split across multiple tokens", async () => {
@@ -139,13 +152,29 @@ describe("replace", () => {
       const result = await asString(
         replace(
           fromList([
-            "Contact ", "john", ".", "doe", "+", "test", "@", "example", 
-            ".", "com", " or ", "support", "@", "my", "-", "company", 
-            ".", "co", ".", "uk", " for help."
+            "Contact ",
+            "john",
+            ".",
+            "doe",
+            "+",
+            "test",
+            "@",
+            "example",
+            ".",
+            "com",
+            " or ",
+            "support",
+            "@",
+            "my",
+            "-",
+            "company",
+            ".",
+            "co",
+            " for help.",
           ]),
           emailRegex,
-          "[EMAIL]"
-        )
+          "[EMAIL]",
+        ),
       )
       expect(result).toBe("Contact [EMAIL] or [EMAIL] for help.")
     })
@@ -155,17 +184,43 @@ describe("replace", () => {
       const result = await asString(
         replace(
           fromList([
-            "Here's the config:\n", "```", "json", "\n", "{", "\n", 
-            '  "', "name", '": "', "test", '",', "\n", 
-            '  "', "version", '": "', "1.0", '"', "\n", 
-            "}", "\n", "```", "\n", "And another example: ", 
-            "```", "json", "\n", '{"simple": true}', "\n", "```"
+            "Here's the config:\n",
+            "```",
+            "json",
+            "\n",
+            "{",
+            "\n",
+            '  "',
+            "name",
+            '": "',
+            "test",
+            '",',
+            "\n",
+            '  "',
+            "version",
+            '": "',
+            "1.0",
+            '"',
+            "\n",
+            "}",
+            "\n",
+            "```",
+            "\n",
+            "And another example: ",
+            "```",
+            "json",
+            "\n",
+            '{"simple": true}',
+            "\n",
+            "```",
           ]),
           jsonBlockRegex,
-          "[JSON_BLOCK]"
-        )
+          "[JSON_BLOCK]",
+        ),
       )
-      expect(result).toBe("Here's the config:\n[JSON_BLOCK]\nAnd another example: [JSON_BLOCK]")
+      expect(result).toBe(
+        "Here's the config:\n[JSON_BLOCK]\nAnd another example: [JSON_BLOCK]",
+      )
     })
 
     test("should handle Social Security Numbers with various formats", async () => {
@@ -173,13 +228,23 @@ describe("replace", () => {
       const result = await asString(
         replace(
           fromList([
-            "SSN: ", "123", "-", "45", "-", "6789", 
-            " or ", "987", " ", "65", " ", "4321", 
-            " formats accepted."
+            "SSN: ",
+            "123",
+            "-",
+            "45",
+            "-",
+            "6789",
+            " or ",
+            "987",
+            " ",
+            "65",
+            " ",
+            "4321",
+            " formats accepted.",
           ]),
           ssnRegex,
-          "[SSN]"
-        )
+          "[SSN]",
+        ),
       )
       expect(result).toBe("SSN: [SSN] or [SSN] formats accepted.")
     })
@@ -189,12 +254,24 @@ describe("replace", () => {
       const result = await asString(
         replace(
           fromList([
-            "Card ending in ", "4532", " ", "1234", " ", "5678", " ", "9012",
-            " or ", "5555-", "5555-", "5555-", "4444", " are valid."
+            "Card ending in ",
+            "4532",
+            " ",
+            "1234",
+            " ",
+            "5678",
+            " ",
+            "9012",
+            " or ",
+            "5555-",
+            "5555-",
+            "5555-",
+            "4444",
+            " are valid.",
           ]),
           cardRegex,
-          "[CARD]"
-        )
+          "[CARD]",
+        ),
       )
       expect(result).toBe("Card ending in [CARD] or [CARD] are valid.")
     })
@@ -204,28 +281,65 @@ describe("replace", () => {
       const result = await asString(
         replace(
           fromList([
-            "Visit ", "https", "://", "www", ".", "example", ".", "com", 
-            "/", "path", "?", "param", "=", "value", "&", "other", "=", "123",
-            " and ", "http", "://", "api", ".", "test", ".", "org", "/", "v1"
+            "Visit ",
+            "https",
+            "://",
+            "www",
+            ".",
+            "example",
+            ".",
+            "com",
+            "/",
+            "path",
+            "?",
+            "param",
+            "=",
+            "value",
+            "&",
+            "other",
+            "=",
+            "123",
+            " and ",
+            "http",
+            "://",
+            "api",
+            ".",
+            "test",
+            ".",
+            "org",
+            "/",
+            "v1",
           ]),
           urlRegex,
-          "[URL]"
-        )
+          "[URL]",
+        ),
       )
       expect(result).toBe("Visit [URL] and [URL]")
     })
 
     test("should replace dates in various formats", async () => {
-      const dateRegex = /\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4}|\d{4}[\/\-]\d{1,2}[\/\-]\d{1,2}/g
+      const dateRegex =
+        /\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4}|\d{4}[\/\-]\d{1,2}[\/\-]\d{1,2}/g
       const result = await asString(
         replace(
           fromList([
-            "Born on ", "12", "/", "25", "/", "1990", 
-            " and graduated ", "2023", "-", "05", "-", "15", "."
+            "Born on ",
+            "12",
+            "/",
+            "25",
+            "/",
+            "1990",
+            " and graduated ",
+            "2023",
+            "-",
+            "05",
+            "-",
+            "15",
+            ".",
           ]),
           dateRegex,
-          "[DATE]"
-        )
+          "[DATE]",
+        ),
       )
       expect(result).toBe("Born on [DATE] and graduated [DATE].")
     })
@@ -235,12 +349,26 @@ describe("replace", () => {
       const result = await asString(
         replace(
           fromList([
-            "Server at ", "192", ".", "168", ".", "1", ".", "100", 
-            " and backup at ", "10", ".", "0", ".", "0", ".", "1"
+            "Server at ",
+            "192",
+            ".",
+            "168",
+            ".",
+            "1",
+            ".",
+            "100",
+            " and backup at ",
+            "10",
+            ".",
+            "0",
+            ".",
+            "0",
+            ".",
+            "1",
           ]),
           ipRegex,
-          "[IP]"
-        )
+          "[IP]",
+        ),
       )
       expect(result).toBe("Server at [IP] and backup at [IP]")
     })
@@ -250,39 +378,72 @@ describe("replace", () => {
       const result = await asString(
         replace(
           fromList([
-            "Example:\n", "```", "python", "\n", "def ", "hello", "(", "name", "):", "\n",
-            "    ", "return ", "f", '"Hello {', "name", '}!"', "\n", "```", "\n",
-            "And JavaScript:\n", "```", "js", "\n", "const ", "x ", "= ", "42", "\n", "```"
+            "Example:\n",
+            "```",
+            "python",
+            "\n",
+            "def ",
+            "hello",
+            "(",
+            "name",
+            "):",
+            "\n",
+            "    ",
+            "return ",
+            "f",
+            '"Hello {',
+            "name",
+            '}!"',
+            "\n",
+            "```",
+            "\n",
+            "And JavaScript:\n",
+            "```",
+            "js",
+            "\n",
+            "const ",
+            "x ",
+            "= ",
+            "42",
+            "\n",
+            "```",
           ]),
           codeBlockRegex,
-          "[CODE_BLOCK]"
-        )
+          "[CODE_BLOCK]",
+        ),
       )
-      expect(result).toBe("Example:\n[CODE_BLOCK]\nAnd JavaScript:\n[CODE_BLOCK]")
+      expect(result).toBe(
+        "Example:\n[CODE_BLOCK]\nAnd JavaScript:\n[CODE_BLOCK]",
+      )
     })
 
     test("should handle hashtags and mentions split across tokens", async () => {
       const hashtagRegex = /#[a-zA-Z0-9_]+/g
       const mentionRegex = /@[a-zA-Z0-9_.]+/g
-      
+
       let result = await asString(
         replace(
           fromList([
-            "Check out ", "#", "awesome", "Project", " by ", "@", "john", "_", "doe", "!"
+            "Check out ",
+            "#",
+            "awesome",
+            "Project",
+            " by ",
+            "@",
+            "john",
+            "_",
+            "doe",
+            "!",
           ]),
           hashtagRegex,
-          "[HASHTAG]"
-        )
+          "[HASHTAG]",
+        ),
       )
-      
+
       result = await asString(
-        replace(
-          fromList([result]),
-          mentionRegex,
-          "[MENTION]"
-        )
+        replace(fromList([result]), mentionRegex, "[MENTION]"),
       )
-      
+
       expect(result).toBe("Check out [HASHTAG] by [MENTION]!")
     })
 
@@ -291,13 +452,39 @@ describe("replace", () => {
       const result = await asString(
         replace(
           fromList([
-            "<", "div", " ", "class", "=", '"', "container", '"', ">", 
-            "Content", "<", "/", "div", ">", " and ", "<", "span", " ", 
-            "id", "=", '"', "test", '"', ">", "more", "<", "/", "span", ">"
+            "<",
+            "div",
+            " ",
+            "class",
+            "=",
+            '"',
+            "container",
+            '"',
+            ">",
+            "Content",
+            "<",
+            "/",
+            "div",
+            ">",
+            " and ",
+            "<",
+            "span",
+            " ",
+            "id",
+            "=",
+            '"',
+            "test",
+            '"',
+            ">",
+            "more",
+            "<",
+            "/",
+            "span",
+            ">",
           ]),
           htmlTagRegex,
-          "[TAG]"
-        )
+          "[TAG]",
+        ),
       )
       expect(result).toBe("[TAG]Content[TAG] and [TAG]more[TAG]")
     })
@@ -305,10 +492,27 @@ describe("replace", () => {
     test("should handle extremely fragmented text with single character tokens", async () => {
       const result = await asString(
         replace(
-          fromList(["t", "e", "s", "t", "@", "e", "x", "a", "m", "p", "l", "e", ".", "c", "o", "m"]),
+          fromList([
+            "t",
+            "e",
+            "s",
+            "t",
+            "@",
+            "e",
+            "x",
+            "a",
+            "m",
+            "p",
+            "l",
+            "e",
+            ".",
+            "c",
+            "o",
+            "m",
+          ]),
           /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g,
-          "[EMAIL]"
-        )
+          "[EMAIL]",
+        ),
       )
       expect(result).toBe("[EMAIL]")
     })
@@ -317,27 +521,87 @@ describe("replace", () => {
       const input = [
         "Customer Record:\n",
         "Name: John Doe\n",
-        "Email: j", "ohn", ".", "doe", "@", "company", ".", "com", "\n",
-        "Phone: (", "555", ")", " ", "123", "-", "4567", "\n",
-        "SSN: ", "123", "-", "45", "-", "6789", "\n",
-        "Card: ", "4532", " ", "1234", " ", "5678", " ", "9012", "\n",
-        "Notes: Contact before ", "12", "/", "25", "/", "2023"
+        "Email: j",
+        "ohn",
+        ".",
+        "doe",
+        "@",
+        "company",
+        ".",
+        "com",
+        "\n",
+        "Phone: (",
+        "555",
+        ")",
+        " ",
+        "123",
+        "-",
+        "4567",
+        "\n",
+        "SSN: ",
+        "123",
+        "-",
+        "45",
+        "-",
+        "6789",
+        "\n",
+        "Card: ",
+        "4532",
+        " ",
+        "1234",
+        " ",
+        "5678",
+        " ",
+        "9012",
+        "\n",
+        "Notes: Contact before ",
+        "12",
+        "/",
+        "25",
+        "/",
+        "2023",
       ]
 
-      let result = await asString(replace(fromList(input), /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g, "[EMAIL]"))
-      result = await asString(replace(fromList([result]), /\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}/g, "[PHONE]"))
-      result = await asString(replace(fromList([result]), /\d{3}[-\s]?\d{2}[-\s]?\d{4}/g, "[SSN]"))
-      result = await asString(replace(fromList([result]), /\d{4}[-\s]?\d{4}[-\s]?\d{4}[-\s]?\d{4}/g, "[CARD]"))
-      result = await asString(replace(fromList([result]), /\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4}/g, "[DATE]"))
+      let result = await asString(
+        replace(
+          fromList(input),
+          /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g,
+          "[EMAIL]",
+        ),
+      )
+      result = await asString(
+        replace(
+          fromList([result]),
+          /\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}/g,
+          "[PHONE]",
+        ),
+      )
+      result = await asString(
+        replace(fromList([result]), /\d{3}[-\s]?\d{2}[-\s]?\d{4}/g, "[SSN]"),
+      )
+      result = await asString(
+        replace(
+          fromList([result]),
+          /\d{4}[-\s]?\d{4}[-\s]?\d{4}[-\s]?\d{4}/g,
+          "[CARD]",
+        ),
+      )
+      result = await asString(
+        replace(
+          fromList([result]),
+          /\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4}/g,
+          "[DATE]",
+        ),
+      )
 
       expect(result).toBe(
         "Customer Record:\n" +
-        "Name: John Doe\n" + 
-        "Email: [EMAIL]\n" +
-        "Phone: [PHONE]\n" +
-        "SSN: [SSN]\n" +
-        "Card: [CARD]\n" +
-        "Notes: Contact before [DATE]"
+          "Name: John Doe\n" +
+          "Email: [EMAIL]\n" +
+          "Phone: [PHONE]\n" +
+          "SSN: [SSN]\n" +
+          "Card: [CARD]\n" +
+          "Notes: Contact before [DATE]",
       )
     })
   })

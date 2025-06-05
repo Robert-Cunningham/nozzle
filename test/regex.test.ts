@@ -32,7 +32,10 @@ describe("earliestPossibleMatchIndex", () => {
 
   test("should return start and end at length when no match found", () => {
     const regex = /xyz/
-    expect(earliestPossibleMatchIndex("hello world", regex)).toEqual({ start: 11, end: 11 })
+    expect(earliestPossibleMatchIndex("hello world", regex)).toEqual({
+      start: 11,
+      end: 11,
+    })
   })
 
   test("should handle character classes", () => {
@@ -49,7 +52,10 @@ describe("earliestPossibleMatchIndex", () => {
       start: 0,
       end: 5,
     })
-    expect(earliestPossibleMatchIndex("say hello", regex)).toEqual({ start: 9, end: 9 })
+    expect(earliestPossibleMatchIndex("say hello", regex)).toEqual({
+      start: 9,
+      end: 9,
+    })
   })
 
   test("should handle end anchored patterns", () => {
@@ -58,7 +64,10 @@ describe("earliestPossibleMatchIndex", () => {
       start: 6,
       end: 11,
     })
-    expect(earliestPossibleMatchIndex("world hello", regex)).toEqual({ start: 11, end: 11 })
+    expect(earliestPossibleMatchIndex("world hello", regex)).toEqual({
+      start: 11,
+      end: 11,
+    })
   })
 
   test("should handle quantifiers", () => {
@@ -95,7 +104,10 @@ describe("earliestPossibleMatchIndex", () => {
       start: 9,
       end: 12,
     })
-    expect(earliestPossibleMatchIndex("I have a bird", regex)).toEqual({ start: 12, end: 13 })
+    expect(earliestPossibleMatchIndex("I have a bird", regex)).toEqual({
+      start: 12,
+      end: 13,
+    })
   })
 
   test("should handle groups", () => {
@@ -116,7 +128,10 @@ describe("earliestPossibleMatchIndex", () => {
 
   test("should handle case sensitivity", () => {
     const regex = /Hello/
-    expect(earliestPossibleMatchIndex("hello world", regex)).toEqual({ start: 11, end: 11 })
+    expect(earliestPossibleMatchIndex("hello world", regex)).toEqual({
+      start: 11,
+      end: 11,
+    })
     expect(earliestPossibleMatchIndex("Hello world", regex)).toEqual({
       start: 0,
       end: 5,
@@ -162,6 +177,20 @@ describe("earliestPossibleMatchIndex", () => {
     expect(
       earliestPossibleMatchIndex("Contact: user@example.com", regex),
     ).toEqual({ start: 9, end: 25 })
-    expect(earliestPossibleMatchIndex("No email here", regex)).toEqual({ start: 9, end: 13 })
+    expect(earliestPossibleMatchIndex("No email here", regex)).toEqual({
+      start: 9,
+      end: 13,
+    })
+  })
+
+  test("should match email prefix", () => {
+    const regex = /[a-z]+@[a-z]+\.[a-z]{2,}/
+    expect(
+      earliestPossibleMatchIndex("Contact: user@example.c", regex),
+    ).toEqual({ start: 9, end: 23 })
+    expect(earliestPossibleMatchIndex("No email here", regex)).toEqual({
+      start: 9,
+      end: 13,
+    })
   })
 })
