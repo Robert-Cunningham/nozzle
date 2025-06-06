@@ -64,7 +64,7 @@ return p(stream)
 ```
 ````
 
-### Testing
+## Testing
 
 ```
 git clone https://github.com/Robert-Cunningham/partial
@@ -73,6 +73,8 @@ npm i
 npm run test
 ```
 
-### License
+## License
 
 This library is licensed under the MIT license.
+
+## API Reference
