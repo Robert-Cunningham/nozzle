@@ -1,6 +1,7 @@
 import { describe, expect, test } from "vitest"
 import "../src/regex"
 import { earliestPossibleMatchIndex } from "../src/regex"
+import { generalRegex } from "../src/streamingRegex"
 
 describe("earliestPossibleMatchIndex", () => {
   test("aba test", () => {
@@ -192,5 +193,76 @@ describe("earliestPossibleMatchIndex", () => {
       start: 9,
       end: 13,
     })
+  })
+})
+
+describe("generalRegex", () => {
+  async function* createChunks(strings: string[]) {
+    for (const str of strings) {
+      yield str
+    }
+  }
+
+  async function collectResults(
+    asyncIterable: AsyncIterable<{ text: string } | { regex: RegExpExecArray }>,
+  ) {
+    const results = []
+    for await (const result of asyncIterable) {
+      results.push(result)
+    }
+    return results
+  }
+
+  test("should match simple pattern", async () => {
+    const input = createChunks(["hello", " world"])
+    const regex = /world/
+    const results = await collectResults(generalRegex(input, regex))
+
+    expect(results).toEqual([
+      { text: "hello " },
+      { regex: expect.arrayContaining(["world"]) },
+    ])
+  })
+
+  test("should handle global regex", async () => {
+    const input = createChunks(["a", "bc", "a", "bc"])
+    const regex = /a/g
+    const results = await collectResults(generalRegex(input, regex))
+
+    console.log("results", results)
+
+    expect(results).toEqual([
+      { regex: expect.arrayContaining(["a"]) },
+      { text: "bc" },
+      { regex: expect.arrayContaining(["a"]) },
+      { text: "bc" },
+    ])
+  })
+
+  test("should handle non-global regex", async () => {
+    const input = createChunks(["a", "bc", "a", "bc"])
+    const regex = /a/
+    const results = await collectResults(generalRegex(input, regex))
+
+    expect(results).toEqual([
+      { regex: expect.arrayContaining(["a"]) },
+      { text: "bcabc" },
+    ])
+  })
+
+  test("should handle pattern across chunks", async () => {
+    const input = createChunks(["hel", "lo"])
+    const regex = /hello/
+    const results = await collectResults(generalRegex(input, regex))
+
+    expect(results).toEqual([{ regex: expect.arrayContaining(["hello"]) }])
+  })
+
+  test("should handle no matches", async () => {
+    const input = createChunks(["abc", "def"])
+    const regex = /xyz/
+    const results = await collectResults(generalRegex(input, regex))
+
+    expect(results).toEqual([{ text: "abcdef" }])
   })
 })
