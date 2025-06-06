@@ -24,6 +24,7 @@
 [ ] write a .trim() function
 [ ] add a bundle size badge
 [ ] figure out how to do releases?
+[ ] rename the conversion methods, (asList / toString etc)
 
 [ ] write a .endIf function ? which ends if something is detected in the stream?
 [ ] try to write the JSON thing and see if there's any way to make it easier.
