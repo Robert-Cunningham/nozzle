@@ -1,5 +1,5 @@
 {
-  "name": "partialjs",
+  "name": "nozzle-js",
   "version": "0.0.0",
   "description": "My awesome typescript library",
   "publishConfig": {
@@ -19,8 +19,15 @@
     "build-fast": "tsup src/index.ts --format cjs,esm",
     "build": "pnpm run build-fast -- --dts-resolve",
     "test": "vitest run",
+    "lint": "prettier --check .",
+    "lint:fix": "prettier --write .",
     "docs": "typedoc && pnpm run clean-docs",
     "prepublishOnly": "pnpm run build",
+    "prerelease": "pnpm run test && pnpm run lint",
+    "release:patch": "pnpm run prerelease && npm version patch && npm publish && git push --follow-tags",
+    "release:minor": "pnpm run prerelease && npm version minor && npm publish && git push --follow-tags",
+    "release:major": "pnpm run prerelease && npm version major && npm publish && git push --follow-tags",
+    "release:dry": "pnpm run prerelease && npm pack --dry-run",
     "clean-docs": "find . -name '*.md' -print0 | xargs -0 -I {} perl -i -0777 -pe 's/#### (Type Parameters|Returns)(?:\n((?:(?!^#{2,4} ).)*))?//smg' {}"
   },
   "license": "MIT",
