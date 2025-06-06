@@ -57,7 +57,7 @@ export class Pipeline implements AsyncIterable<string> {
   }
 
   atRate(ms: number) {
-    return new Pipeline(tx.minInterTokenDelay(this.src, ms))
+    return new Pipeline(tx.minInterval(this.src, ms))
   }
 
   replace(regex: RegExp, replacement: string) {

@@ -1,14 +1,14 @@
 import { describe, expect, test } from "vitest"
 import { asList } from "../src/transforms/asList"
 import { fromList } from "../src/transforms/fromList"
-import { minInterTokenDelay } from "../src/transforms/minInterTokenDelay"
+import { minInterval } from "../src/transforms/minInterval"
 import {
   assertResultsEqualsWithTiming,
   collectWithTimings,
   delayedSource,
 } from "./timing-helpers"
 
-describe("minInterTokenDelay", () => {
+describe("minInterval", () => {
   test("enforces minimum delay between tokens", async () => {
     // Tokens arrive rapidly: 0ms, 5ms, 10ms, 15ms
     const source = delayedSource([
@@ -17,7 +17,7 @@ describe("minInterTokenDelay", () => {
       { value: "c", delay: 5 },
       { value: "d", delay: 5 },
     ])
-    const delayed = minInterTokenDelay(source, 100) // 100ms minimum delay
+    const delayed = minInterval(source, 100) // 100ms minimum delay
 
     const results = await collectWithTimings(delayed)
 
@@ -36,7 +36,7 @@ describe("minInterTokenDelay", () => {
       { value: "b", delay: 150 }, // 150ms > 100ms minimum
       { value: "c", delay: 120 }, // 120ms > 100ms minimum
     ])
-    const delayed = minInterTokenDelay(source, 100)
+    const delayed = minInterval(source, 100)
 
     const results = await collectWithTimings(delayed)
 
@@ -49,7 +49,7 @@ describe("minInterTokenDelay", () => {
 
   test("first token always immediate", async () => {
     const source = fromList(["first"])
-    const delayed = minInterTokenDelay(source, 1000) // Very long delay
+    const delayed = minInterval(source, 1000) // Very long delay
 
     const results = await collectWithTimings(delayed)
 
@@ -58,7 +58,7 @@ describe("minInterTokenDelay", () => {
 
   test("zero delay behaves as passthrough", async () => {
     const source = fromList(["a", "b", "c"])
-    const delayed = minInterTokenDelay(source, 0)
+    const delayed = minInterval(source, 0)
 
     const result = await asList(delayed)
     expect(result).toEqual(["a", "b", "c"])
@@ -66,7 +66,7 @@ describe("minInterTokenDelay", () => {
 
   test("empty source", async () => {
     const source = fromList([])
-    const delayed = minInterTokenDelay(source, 100)
+    const delayed = minInterval(source, 100)
 
     const result = await asList(delayed)
     expect(result).toEqual([])
@@ -74,7 +74,7 @@ describe("minInterTokenDelay", () => {
 
   test("single token", async () => {
     const source = fromList(["only"])
-    const delayed = minInterTokenDelay(source, 100)
+    const delayed = minInterval(source, 100)
 
     const results = await collectWithTimings(delayed)
 
@@ -88,7 +88,7 @@ describe("minInterTokenDelay", () => {
       { value: "b", delay: 20 }, // Too fast, will be delayed
       { value: "c", delay: 200 }, // Natural delay > minimum
     ])
-    const delayed = minInterTokenDelay(source, 100)
+    const delayed = minInterval(source, 100)
 
     const results = await collectWithTimings(delayed)
 
@@ -102,7 +102,7 @@ describe("minInterTokenDelay", () => {
   test("preserves all tokens in order", async () => {
     const tokens = Array.from({ length: 5 }, (_, i) => `token-${i}`)
     const source = fromList(tokens)
-    const delayed = minInterTokenDelay(source, 50)
+    const delayed = minInterval(source, 50)
 
     const result = await asList(delayed)
     expect(result).toEqual(tokens)
@@ -111,7 +111,7 @@ describe("minInterTokenDelay", () => {
   test("exact timing example from description", async () => {
     // Should be: 0ms, 100ms, 200ms, 300ms, 400ms for 100ms delay
     const source = fromList(["a", "b", "c", "d", "e"])
-    const delayed = minInterTokenDelay(source, 100)
+    const delayed = minInterval(source, 100)
 
     const results = await collectWithTimings(delayed)
 
