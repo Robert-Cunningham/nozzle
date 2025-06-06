@@ -2,7 +2,7 @@
   "entryPoints": ["src/index.ts"],
   "out": ".", // folder for generated files
   "plugin": ["typedoc-plugin-markdown"],
-  "readme": "header.md", // don’t graft README.md
+  "readme": "Preamble.md",
   "mergeReadme": true,
   "excludePrivate": true,
   "hideBreadcrumbs": true,
