@@ -1,3 +1,11 @@
+/**
+ * Splits a single iterator into N independent iterables.
+ *
+ * @group Side Effects
+ * @param iterator - The source async iterator to split.
+ * @param n - Number of independent iterables to create.
+ * @returns An array of N independent async iterables.
+ */
 export function tee<T>(iterator: AsyncIterator<T>, n: number): AsyncIterable<T>[] {
   const queues: T[][] = Array.from({ length: n }, () => []);
   const resolvers: Array<{ resolve: (value: IteratorResult<T>) => void; reject: (error: any) => void }[]> = Array.from({ length: n }, () => []);

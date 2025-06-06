@@ -7,6 +7,7 @@ import { generalRegex } from "../streamingRegex"
  * they don't match the regex, while holding back potential matches until we can
  * determine if they should be replaced.
  *
+ * @group Regex
  * @param iterator - An asynchronous iterable of strings.
  * @param regex - The regular expression pattern to match.
  * @param replacement - The string to replace matches with.

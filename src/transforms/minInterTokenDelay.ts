@@ -3,6 +3,7 @@
  * The first token is yielded immediately, then subsequent tokens are delayed
  * to ensure at least `delayMs` milliseconds pass between each yield.
  *
+ * @group Timing
  * @param source The async iterable source of tokens.
  * @param delayMs The minimum delay in milliseconds between adjacent tokens.
  * @returns An async iterable that yields tokens with enforced delays.

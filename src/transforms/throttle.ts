@@ -4,6 +4,7 @@
  * - Subsequent chunks are batched and yielded together after the interval
  * - If no chunks arrive during an interval, the next chunk is yielded immediately when it arrives
  *
+ * @group Timing
  * @param source The async iterable source of values.
  * @param intervalMs The throttling interval in milliseconds.
  * @returns An async iterable that yields throttled values.

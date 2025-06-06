@@ -1,6 +1,7 @@
 /**
  * Transforms each value from the input stream using the provided function.
  *
+ * @group Elements
  * @param iterator - An asynchronous iterable of strings.
  * @param fn - A function that transforms each string value.
  * @returns An asynchronous generator that yields transformed strings.

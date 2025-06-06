@@ -2,6 +2,7 @@
  * Consumes an async iterator and returns the final accumulated string.
  * Equivalent to calling accumulate().last() but more efficient.
  *
+ * @group Conversion
  * @param iterator - An asynchronous iterable of strings.
  * @returns A promise that resolves to the final accumulated string.
  *

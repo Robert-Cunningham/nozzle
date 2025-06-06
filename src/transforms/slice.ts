@@ -2,6 +2,7 @@
  * Yields a slice of the input stream between start and end indices.
  * Supports negative indices by maintaining an internal buffer.
  *
+ * @group Indexing
  * @param iterator - The async iterable to slice
  * @param start - Starting index (inclusive). Negative values count from end.
  * @param end - Ending index (exclusive). Negative values count from end. If undefined, slices to end.

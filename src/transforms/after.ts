@@ -4,6 +4,7 @@ import { StringIterable } from "../types"
 
 /**
  * Emit everything **after** the accumulated prefix that matches `pattern`.
+ * @group Splitting
  * @param source     stream or iterable to scan
  * @param pattern first `RegExp` that marks the cut-off
  * @returns async stream with the leading section removed

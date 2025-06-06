@@ -1,6 +1,7 @@
 /**
  * Filters the input stream based on a predicate function.
  *
+ * @group Elements
  * @param iterator - An asynchronous iterable of strings.
  * @param predicate - A function that returns true for items to keep.
  * @returns An asynchronous generator that yields filtered strings.

@@ -4,6 +4,7 @@ import { generalRegex } from "../streamingRegex"
 /**
  * Takes incoming chunks, merges them, and then splits them by a string separator.
  *
+ * @group Splitting
  * @param source The async iterable source of strings.
  * @param separator The string separator to split by.
  * @returns An async iterable that yields the split parts.
@@ -30,6 +31,7 @@ export async function* split(
  * Takes incoming chunks, merges them, and then splits them by a string separator,
  * keeping the separator at the beginning of each part (except the first).
  *
+ * @group Splitting
  * @param source The async iterable source of strings.
  * @param separator The string separator to split by.
  * @returns An async iterable that yields the split parts with separator at the beginning.
@@ -56,6 +58,7 @@ export async function* splitBefore(
  * Takes incoming chunks, merges them, and then splits them by a string separator,
  * keeping the separator at the end of each part (except the last).
  *
+ * @group Splitting
  * @param source The async iterable source of strings.
  * @param separator The string separator to split by.
  * @returns An async iterable that yields the split parts with separator at the end.

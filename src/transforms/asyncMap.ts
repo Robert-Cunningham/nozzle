@@ -3,6 +3,7 @@
  * Applies the async function to each item as soon as it comes off the iterator
  * and yields results as they complete, allowing multiple function calls to run concurrently.
  *
+ * @group Elements
  * @param iterator - An asynchronous iterable of strings.
  * @param fn - An async function that transforms each string value.
  * @returns An asynchronous generator that yields transformed strings.

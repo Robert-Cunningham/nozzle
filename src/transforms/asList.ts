@@ -1,6 +1,7 @@
 /**
  * Consumes an async iterator and returns all values as an array.
  *
+ * @group Conversion
  * @param iterator - An asynchronous iterable of strings.
  * @returns A promise that resolves to an array of all values.
  *
