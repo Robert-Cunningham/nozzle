@@ -83,7 +83,7 @@ export function assertTiming<T>(
 /**
  * Asserts exact timing of collected results
  */
-export function assertResultsEquals<T>(
+export function assertTimingResultsEquals<T>(
   results: Array<{ item: T; timestamp: number }>,
   expected: Array<{ item: T; timestamp: number }>,
 ) {
