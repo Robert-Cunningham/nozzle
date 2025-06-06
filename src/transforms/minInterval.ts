@@ -8,7 +8,7 @@
  * @param delayMs The minimum delay in milliseconds between adjacent tokens.
  * @returns An async iterable that yields tokens with enforced delays.
  */
-export async function* minInterTokenDelay<T>(
+export async function* minInterval<T>(
   source: AsyncIterable<T>,
   delayMs: number,
 ): AsyncIterable<T> {
@@ -18,7 +18,7 @@ export async function* minInterTokenDelay<T>(
 
   while (true) {
     const { value, done } = await iterator.next()
-    
+
     if (done) {
       break
     }
@@ -37,7 +37,7 @@ export async function* minInterTokenDelay<T>(
 
       if (remainingDelay > 0) {
         // Wait for the remaining time to ensure minimum delay
-        await new Promise(resolve => setTimeout(resolve, remainingDelay))
+        await new Promise((resolve) => setTimeout(resolve, remainingDelay))
       }
 
       // Yield the token

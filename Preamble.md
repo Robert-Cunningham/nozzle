@@ -92,7 +92,7 @@ Groups
   6. @group Splitting - Functions that split streams into parts
     - chunk, split, splitBefore, splitAfter, before, after
   7. @group Timing - Functions that control emission timing
-    - throttle, minInterTokenDelay
+    - throttle, minInterval
   8. @group Filtering - Functions that filter content
     - compact
   9. @group Side Effects - Functions for debugging and side effects
