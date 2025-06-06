@@ -4,6 +4,16 @@
 
 Partial is a utility library for manipulating streams of text, and in particular streamed responses from LLMs.
 
+## Installation
+
+```
+npm i partial-js # or pnpm / bun / yarn
+```
+
+partial is written in TypeScript and has both cjs and esm builds.
+
+## Usage
+
 ```ts
 const stream = await openai.chat.completions.create({ ...args, stream: true })
 
@@ -53,3 +63,16 @@ return p(stream)
   .value()
 ```
 ````
+
+### Testing
+
+```
+git clone https://github.com/Robert-Cunningham/partial
+cd partial
+npm i
+npm run test
+```
+
+### License
+
+This library is licensed under the MIT license.
