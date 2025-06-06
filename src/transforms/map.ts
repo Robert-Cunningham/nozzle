@@ -14,7 +14,10 @@
  * // => ["HELLO", "WORLD"]
  * ```
  */
-export const map = async function* (iterator: AsyncIterable<string>, fn: (value: string) => string) {
+export const map = async function* <T, U>(
+  iterator: AsyncIterable<T>,
+  fn: (value: T) => U,
+) {
   for await (const text of iterator) {
     yield fn(text)
   }
