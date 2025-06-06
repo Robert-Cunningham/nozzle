@@ -161,3 +161,7 @@ export function earliestPossibleMatchIndex(
     ? { start: match.index, end: match.index + match[0].length }
     : { start: text.length, end: text.length }
 }
+
+export function escapeRegex(string: string) {
+  return string.replace(/[/\-\\^$*+?.()|[\]{}]/g, "\\$&")
+}

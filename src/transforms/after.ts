@@ -1,6 +1,5 @@
+import { generalRegex } from "../streamingRegex"
 import { StringIterable } from "../types"
-import { accumulate } from "./accumulate"
-import { diff } from "./diff"
 
 /**
  * Emit everything **after** the accumulated prefix that matches `pattern`.
@@ -19,20 +18,23 @@ import { diff } from "./diff"
 
 export async function* after(
   source: StringIterable,
-  pattern: RegExp,
+  pattern: RegExp | string,
 ): AsyncIterable<string> {
-  const prefixes = accumulate(source)
+  let found = false
 
-  const afterFilter = async function* () {
-    // start yielding after this is first broken.
-    for await (const prefix of prefixes) {
-      const match = pattern.exec(prefix)
-      if (match) {
-        yield prefix.slice(match.index + match[0].length)
-      }
+  const regex =
+    typeof pattern === "string"
+      ? new RegExp(pattern)
+      : new RegExp(pattern.source, pattern.flags.replace(/g/g, ""))
+
+  // must not be a global regex; once it matches once, everything else should pass through.
+  for await (const result of generalRegex(source, regex)) {
+    if ("regex" in result) {
+      found = true
     }
-    return ""
-  }
+    if (!found) continue
 
-  yield* diff(afterFilter())
+    if ("text" in result) yield result.text
+    else yield result.regex[0]
+  }
 }

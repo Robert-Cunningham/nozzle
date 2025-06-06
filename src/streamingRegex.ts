@@ -1,13 +1,32 @@
-import { earliestPossibleMatchIndex } from "../regex"
+import { earliestPossibleMatchIndex } from "./regex"
 import { filter } from "./transforms/filter"
+
+const emptyGeneralRegex = async function* (input: AsyncIterable<string>) {
+  let first = true
+  for await (const chunk of input) {
+    for (const c of chunk.split("")) {
+      if (!first) yield { regex: new RegExp("").exec("")! }
+      if (first) first = false
+      yield { text: c }
+    }
+  }
+  return
+}
 
 export async function* generalRegex(
   input: AsyncIterable<string>,
   regex: RegExp,
-) {
+): AsyncIterable<{ text: string } | { regex: RegExpExecArray }> {
+  if (regex.exec("")) {
+    yield* emptyGeneralRegex(input)
+    return
+  }
+
   // Force a non-global clone for the searches we do at buffer-start.
   const base = new RegExp(regex.source, regex.flags.replace(/g/g, ""))
   const isGlobal = regex.global
+
+  const findAtMostOneMatch = !isGlobal
 
   let buffer = ""
   let alreadyFound = false // tracks “done” for non-global mode
@@ -18,13 +37,19 @@ export async function* generalRegex(
   ): AsyncGenerator<{ text: string } | { regex: RegExpExecArray }> {
     while (buffer) {
       // Non-global: once we’ve replaced once, nothing else changes
-      if (!isGlobal && alreadyFound) {
+      if (findAtMostOneMatch && alreadyFound) {
         yield { text: buffer }
         buffer = ""
         return
       }
 
       if (endOfInput) {
+        if (findAtMostOneMatch && alreadyFound) {
+          yield { text: buffer }
+          buffer = ""
+          continue
+        }
+
         // match anything we have and return.
         const match = base.exec(buffer)
         if (match) {

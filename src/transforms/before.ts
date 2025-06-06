@@ -1,7 +1,5 @@
-
+import { generalRegex } from "../streamingRegex"
 import { StringIterable } from "../types"
-import { accumulate } from "./accumulate"
-import { diff } from "./diff"
 
 /**
  * Emit everything **before** the accumulated prefix that contains `separator`.
@@ -20,20 +18,16 @@ import { diff } from "./diff"
 
 export async function* before(
   source: StringIterable,
-  separator: string,
+  separator: string | RegExp,
 ): AsyncIterable<string> {
-  const prefixes = accumulate(source)
-
-  const beforeFilter = async function* () {
-    for await (const prefix of prefixes) {
-      const index = prefix.indexOf(separator)
-      if (index !== -1) {
-        yield prefix.slice(0, index)
-        return
-      }
-      yield prefix
+  for await (const result of generalRegex(
+    source,
+    typeof separator === "string" ? new RegExp(separator) : separator, // would be better to escape this
+  )) {
+    if ("text" in result) {
+      yield result.text
+    } else {
+      break
     }
   }
-
-  yield* diff(beforeFilter())
 }

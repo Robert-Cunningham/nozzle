@@ -1,6 +1,6 @@
 import { describe, expect, test } from "vitest"
 import "../src/regex"
-import { earliestPossibleMatchIndex } from "../src/regex"
+import { earliestPossibleMatchIndex, escapeRegex } from "../src/regex"
 import { generalRegex } from "../src/streamingRegex"
 
 describe("earliestPossibleMatchIndex", () => {
@@ -213,13 +213,28 @@ describe("generalRegex", () => {
     return results
   }
 
+  test("should stream results", async () => {
+    const input = createChunks(["a", "b", "c", "d", "e"])
+    const regex = new RegExp(escapeRegex("xyz"))
+    const results = await collectResults(generalRegex(input, regex))
+
+    expect(results).toEqual([
+      { text: "a" },
+      { text: "b" },
+      { text: "c" },
+      { text: "d" },
+      { text: "e" },
+    ])
+  })
+
   test("should match simple pattern", async () => {
     const input = createChunks(["hello", " world"])
     const regex = /world/
     const results = await collectResults(generalRegex(input, regex))
 
     expect(results).toEqual([
-      { text: "hello " },
+      { text: "hello" },
+      { text: " " },
       { regex: expect.arrayContaining(["world"]) },
     ])
   })
@@ -246,7 +261,21 @@ describe("generalRegex", () => {
 
     expect(results).toEqual([
       { regex: expect.arrayContaining(["a"]) },
-      { text: "bcabc" },
+      { text: "bc" },
+      { text: "a" },
+      { text: "bc" },
+    ])
+  })
+
+  test("should handle global regex", async () => {
+    const input = createChunks(["hello|", "|world"])
+    const regex = new RegExp(escapeRegex("||"))
+    const results = await collectResults(generalRegex(input, regex))
+
+    expect(results).toEqual([
+      { text: "hello" },
+      { regex: expect.arrayContaining(["||"]) },
+      { text: "world" },
     ])
   })
 
@@ -263,6 +292,6 @@ describe("generalRegex", () => {
     const regex = /xyz/
     const results = await collectResults(generalRegex(input, regex))
 
-    expect(results).toEqual([{ text: "abcdef" }])
+    expect(results).toEqual([{ text: "abc" }, { text: "def" }])
   })
 })

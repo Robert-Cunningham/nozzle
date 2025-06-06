@@ -1,113 +1,89 @@
+import { escapeRegex } from "../regex"
+import { generalRegex } from "../streamingRegex"
+
 /**
  * Takes incoming chunks, merges them, and then splits them by a string separator.
- * 
+ *
  * @param source The async iterable source of strings.
  * @param separator The string separator to split by.
  * @returns An async iterable that yields the split parts.
  */
 export async function* split(
   source: AsyncIterable<string>,
-  separator: string,
+  separator: string | RegExp,
 ): AsyncIterable<string> {
+  const regex = toGlobalRegex(separator)
   let buffer = ""
-  
-  for await (const chunk of source) {
-    buffer += chunk
-    
-    // Split by separator and yield all complete parts
-    const parts = buffer.split(separator)
-    
-    // Keep the last part in buffer (might be incomplete)
-    buffer = parts.pop() || ""
-    
-    // Yield all complete parts
-    for (const part of parts) {
-      yield part
+  for await (const result of generalRegex(source, regex)) {
+    if ("text" in result) {
+      buffer += result.text
+    } else if ("regex" in result) {
+      yield buffer
+      buffer = ""
     }
   }
-  
-  // Yield any remaining content in the buffer
-  if (buffer.length > 0) {
-    yield buffer
-  }
+
+  yield buffer
+}
+
+const toGlobalRegex = (separator: RegExp | string) => {
+  return typeof separator === "string"
+    ? new RegExp(escapeRegex(separator), "g")
+    : new RegExp(
+        separator.source,
+        separator.flags.includes("g") ? separator.flags : separator.flags + "g",
+      )
 }
 
 /**
  * Takes incoming chunks, merges them, and then splits them by a string separator,
  * keeping the separator at the beginning of each part (except the first).
- * 
+ *
  * @param source The async iterable source of strings.
  * @param separator The string separator to split by.
  * @returns An async iterable that yields the split parts with separator at the beginning.
  */
 export async function* splitBefore(
   source: AsyncIterable<string>,
-  separator: string,
+  separator: string | RegExp,
 ): AsyncIterable<string> {
+  const regex = toGlobalRegex(separator)
   let buffer = ""
-  let isFirst = true
-  
-  for await (const chunk of source) {
-    buffer += chunk
-    
-    // Split by separator and yield all complete parts
-    const parts = buffer.split(separator)
-    
-    // Keep the last part in buffer (might be incomplete)
-    buffer = parts.pop() || ""
-    
-    // Yield all complete parts
-    for (let i = 0; i < parts.length; i++) {
-      if (isFirst) {
-        yield parts[i]
-        isFirst = false
-      } else {
-        yield separator + parts[i]
-      }
-    }
-  }
-  
-  // Yield any remaining content in the buffer
-  if (buffer.length > 0) {
-    if (isFirst) {
+  for await (const result of generalRegex(source, regex)) {
+    if ("text" in result) {
+      buffer += result.text
+    } else if ("regex" in result) {
       yield buffer
-    } else {
-      yield separator + buffer
+      buffer = result.regex[0]
     }
   }
+
+  yield buffer
 }
 
 /**
  * Takes incoming chunks, merges them, and then splits them by a string separator,
  * keeping the separator at the end of each part (except the last).
- * 
+ *
  * @param source The async iterable source of strings.
  * @param separator The string separator to split by.
  * @returns An async iterable that yields the split parts with separator at the end.
  */
 export async function* splitAfter(
   source: AsyncIterable<string>,
-  separator: string,
+  separator: string | RegExp,
 ): AsyncIterable<string> {
+  const regex = toGlobalRegex(separator)
   let buffer = ""
-  
-  for await (const chunk of source) {
-    buffer += chunk
-    
-    // Split by separator and yield all complete parts
-    const parts = buffer.split(separator)
-    
-    // Keep the last part in buffer (might be incomplete)
-    buffer = parts.pop() || ""
-    
-    // Yield all complete parts with separator appended
-    for (const part of parts) {
-      yield part + separator
+
+  for await (const result of generalRegex(source, regex)) {
+    if ("text" in result) {
+      buffer += result.text
+    } else if ("regex" in result) {
+      yield buffer + result.regex[0]
+      buffer = ""
     }
   }
-  
-  // Yield any remaining content in the buffer (without separator)
-  if (buffer.length > 0) {
-    yield buffer
-  }
+
+  yield buffer
 }
