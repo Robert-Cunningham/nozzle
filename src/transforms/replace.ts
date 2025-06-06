@@ -25,14 +25,14 @@ export async function* replace(
   input: AsyncIterable<string>,
   regex: RegExp,
   replacement: string,
-) {
+): AsyncIterable<string> {
   for await (const next of generalRegex(input, regex)) {
     if ("text" in next) {
-      yield next.text
+      yield next.text!
     } else {
       const match = next.regex
-      yield match.input
-        .slice(match.index, match.index + match[0].length)
+      yield match
+        .input!.slice(match.index, match.index! + match[0].length)
         .replace(regex, replacement)
     }
   }

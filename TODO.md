@@ -8,10 +8,13 @@
 - [done] write a good asyncMap function
 - document regex no backreferences, lookaheads, or lookbehinds.
 - generally explain how regexes work
-- write .slice
+- [done] write .slice
 - write .head, .tail, .last, .initial
 - make split / before / after support regexes? Maybe even implement them with regexes?
-- write a generic regex helper which returns a stream of text / regex objects, which we can then use to implement match, replace, etc.
+- [done] write a generic regex helper which returns a stream of text / regex objects, which we can then use to implement match, replace, etc.
+- publish this package and figure out how to make focal depend on it
+- general an image + write a nice readme
+- read the readme and fix any obvious issues
 
 - write a .endIf function ? which ends if something is detected in the stream?
 - try to write the JSON thing and see if there's any way to make it easier.

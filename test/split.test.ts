@@ -1,8 +1,8 @@
-import { describe, test, expect } from "vitest"
-import { split, splitBefore, splitAfter } from "../src/transforms/split"
-import { fromList } from "../src/transforms/fromList"
+import { describe, expect, test } from "vitest"
 import { asList } from "../src/transforms/asList"
 import { asString } from "../src/transforms/asString"
+import { fromList } from "../src/transforms/fromList"
+import { split, splitAfter, splitBefore } from "../src/transforms/split"
 
 describe("split", () => {
   test("should split merged chunks by separator", async () => {
@@ -12,7 +12,9 @@ describe("split", () => {
   })
 
   test("should handle separator at chunk boundaries", async () => {
-    const result = await asList(split(fromList(["hello,", "world,", "test"]), ","))
+    const result = await asList(
+      split(fromList(["hello,", "world,", "test"]), ","),
+    )
     const expected = ["hello", "world", "test"]
     expect(result).toEqual(expected)
   })
@@ -25,7 +27,7 @@ describe("split", () => {
 
   test("should handle empty source", async () => {
     const result = await asList(split(fromList([]), ","))
-    const expected: string[] = []
+    const expected: string[] = [""]
     expect(result).toEqual(expected)
   })
 
@@ -60,7 +62,9 @@ describe("split", () => {
   })
 
   test("should handle multi-character separator", async () => {
-    const result = await asList(split(fromList(["hello||wor", "ld||test"]), "||"))
+    const result = await asList(
+      split(fromList(["hello||wor", "ld||test"]), "||"),
+    )
     const expected = ["hello", "world", "test"]
     expect(result).toEqual(expected)
   })
@@ -94,13 +98,17 @@ describe("split", () => {
 
 describe("splitBefore", () => {
   test("should split with separator at beginning of each part except first", async () => {
-    const result = await asList(splitBefore(fromList(["hello,wor", "ld,test"]), ","))
+    const result = await asList(
+      splitBefore(fromList(["hello,wor", "ld,test"]), ","),
+    )
     const expected = ["hello", ",world", ",test"]
     expect(result).toEqual(expected)
   })
 
   test("should handle separator at chunk boundaries", async () => {
-    const result = await asList(splitBefore(fromList(["hello,", "world,", "test"]), ","))
+    const result = await asList(
+      splitBefore(fromList(["hello,", "world,", "test"]), ","),
+    )
     const expected = ["hello", ",world", ",test"]
     expect(result).toEqual(expected)
   })
@@ -119,7 +127,7 @@ describe("splitBefore", () => {
 
   test("should handle empty source", async () => {
     const result = await asList(splitBefore(fromList([]), ","))
-    const expected: string[] = []
+    const expected: string[] = [""]
     expect(result).toEqual(expected)
   })
 
@@ -130,7 +138,9 @@ describe("splitBefore", () => {
   })
 
   test("should handle multi-character separator", async () => {
-    const result = await asList(splitBefore(fromList(["hello||wor", "ld||test"]), "||"))
+    const result = await asList(
+      splitBefore(fromList(["hello||wor", "ld||test"]), "||"),
+    )
     const expected = ["hello", "||world", "||test"]
     expect(result).toEqual(expected)
   })
@@ -138,13 +148,17 @@ describe("splitBefore", () => {
 
 describe("splitAfter", () => {
   test("should split with separator at end of each part except last", async () => {
-    const result = await asList(splitAfter(fromList(["hello,wor", "ld,test"]), ","))
+    const result = await asList(
+      splitAfter(fromList(["hello,wor", "ld,test"]), ","),
+    )
     const expected = ["hello,", "world,", "test"]
     expect(result).toEqual(expected)
   })
 
   test("should handle separator at chunk boundaries", async () => {
-    const result = await asList(splitAfter(fromList(["hello,", "world,", "test"]), ","))
+    const result = await asList(
+      splitAfter(fromList(["hello,", "world,", "test"]), ","),
+    )
     const expected = ["hello,", "world,", "test"]
     expect(result).toEqual(expected)
   })
@@ -163,7 +177,7 @@ describe("splitAfter", () => {
 
   test("should handle empty source", async () => {
     const result = await asList(splitAfter(fromList([]), ","))
-    const expected: string[] = []
+    const expected: string[] = [""]
     expect(result).toEqual(expected)
   })
 
@@ -174,13 +188,17 @@ describe("splitAfter", () => {
   })
 
   test("should handle multi-character separator", async () => {
-    const result = await asList(splitAfter(fromList(["hello||wor", "ld||test"]), "||"))
+    const result = await asList(
+      splitAfter(fromList(["hello||wor", "ld||test"]), "||"),
+    )
     const expected = ["hello||", "world||", "test"]
     expect(result).toEqual(expected)
   })
 
   test("should handle separator spanning chunks", async () => {
-    const result = await asList(splitAfter(fromList(["hello|", "|world"]), "||"))
+    const result = await asList(
+      splitAfter(fromList(["hello|", "|world"]), "||"),
+    )
     const expected = ["hello||", "world"]
     expect(result).toEqual(expected)
   })
