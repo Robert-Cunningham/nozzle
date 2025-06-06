@@ -1,6 +1,7 @@
 /**
  * Yields a cumulative prefix of the input stream.
  *
+ * @group Accumulation
  * @param iterator - An asynchronous iterable of strings.
  * @returns An asynchronous generator that yields the progressively accumulated string.
  *

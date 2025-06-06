@@ -4,6 +4,7 @@ import { StringIterable } from "../types"
 
 /**
  * Emit everything **before** the accumulated prefix that contains `separator`.
+ * @group Splitting
  * @param source     stream or iterable to scan
  * @param separator  string that marks the cut-off
  * @returns async stream with the trailing section removed

@@ -1,6 +1,7 @@
 /**
  * Yields only the last value from the input stream.
  *
+ * @group Indexing
  * @param iterator - An asynchronous iterable of strings.
  * @returns An asynchronous generator that yields only the last string.
  *

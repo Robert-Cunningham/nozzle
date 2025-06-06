@@ -1,6 +1,7 @@
 /**
  * Executes a side effect for each value without modifying the stream.
  *
+ * @group Side Effects
  * @param iterator - An asynchronous iterable of strings.
  * @param fn - A function to execute for each value.
  * @returns An asynchronous generator that passes through all values unchanged.

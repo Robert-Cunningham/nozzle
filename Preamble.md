@@ -77,4 +77,26 @@ npm run test
 
 This library is licensed under the MIT license.
 
+```
+Groups
+  1. @group Conversion - Functions that convert between formats
+    - asString, asList, fromList
+  2. @group Indexing - Functions that work with positions/indices
+    - slice, first, last
+  3. @group Elements - Functions that process individual elements
+    - map, filter, asyncMap
+  4. @group Accumulation - Functions that build up content over time
+    - accumulate, diff
+  5. @group Regex - Functions for pattern matching and replacement
+    - replace, match
+  6. @group Splitting - Functions that split streams into parts
+    - chunk, split, splitBefore, splitAfter, before, after
+  7. @group Timing - Functions that control emission timing
+    - throttle, minInterTokenDelay
+  8. @group Filtering - Functions that filter content
+    - compact
+  9. @group Side Effects - Functions for debugging and side effects
+    - tap, tee
+```
+
 ## API Reference

@@ -9,6 +9,7 @@ import { map } from "./map"
  * they don't match the regex, while holding back potential matches until we can
  * determine if they match.
  *
+ * @group Regex
  * @param iterator - An asynchronous iterable of strings.
  * @param regex - The regular expression pattern to match.
  * @returns An asynchronous generator that yields RegExpExecArray results for each match.

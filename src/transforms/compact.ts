@@ -1,6 +1,7 @@
 /**
  * Filters out empty strings from the input stream.
  *
+ * @group Filtering
  * @param iterator - An asynchronous iterable of strings.
  * @returns An asynchronous generator that yields only non-empty strings.
  *

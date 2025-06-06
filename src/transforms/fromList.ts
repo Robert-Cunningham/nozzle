@@ -1,6 +1,7 @@
 /**
  * Converts an array to an async iterator.
  *
+ * @group Conversion
  * @param list - An array of strings.
  * @returns An asynchronous generator that yields each string.
  *

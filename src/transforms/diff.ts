@@ -1,6 +1,7 @@
 /**
  * Yields the difference between the current and previous string in the input stream.
  *
+ * @group Accumulation
  * @param iterator - An asynchronous iterable of strings.
  * @returns An asynchronous generator that yields the difference between the current and previous string.
  * @example
