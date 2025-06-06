@@ -6,7 +6,7 @@
  * @param iterator - The async iterable to slice
  * @param start - Starting index (inclusive). Negative values count from end.
  * @param end - Ending index (exclusive). Negative values count from end. If undefined, slices to end.
- * @returns An AsyncGenerator<string> that yields the sliced elements
+ * @returns An AsyncGenerator<T> that yields the sliced elements
  *
  * @example
  * ```ts
@@ -26,7 +26,7 @@
  * // => ["d", "e"]
  * ```
  */
-export async function* slice(iterator: AsyncIterable<string>, start: number, end?: number) {
+export async function* slice<T>(iterator: AsyncIterable<T>, start: number, end?: number) {
   let index = 0
   
   // Case 1: Both positive indices - stream without buffering
@@ -54,7 +54,7 @@ export async function* slice(iterator: AsyncIterable<string>, start: number, end
       return
     }
     
-    const buffer: string[] = []
+    const buffer: T[] = []
     
     for await (const text of iterator) {
       if (index >= start) {
@@ -69,7 +69,7 @@ export async function* slice(iterator: AsyncIterable<string>, start: number, end
   }
   
   // Case 3: Start negative - need to buffer everything to know total length
-  const items: string[] = []
+  const items: T[] = []
   for await (const text of iterator) {
     items.push(text)
   }
