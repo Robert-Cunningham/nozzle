@@ -15,3 +15,9 @@ return p(stream)
   .atRate(100)
   .value()
 ```
+
+# On Regexes
+
+input:
+'hi' =>
+' there' => 'hi'

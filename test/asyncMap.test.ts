@@ -1,8 +1,12 @@
-import { describe, test, expect } from "vitest"
+import { describe, expect, test } from "vitest"
+import { asList } from "../src/transforms/asList"
 import { asyncMap } from "../src/transforms/asyncMap"
 import { fromList } from "../src/transforms/fromList"
-import { asList } from "../src/transforms/asList"
-import { collectWithTimings, delayedStream, assertTimingResultsEquals } from "./timing-helpers"
+import {
+  assertResultsEqualsWithTiming,
+  collectWithTimings,
+  delayedStream,
+} from "./timing-helpers"
 
 describe("asyncMap", () => {
   test("should transform each value using the provided async function", async () => {
@@ -113,13 +117,13 @@ describe("asyncMap", () => {
     const results = await collectWithTimings(
       asyncMap(fromList(["a", "b", "c"]), async (x) => {
         const delay = x === "b" ? 50 : 20
-        await new Promise(resolve => setTimeout(resolve, delay))
+        await new Promise((resolve) => setTimeout(resolve, delay))
         return x.toUpperCase()
-      })
+      }),
     )
 
-    expect(results.map(r => r.item)).toEqual(["A", "B", "C"])
-    
+    expect(results.map((r) => r.item)).toEqual(["A", "B", "C"])
+
     expect(results[0].timestamp).toBeLessThan(30)
     expect(results[1].timestamp).toBeGreaterThanOrEqual(45)
     expect(results[2].timestamp).toBeGreaterThanOrEqual(45)
@@ -128,30 +132,30 @@ describe("asyncMap", () => {
   test("should handle concurrency with delayed input stream", async () => {
     const results = await collectWithTimings(
       asyncMap(delayedStream(["x", "y", "z"], 10), async (x) => {
-        await new Promise(resolve => setTimeout(resolve, 5))
+        await new Promise((resolve) => setTimeout(resolve, 5))
         return x.repeat(2)
-      })
+      }),
     )
 
-    assertTimingResultsEquals(results, [
+    assertResultsEqualsWithTiming(results, [
       { item: "xx", timestamp: 15 },
       { item: "yy", timestamp: 25 },
-      { item: "zz", timestamp: 35 }
+      { item: "zz", timestamp: 35 },
     ])
   })
 
   test("should demonstrate speed improvement with concurrency", async () => {
     const startTime = Date.now()
-    
+
     const results = await asList(
       asyncMap(fromList(["1", "2", "3", "4"]), async (x) => {
-        await new Promise(resolve => setTimeout(resolve, 50))
+        await new Promise((resolve) => setTimeout(resolve, 50))
         return `result-${x}`
-      })
+      }),
     )
-    
+
     const totalTime = Date.now() - startTime
-    
+
     expect(results).toEqual(["result-1", "result-2", "result-3", "result-4"])
     expect(totalTime).toBeLessThan(100)
   })

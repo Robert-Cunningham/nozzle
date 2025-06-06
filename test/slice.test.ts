@@ -1,7 +1,7 @@
 import { describe, expect, test } from "vitest"
 import { asList, fromList, slice } from "../src/transforms"
 import {
-  assertTimingResultsEquals,
+  assertResultsEqualsWithTiming,
   collectWithTimings,
   delayedStream,
 } from "./timing-helpers"
@@ -62,7 +62,7 @@ describe("slice timing behavior", () => {
     const stream = slice(1, 3)(delayedStream(["a", "b", "c", "d", "e"], 50))
     const results = await collectWithTimings(stream)
 
-    assertTimingResultsEquals(results, [
+    assertResultsEqualsWithTiming(results, [
       { item: "b", timestamp: 100 },
       { item: "c", timestamp: 150 },
     ])
@@ -73,7 +73,7 @@ describe("slice timing behavior", () => {
     const stream = slice(2)(delayedStream(["a", "b", "c", "d", "e"], 30))
     const results = await collectWithTimings(stream)
 
-    assertTimingResultsEquals(results, [
+    assertResultsEqualsWithTiming(results, [
       { item: "c", timestamp: 90 },
       { item: "d", timestamp: 120 },
       { item: "e", timestamp: 150 },
@@ -88,7 +88,7 @@ describe("slice timing behavior", () => {
     )(delayedStream(["a", "b", "c", "d", "e", "f"], 40))
     const results = await collectWithTimings(stream)
 
-    assertTimingResultsEquals(results, [
+    assertResultsEqualsWithTiming(results, [
       { item: "b", timestamp: 160 },
       { item: "c", timestamp: 200 },
       { item: "d", timestamp: 240 },
@@ -100,7 +100,7 @@ describe("slice timing behavior", () => {
     const stream = slice(-3)(delayedStream(["a", "b", "c", "d", "e"], 30))
     const results = await collectWithTimings(stream)
 
-    assertTimingResultsEquals(results, [
+    assertResultsEqualsWithTiming(results, [
       { item: "c", timestamp: 150 },
       { item: "d", timestamp: 150 },
       { item: "e", timestamp: 150 },
@@ -112,7 +112,7 @@ describe("slice timing behavior", () => {
     const stream = slice(-4, -1)(delayedStream(["a", "b", "c", "d", "e"], 25))
     const results = await collectWithTimings(stream)
 
-    assertTimingResultsEquals(results, [
+    assertResultsEqualsWithTiming(results, [
       { item: "b", timestamp: 125 },
       { item: "c", timestamp: 125 },
       { item: "d", timestamp: 125 },
@@ -123,13 +123,13 @@ describe("slice timing behavior", () => {
     const stream = slice(10, 15)(delayedStream(["a", "b", "c"], 20))
     const results = await collectWithTimings(stream)
 
-    assertTimingResultsEquals(results, [])
+    assertResultsEqualsWithTiming(results, [])
   })
 
   test("single item slice should yield quickly", async () => {
     const stream = slice(1, 2)(delayedStream(["a", "b", "c", "d"], 40))
     const results = await collectWithTimings(stream)
 
-    assertTimingResultsEquals(results, [{ item: "b", timestamp: 80 }])
+    assertResultsEqualsWithTiming(results, [{ item: "b", timestamp: 80 }])
   })
 })

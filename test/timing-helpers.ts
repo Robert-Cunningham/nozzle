@@ -49,7 +49,7 @@ export async function collectWithTimings<T>(
 /**
  * Asserts exact timing of collected results
  */
-export function assertTimingResultsEquals<T>(
+export function assertResultsEqualsWithTiming<T>(
   results: Array<{ item: T; timestamp: number }>,
   expected: Array<{ item: T; timestamp: number }>,
 ) {

@@ -2,8 +2,11 @@ import { describe, expect, test } from "vitest"
 import { asList } from "../src/transforms/asList"
 import { fromList } from "../src/transforms/fromList"
 import { throttle } from "../src/transforms/throttle"
-import { delayedSource, collectWithTimings, assertTimingResultsEquals } from "./timing-helpers"
-
+import {
+  assertResultsEqualsWithTiming,
+  collectWithTimings,
+  delayedSource,
+} from "./timing-helpers"
 
 describe("throttle", () => {
   test("first chunk immediate, subsequent throttled", async () => {
@@ -17,7 +20,7 @@ describe("throttle", () => {
 
     const results = await collectWithTimings(throttled)
 
-    assertTimingResultsEquals(results, [
+    assertResultsEqualsWithTiming(results, [
       { item: "a", timestamp: 0 },
       { item: "bc", timestamp: 50 },
     ])
@@ -33,7 +36,7 @@ describe("throttle", () => {
 
     const results = await collectWithTimings(throttled)
 
-    assertTimingResultsEquals(results, [
+    assertResultsEqualsWithTiming(results, [
       { item: "a", timestamp: 0 }, // First: immediate
       { item: "b", timestamp: 70 }, // Second: immediate when it arrives
     ])
@@ -45,7 +48,7 @@ describe("throttle", () => {
 
     const results = await collectWithTimings(throttled)
 
-    assertTimingResultsEquals(results, [{ item: "only", timestamp: 0 }])
+    assertResultsEqualsWithTiming(results, [{ item: "only", timestamp: 0 }])
   })
 
   test("empty source", async () => {
