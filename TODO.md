@@ -30,3 +30,10 @@
 [ ] try to write the JSON thing and see if there's any way to make it easier.
 
 [ ] generally optimize the pipeline class more; only hold the entire string in memory once, for example.
+
+names: fracturejs
+partialjs
+incrementaljs
+conduit
+conductive
+conduit
