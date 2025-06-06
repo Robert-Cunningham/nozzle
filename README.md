@@ -62,7 +62,7 @@ for await (const chunk of stream) {
 ### after()
 
 ```ts
-function after(source: StringIterable, pattern: RegExp): AsyncIterable<string>;
+function after(source: StringIterable, pattern: string | RegExp): AsyncIterable<string>;
 ```
 
 Emit everything **after** the accumulated prefix that matches `pattern`.
@@ -82,7 +82,7 @@ for await (const chunk of stream) {
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
 | `source` | `StringIterable` | stream or iterable to scan |
-| `pattern` | `RegExp` | first `RegExp` that marks the cut-off |
+| `pattern` | `string` \| `RegExp` | first `RegExp` that marks the cut-off |
 
 ### asList()
 
@@ -174,7 +174,7 @@ for await (const data of responses) {
 ### before()
 
 ```ts
-function before(source: StringIterable, separator: string): AsyncIterable<string>;
+function before(source: StringIterable, separator: string | RegExp): AsyncIterable<string>;
 ```
 
 Emit everything **before** the accumulated prefix that contains `separator`.
@@ -194,7 +194,7 @@ for await (const chunk of stream) {
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
 | `source` | `StringIterable` | stream or iterable to scan |
-| `separator` | `string` | string that marks the cut-off |
+| `separator` | `string` \| `RegExp` | string that marks the cut-off |
 
 ### chunk()
 
@@ -263,7 +263,7 @@ for await (const chunk of stream) {
 ### filter()
 
 ```ts
-function filter(iterator: AsyncIterable<string>, predicate: (chunk: string) => boolean): AsyncGenerator<string, void, unknown>;
+function filter<T>(iterator: AsyncIterable<T>, predicate: (chunk: T) => boolean): AsyncGenerator<T>;
 ```
 
 Filters the input stream based on a predicate function.
@@ -282,8 +282,8 @@ for await (const chunk of stream) {
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
-| `iterator` | `AsyncIterable`\<`string`\> | An asynchronous iterable of strings. |
-| `predicate` | (`chunk`: `string`) => `boolean` | A function that returns true for items to keep. |
+| `iterator` | `AsyncIterable`\<`T`\> | An asynchronous iterable of strings. |
+| `predicate` | (`chunk`: `T`) => `boolean` | A function that returns true for items to keep. |
 
 ### first()
 
@@ -360,7 +360,7 @@ for await (const chunk of stream) {
 ### map()
 
 ```ts
-function map(iterator: AsyncIterable<string>, fn: (value: string) => string): AsyncGenerator<string, void, unknown>;
+function map<T, U>(iterator: AsyncIterable<T>, fn: (value: T) => U): AsyncGenerator<Awaited<U>, void, unknown>;
 ```
 
 Transforms each value from the input stream using the provided function.
@@ -379,8 +379,8 @@ for await (const chunk of stream) {
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
-| `iterator` | `AsyncIterable`\<`string`\> | An asynchronous iterable of strings. |
-| `fn` | (`value`: `string`) => `string` | A function that transforms each string value. |
+| `iterator` | `AsyncIterable`\<`T`\> | An asynchronous iterable of strings. |
+| `fn` | (`value`: `T`) => `U` | A function that transforms each string value. |
 
 ### minInterTokenDelay()
 
@@ -405,7 +405,7 @@ to ensure at least `delayMs` milliseconds pass between each yield.
 function replace(
    input: AsyncIterable<string>, 
    regex: RegExp, 
-replacement: string): AsyncGenerator<string, void, any>;
+replacement: string): AsyncIterable<string>;
 ```
 
 Replaces matches of a regex pattern with a replacement string in the input stream.
@@ -432,10 +432,46 @@ for await (const chunk of stream) {
 | `regex` | `RegExp` | The regular expression pattern to match. |
 | `replacement` | `string` | The string to replace matches with. |
 
+### slice()
+
+```ts
+function slice(start: number, end?: number): (iterator: AsyncIterable<string>) => AsyncGenerator<string, void, unknown>;
+```
+
+Yields a slice of the input stream between start and end indices.
+Supports negative indices by maintaining an internal buffer.
+
+#### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `start` | `number` | Starting index (inclusive). Negative values count from end. |
+| `end?` | `number` | Ending index (exclusive). Negative values count from end. If undefined, slices to end. |
+
+#### Examples
+
+```ts
+const stream = slice(1, 3)(streamOf(["a", "b", "c", "d", "e"]))
+for await (const chunk of stream) {
+  console.log(chunk)
+}
+// => ["b", "c"]
+```
+
+```ts
+const stream = slice(-2)(streamOf(["a", "b", "c", "d", "e"]))
+for await (const chunk of stream) {
+  console.log(chunk)
+}
+// => ["d", "e"]
+```
+
+***
+
 ### split()
 
 ```ts
-function split(source: AsyncIterable<string>, separator: string): AsyncIterable<string>;
+function split(source: AsyncIterable<string>, separator: string | RegExp): AsyncIterable<string>;
 ```
 
 Takes incoming chunks, merges them, and then splits them by a string separator.
@@ -445,12 +481,12 @@ Takes incoming chunks, merges them, and then splits them by a string separator.
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
 | `source` | `AsyncIterable`\<`string`\> | The async iterable source of strings. |
-| `separator` | `string` | The string separator to split by. |
+| `separator` | `string` \| `RegExp` | The string separator to split by. |
 
 ### splitAfter()
 
 ```ts
-function splitAfter(source: AsyncIterable<string>, separator: string): AsyncIterable<string>;
+function splitAfter(source: AsyncIterable<string>, separator: string | RegExp): AsyncIterable<string>;
 ```
 
 Takes incoming chunks, merges them, and then splits them by a string separator,
@@ -461,12 +497,12 @@ keeping the separator at the end of each part (except the last).
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
 | `source` | `AsyncIterable`\<`string`\> | The async iterable source of strings. |
-| `separator` | `string` | The string separator to split by. |
+| `separator` | `string` \| `RegExp` | The string separator to split by. |
 
 ### splitBefore()
 
 ```ts
-function splitBefore(source: AsyncIterable<string>, separator: string): AsyncIterable<string>;
+function splitBefore(source: AsyncIterable<string>, separator: string | RegExp): AsyncIterable<string>;
 ```
 
 Takes incoming chunks, merges them, and then splits them by a string separator,
@@ -477,7 +513,7 @@ keeping the separator at the beginning of each part (except the first).
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
 | `source` | `AsyncIterable`\<`string`\> | The async iterable source of strings. |
-| `separator` | `string` | The string separator to split by. |
+| `separator` | `string` \| `RegExp` | The string separator to split by. |
 
 ### tap()
 
