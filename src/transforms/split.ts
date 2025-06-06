@@ -1,4 +1,4 @@
-import { escapeRegex } from "../regex"
+import { toGlobalRegex } from "../regex"
 import { generalRegex } from "../streamingRegex"
 
 /**
@@ -24,15 +24,6 @@ export async function* split(
   }
 
   yield buffer
-}
-
-const toGlobalRegex = (separator: RegExp | string) => {
-  return typeof separator === "string"
-    ? new RegExp(escapeRegex(separator), "g")
-    : new RegExp(
-        separator.source,
-        separator.flags.includes("g") ? separator.flags : separator.flags + "g",
-      )
 }
 
 /**

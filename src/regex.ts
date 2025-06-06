@@ -165,3 +165,28 @@ export function earliestPossibleMatchIndex(
 export function escapeRegex(string: string) {
   return string.replace(/[/\-\\^$*+?.()|[\]{}]/g, "\\$&")
 }
+
+export const toGlobalRegex = (separator: RegExp | string) => {
+  return typeof separator === "string"
+    ? new RegExp(escapeRegex(separator), "g")
+    : new RegExp(
+        separator.source,
+        separator.flags.includes("g") ? separator.flags : separator.flags + "g",
+      )
+}
+
+export const toNonGlobalRegex = (separator: RegExp | string) => {
+  return typeof separator === "string"
+    ? new RegExp(escapeRegex(separator))
+    : new RegExp(separator.source, separator.flags)
+}
+
+export const isPatternEmpty = (pattern: RegExp | string) => {
+  return typeof pattern === "string"
+    ? pattern.length === 0
+    : pattern.source.length === 0
+}
+
+const toRegex = (pattern: RegExp | string) => {
+  return typeof pattern === "string" ? new RegExp(pattern) : pattern
+}

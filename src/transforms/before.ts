@@ -1,3 +1,4 @@
+import { isPatternEmpty, toNonGlobalRegex } from "../regex"
 import { generalRegex } from "../streamingRegex"
 import { StringIterable } from "../types"
 
@@ -20,10 +21,14 @@ export async function* before(
   source: StringIterable,
   separator: string | RegExp,
 ): AsyncIterable<string> {
-  for await (const result of generalRegex(
-    source,
-    typeof separator === "string" ? new RegExp(separator) : separator, // would be better to escape this
-  )) {
+  const regex = toNonGlobalRegex(separator)
+
+  if (isPatternEmpty(separator)) {
+    yield* source
+    return
+  }
+
+  for await (const result of generalRegex(source, regex)) {
     if ("text" in result) {
       yield result.text
     } else {
