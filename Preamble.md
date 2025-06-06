@@ -1,6 +1,6 @@
 <div align="center">
-  <img src="assets/nozzle%20small.png" alt="Nozzle Logo" width="70%" />
-  <h1>Nozzle</h1>
+  <img src="assets/nozzle%20small.png" alt="Nozzle Logo" width="40%" />
+  <br />
   <a href="https://www.npmjs.com/package/nozzle-js"><img src="https://badgen.net/npm/v/nozzle-js" /></a>
   <a href="https://github.com/robert-cunningham/nozzle/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue" /></a>
   <a href="https://bundlephobia.com/result?p=nozzle-js"><img src="https://badgen.net/bundlephobia/minzip/nozzle-js"></a>
