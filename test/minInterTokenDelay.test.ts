@@ -2,44 +2,7 @@ import { describe, test, expect } from "vitest"
 import { minInterTokenDelay } from "../src/transforms/minInterTokenDelay"
 import { fromList } from "../src/transforms/fromList"
 import { asList } from "../src/transforms/asList"
-
-// Helper to create a delayed async iterable
-async function* delayedSource<T>(items: Array<{value: T, delay: number}>): AsyncIterable<T> {
-  for (const item of items) {
-    if (item.delay > 0) {
-      await new Promise(resolve => setTimeout(resolve, item.delay))
-    }
-    yield item.value
-  }
-}
-
-// Helper to collect items with precise timestamps
-async function collectWithTimestamps<T>(source: AsyncIterable<T>): Promise<Array<{value: T, timestamp: number}>> {
-  const results: Array<{value: T, timestamp: number}> = []
-  for await (const value of source) {
-    results.push({ value, timestamp: Date.now() })
-  }
-  return results
-}
-
-// Helper to assert timing within ranges
-function assertTiming<T>(
-  results: Array<{value: T, timestamp: number}>, 
-  expected: Array<{value: T, earliest: number, latest: number}>,
-  startTime: number
-) {
-  expect(results.length).toBe(expected.length)
-  
-  for (let i = 0; i < expected.length; i++) {
-    const result = results[i]
-    const exp = expected[i]
-    const actualTime = result.timestamp - startTime
-    
-    expect(result.value).toBe(exp.value)
-    expect(actualTime).toBeGreaterThanOrEqual(exp.earliest)
-    expect(actualTime).toBeLessThanOrEqual(exp.latest)
-  }
-}
+import { delayedSource, collectWithTimestamps, assertTiming } from "./timing-helpers"
 
 describe("minInterTokenDelay", () => {
   test("enforces minimum delay between tokens", async () => {
