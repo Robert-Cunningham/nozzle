@@ -4,8 +4,8 @@ import { slice } from './slice'
  * Yields all values except the first from the input stream.
  *
  * @group Indexing
- * @param iterator - An asynchronous iterable of strings.
- * @returns An asynchronous generator that yields all strings except the first.
+ * @param iterator - An asynchronous iterable of values.
+ * @returns An asynchronous generator that yields all values except the first.
  *
  * @example
  * ```ts
@@ -16,4 +16,4 @@ import { slice } from './slice'
  * // => ["World", "!"]
  * ```
  */
-export const tail = (iterator: AsyncIterable<string>) => slice(iterator, 1)
+export const tail = <T>(iterator: AsyncIterable<T>) => slice(iterator, 1)

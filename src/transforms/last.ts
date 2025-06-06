@@ -4,8 +4,8 @@ import { slice } from './slice'
  * Yields only the last value from the input stream.
  *
  * @group Indexing
- * @param iterator - An asynchronous iterable of strings.
- * @returns An asynchronous generator that yields only the last string.
+ * @param iterator - An asynchronous iterable of values.
+ * @returns An asynchronous generator that yields only the last value.
  *
  * @example
  * ```ts
@@ -16,4 +16,4 @@ import { slice } from './slice'
  * // => ["!"]
  * ```
  */
-export const last = (iterator: AsyncIterable<string>) => slice(iterator, -1)
+export const last = <T>(iterator: AsyncIterable<T>) => slice(iterator, -1)
