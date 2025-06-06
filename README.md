@@ -1,8 +1,10 @@
 # Nozzle
 
-[![npm version](https://badgen.net/npm/v/nozzlejs)](https://npm.im/nozzlejs) [![npm downloads](https://badgen.net/npm/dm/nozzlejs)](https://npm.im/nozzlejs)
+![Nozzle Logo](assets/nozzle%20small.png)
 
-Partial is a utility library for manipulating streams of text, and in particular streamed responses from LLMs.
+[![npm version](https://badgen.net/npm/v/nozzle-js)](https://npm.im/nozzle-js) [![npm downloads](https://badgen.net/npm/dm/nozzle-js)](https://npm.im/nozzle-js)
+
+Nozzle is a utility library for manipulating streams of text, and in particular streamed responses from LLMs.
 
 ## Installation
 
