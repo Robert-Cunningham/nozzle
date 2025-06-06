@@ -2,13 +2,14 @@
  * Yields a slice of the input stream between start and end indices.
  * Supports negative indices by maintaining an internal buffer.
  *
+ * @param iterator - The async iterable to slice
  * @param start - Starting index (inclusive). Negative values count from end.
  * @param end - Ending index (exclusive). Negative values count from end. If undefined, slices to end.
- * @returns A function that takes an AsyncIterable<string> and returns an AsyncGenerator<string>
+ * @returns An AsyncGenerator<string> that yields the sliced elements
  *
  * @example
  * ```ts
- * const stream = slice(1, 3)(streamOf(["a", "b", "c", "d", "e"]))
+ * const stream = slice(streamOf(["a", "b", "c", "d", "e"]), 1, 3)
  * for await (const chunk of stream) {
  *   console.log(chunk)
  * }
@@ -17,14 +18,14 @@
  *
  * @example
  * ```ts
- * const stream = slice(-2)(streamOf(["a", "b", "c", "d", "e"]))
+ * const stream = slice(streamOf(["a", "b", "c", "d", "e"]), -2)
  * for await (const chunk of stream) {
  *   console.log(chunk)
  * }
  * // => ["d", "e"]
  * ```
  */
-export const slice = (start: number, end?: number) => async function* (iterator: AsyncIterable<string>) {
+export async function* slice(iterator: AsyncIterable<string>, start: number, end?: number) {
   let index = 0
   
   // Case 1: Both positive indices - stream without buffering

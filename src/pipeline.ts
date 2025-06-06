@@ -44,6 +44,10 @@ export class Pipeline implements AsyncIterable<string> {
     return new Pipeline(tx.map(this.src, fn))
   }
 
+  slice(start: number, end?: number) {
+    return new Pipeline(tx.slice(this.src, start, end))
+  }
+
   // ---- terminator -----------------------------------------
   value(): StringIterable {
     return this.src
