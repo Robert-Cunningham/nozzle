@@ -2,7 +2,7 @@ import { describe, test, expect } from "vitest"
 import { minInterTokenDelay } from "../src/transforms/minInterTokenDelay"
 import { fromList } from "../src/transforms/fromList"
 import { asList } from "../src/transforms/asList"
-import { delayedSource, collectWithTimestamps, assertTiming } from "./timing-helpers"
+import { delayedSource, collectWithTimings, assertTimingResultsEquals } from "./timing-helpers"
 
 describe("minInterTokenDelay", () => {
   test("enforces minimum delay between tokens", async () => {
@@ -15,15 +15,14 @@ describe("minInterTokenDelay", () => {
     ])
     const delayed = minInterTokenDelay(source, 100) // 100ms minimum delay
     
-    const start = Date.now()
-    const results = await collectWithTimestamps(delayed)
+    const results = await collectWithTimings(delayed)
     
-    assertTiming(results, [
-      { value: "a", earliest: 0, latest: 10 },      // First: immediate
-      { value: "b", earliest: 95, latest: 110 },    // Second: ~100ms after first
-      { value: "c", earliest: 195, latest: 210 },   // Third: ~100ms after second
-      { value: "d", earliest: 295, latest: 310 }    // Fourth: ~100ms after third
-    ], start)
+    assertTimingResultsEquals(results, [
+      { item: "a", timestamp: 0 },      // First: immediate
+      { item: "b", timestamp: 100 },    // Second: ~100ms after first
+      { item: "c", timestamp: 200 },   // Third: ~100ms after second
+      { item: "d", timestamp: 300 }    // Fourth: ~100ms after third
+    ])
   })
 
   test("respects natural delays when they exceed minimum", async () => {
@@ -35,26 +34,24 @@ describe("minInterTokenDelay", () => {
     ])
     const delayed = minInterTokenDelay(source, 100)
     
-    const start = Date.now()
-    const results = await collectWithTimestamps(delayed)
+    const results = await collectWithTimings(delayed)
     
-    assertTiming(results, [
-      { value: "a", earliest: 0, latest: 10 },      // First: immediate
-      { value: "b", earliest: 145, latest: 160 },   // Second: natural delay (150ms)
-      { value: "c", earliest: 265, latest: 285 }    // Third: natural delay (120ms after b)
-    ], start)
+    assertTimingResultsEquals(results, [
+      { item: "a", timestamp: 0 },      // First: immediate
+      { item: "b", timestamp: 150 },   // Second: natural delay (150ms)
+      { item: "c", timestamp: 270 }    // Third: natural delay (120ms after b)
+    ])
   })
 
   test("first token always immediate", async () => {
     const source = fromList(["first"])
     const delayed = minInterTokenDelay(source, 1000) // Very long delay
     
-    const start = Date.now()
-    const results = await collectWithTimestamps(delayed)
+    const results = await collectWithTimings(delayed)
     
-    assertTiming(results, [
-      { value: "first", earliest: 0, latest: 10 }
-    ], start)
+    assertTimingResultsEquals(results, [
+      { item: "first", timestamp: 0 }
+    ])
   })
 
   test("zero delay behaves as passthrough", async () => {
@@ -77,12 +74,11 @@ describe("minInterTokenDelay", () => {
     const source = fromList(["only"])
     const delayed = minInterTokenDelay(source, 100)
     
-    const start = Date.now()
-    const results = await collectWithTimestamps(delayed)
+    const results = await collectWithTimings(delayed)
     
-    assertTiming(results, [
-      { value: "only", earliest: 0, latest: 10 }
-    ], start)
+    assertTimingResultsEquals(results, [
+      { item: "only", timestamp: 0 }
+    ])
   })
 
   test("mixed scenario: some delays enforced, some natural", async () => {
@@ -94,14 +90,13 @@ describe("minInterTokenDelay", () => {
     ])
     const delayed = minInterTokenDelay(source, 100)
     
-    const start = Date.now()
-    const results = await collectWithTimestamps(delayed)
+    const results = await collectWithTimings(delayed)
     
-    assertTiming(results, [
-      { value: "a", earliest: 0, latest: 10 },      // First: immediate
-      { value: "b", earliest: 95, latest: 110 },    // Second: enforced 100ms delay
-      { value: "c", earliest: 295, latest: 320 }    // Third: natural 200ms delay after b
-    ], start)
+    assertTimingResultsEquals(results, [
+      { item: "a", timestamp: 0 },      // First: immediate
+      { item: "b", timestamp: 100 },    // Second: enforced 100ms delay
+      { item: "c", timestamp: 300 }    // Third: natural 200ms delay after b
+    ])
   })
 
   test("preserves all tokens in order", async () => {
@@ -118,15 +113,14 @@ describe("minInterTokenDelay", () => {
     const source = fromList(["a", "b", "c", "d", "e"])
     const delayed = minInterTokenDelay(source, 100)
     
-    const start = Date.now()
-    const results = await collectWithTimestamps(delayed)
+    const results = await collectWithTimings(delayed)
     
-    assertTiming(results, [
-      { value: "a", earliest: 0, latest: 10 },
-      { value: "b", earliest: 95, latest: 110 },
-      { value: "c", earliest: 195, latest: 210 },
-      { value: "d", earliest: 295, latest: 310 },
-      { value: "e", earliest: 395, latest: 410 }
-    ], start)
+    assertTimingResultsEquals(results, [
+      { item: "a", timestamp: 0 },
+      { item: "b", timestamp: 100 },
+      { item: "c", timestamp: 200 },
+      { item: "d", timestamp: 300 },
+      { item: "e", timestamp: 400 }
+    ])
   })
 })

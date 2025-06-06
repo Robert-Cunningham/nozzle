@@ -60,27 +60,6 @@ export async function collectWithTimings<T>(
 }
 
 /**
- * Asserts timing of collected results within expected ranges
- */
-export function assertTiming<T>(
-  results: Array<{ value: T; timestamp: number }>,
-  expected: Array<{ value: T; earliest: number; latest: number }>,
-  startTime: number,
-) {
-  expect(results.length).toBe(expected.length)
-
-  for (let i = 0; i < expected.length; i++) {
-    const result = results[i]
-    const exp = expected[i]
-    const actualTime = result.timestamp - startTime
-
-    expect(result.value).toBe(exp.value)
-    expect(actualTime).toBeGreaterThanOrEqual(exp.earliest)
-    expect(actualTime).toBeLessThanOrEqual(exp.latest)
-  }
-}
-
-/**
  * Asserts exact timing of collected results
  */
 export function assertTimingResultsEquals<T>(
