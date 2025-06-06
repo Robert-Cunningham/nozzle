@@ -16,6 +16,7 @@
 - general an image + write a nice readme
 - read the readme and fix any obvious issues
 - should we explicitly state that yielding the empty string must be a no-op?
+- document the chaining behavior
 
 - write a .endIf function ? which ends if something is detected in the stream?
 - try to write the JSON thing and see if there's any way to make it easier.
