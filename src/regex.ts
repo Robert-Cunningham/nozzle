@@ -187,6 +187,8 @@ export const isPatternEmpty = (pattern: RegExp | string) => {
     : pattern.source.length === 0
 }
 
-const toRegex = (pattern: RegExp | string) => {
-  return typeof pattern === "string" ? new RegExp(pattern) : pattern
+export const toRegex = (pattern: RegExp | string) => {
+  return typeof pattern === "string"
+    ? new RegExp(escapeRegex(pattern))
+    : pattern
 }
