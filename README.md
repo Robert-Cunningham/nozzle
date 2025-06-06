@@ -2,7 +2,24 @@
 
 ![Nozzle Logo](assets/nozzle%20small.png)
 
-[![npm version](https://badgen.net/npm/v/nozzle-js)](https://npm.im/nozzle-js) [![npm downloads](https://badgen.net/npm/dm/nozzle-js)](https://npm.im/nozzle-js)
+<div align="center">
+  <h1>Nozzle</h1>
+  <a href="https://badgen.net/npm/v/nozzle-js"><img src="https://www.npmjs.com/package/nozzle-js" /></a>
+  <a href="https://github.com/robert-cunningham/nozzle/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue" /></a>
+  <a href="https://bundlephobia.com/result?p=nozzle-js"><img src="https://badgen.net/bundlephobia/minzip/nozzle-js"></a>
+  <br />
+  <br />
+  <a href="#Quickstart">Quickstart</a>
+  <span>&nbsp;&nbsp;•&nbsp;&nbsp;</span>
+  <a href="#Reference">Reference</a>
+  <br />
+  <hr />
+</div>
+
+<!-- [![npm version][npm-src]][npm-href]
+[![Bundle size][bundlephobia-src]][bundlephobia-href]
+[![License][license-src]][license-href]
+-->
 
 Nozzle is a utility library for manipulating streams of text, and in particular streamed responses from LLMs.
 

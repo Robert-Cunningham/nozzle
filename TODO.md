@@ -11,6 +11,7 @@
 [x] write some function like flatMap that can be used to break tokens into more tokens?
 [x] write .head, .tail, .last, .initial
 [x] choose a name
+[x] figure out how to do releases?
 
 // potentially we should have differences like splitEach (applies tokenwise) and split (applies response-wise); same with e.g. .trimEach and .trim(). The each functions are much less useful / common, since they can mostly be implemented with map().
 
@@ -24,7 +25,6 @@
 [ ] document the chaining behavior
 [ ] write a .trim() function
 [ ] add a bundle size badge
-[ ] figure out how to do releases?
 [ ] rename the conversion methods, (asList / toString etc)
 
 [ ] write a .endIf function ? which ends if something is detected in the stream?
