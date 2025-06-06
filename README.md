@@ -435,7 +435,7 @@ for await (const chunk of stream) {
 ### slice()
 
 ```ts
-function slice(start: number, end?: number): (iterator: AsyncIterable<string>) => AsyncGenerator<string, void, unknown>;
+function slice(iterator: AsyncIterable<string>, start: number, end?: number): AsyncGenerator<string, void, unknown>;
 ```
 
 Yields a slice of the input stream between start and end indices.
@@ -445,13 +445,14 @@ Supports negative indices by maintaining an internal buffer.
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
+| `iterator` | `AsyncIterable<string>` | The async iterable to slice |
 | `start` | `number` | Starting index (inclusive). Negative values count from end. |
 | `end?` | `number` | Ending index (exclusive). Negative values count from end. If undefined, slices to end. |
 
 #### Examples
 
 ```ts
-const stream = slice(1, 3)(streamOf(["a", "b", "c", "d", "e"]))
+const stream = slice(streamOf(["a", "b", "c", "d", "e"]), 1, 3)
 for await (const chunk of stream) {
   console.log(chunk)
 }
@@ -459,7 +460,7 @@ for await (const chunk of stream) {
 ```
 
 ```ts
-const stream = slice(-2)(streamOf(["a", "b", "c", "d", "e"]))
+const stream = slice(streamOf(["a", "b", "c", "d", "e"]), -2)
 for await (const chunk of stream) {
   console.log(chunk)
 }

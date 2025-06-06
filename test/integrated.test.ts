@@ -96,29 +96,32 @@ describe("Integrated Pipeline Tests", () => {
       " Use proper types.",
       " Add error handling.",
       " Write tests.\n\n",
+      "  ",
       "# Conclusion\n",
       "That's all!",
     ]
 
-    const stream = delayedStream(markdownResponse, 15)
+    const stream = delayedStream(markdownResponse, 150)
 
     const results = await collectWithTimings(
       p(stream)
         .after("# Implementation Notes")
         .before("# Conclusion")
-        .split(/[.]/g)
+        .splitAfter(/[.]/g)
         .filter((x) => x.trim().length > 0)
         .map((x) => x.trim())
-        .atRate(80)
+        .atRate(800)
         .value(),
     )
 
+    // wait 10*150ms for the first item = 1500ms. Then we have to delay for another item, because the regex might match more after the .
+
     // Verify 80ms throttling
     assertResultsEqualsWithTiming(results, [
-      { item: "Consider these points", timestamp: 0 },
-      { item: " Use proper types", timestamp: 80 },
-      { item: " Add error handling", timestamp: 160 },
-      { item: " Write tests", timestamp: 240 },
+      { item: "Consider these points.", timestamp: 1650 + 0 },
+      { item: "Use proper types.", timestamp: 1650 + 800 },
+      { item: "Add error handling.", timestamp: 1650 + 1600 },
+      { item: "Write tests.", timestamp: 1650 + 2400 },
     ])
   })
 

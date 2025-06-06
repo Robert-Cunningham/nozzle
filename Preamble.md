@@ -7,17 +7,49 @@ Partial is a utility library for manipulating streams of text, and in particular
 ```ts
 const stream = await openai.chat.completions.create({ ...args, stream: true })
 
+/*
+# Answer:
+The product is 9.
+
+# Reasoning:
+3x3 is equal to 9.
+
+=> 
+The product is 9.
+*/
 // extract the section between # Answer and # Reasoning; return the individual sentences at least 100ms apart.
 return p(stream)
   .after("# Answer")
   .before("# Reasoning")
-  .split(/.;,/g)
+  .split(/ .;,/g)
+  .trim() // trim the overall response of whitespace.
   .atRate(100)
   .value()
 ```
 
-# On Regexes
+// wait, does regex work with ^? probably not, since we truncate all the time, right?
+// because really, .trim() should just be .replace(^\s+, '').replace(\s+$, '').
+// it could also be
 
-input:
-'hi' =>
-' there' => 'hi'
+````ts
+import { parse, STR, OBJ } from "partial-json";
+
+const input = `
+Sure, the object that answers your question is:
+\`\`\`json
+{"product": 9}
+\`\`\`
+`
+
+// should have .throwifnotfound or something, as well as .throwiffound, .censor, etc?
+return p(stream)
+  .after("```json")
+  .before("```")
+  .trim()
+  .accumulate()
+  .map((prefix) => parse(prefix))
+  .pairs()
+  .filter(x => ) // only allow json values which have xyz
+  .value()
+```
+````

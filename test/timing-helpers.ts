@@ -53,10 +53,12 @@ export function assertResultsEqualsWithTiming<T>(
   results: Array<{ item: T; timestamp: number }>,
   expected: Array<{ item: T; timestamp: number }>,
 ) {
-  expect(results.length).toBe(expected.length)
+  const error = `Mismatch between results and expected: ${JSON.stringify(results, null, 2)} !== ${JSON.stringify(expected, null, 2)}`
+
+  expect(results.length, error).toBe(expected.length)
 
   for (let i = 0; i < expected.length; i++) {
-    expect(results[i].item).toBe(expected[i].item)
-    expect(results[i].timestamp).approximately(expected[i].timestamp, 10)
+    expect(results[i].item, error).toBe(expected[i].item)
+    expect(results[i].timestamp, error).approximately(expected[i].timestamp, 10)
   }
 }
