@@ -2,36 +2,82 @@
 
 [![npm version](https://badgen.net/npm/v/partialjs)](https://npm.im/partialjs) [![npm downloads](https://badgen.net/npm/dm/partialjs)](https://npm.im/partialjs)
 
-## Regex Behavior
+Partial is a utility library for manipulating streams of text, and in particular streamed responses from LLMs.
 
-CLAUDE: IGNORE THIS FOR NOW; IT IS PROBABLY WRONG AND I AM NOT SURE.
+## Installation
 
-Functions like replace in this library function slightly differently from normal. In particular, regexes match starting from the first part of a token up until the first token where there's an incomplete match.
+```
+npm i partial-js # or pnpm / bun / yarn
+```
 
-For example, consider `/a[ab]*a/g` applied to the token stream ["a", "b", "b", "a"]. This regex does not match "a", "ab", or "abb". Then it matches the full "abba" when it becomes available.
+partial is written in TypeScript and has both cjs and esm builds.
 
-- "a" does not match: continue.
-- "ab" does not match: continue.
-- "abb" does not match: continue.
-- "abba" matches: return.
+## Usage
 
-In contrast, consider `/a[ab]*a/g` applied to the token stream ["a", "a", "b", "b", "a"]. You might wish for this to match the full string, "aabba".
+```ts
+const stream = await openai.chat.completions.create({ ...args, stream: true })
 
-- "a" does not match: continue.
-- "aa" matches: continue.
-- "aab" does not match: return the previous match.
+/*
+# Answer:
+The product is 9.
 
-In general, this works well for regexes like `/Response:\s*/g`, where you want to match a continuous chunk of whitespace.
+# Reasoning:
+3x3 is equal to 9.
 
-The problem is that the above does not work for something like ["Res", "ponse:"], which will not match /Response:/, which is perhaps the most common use case here. Instead, regexes must match against the entire string again, which will cause quadratic performance.
+=> 
+The product is 9.
+*/
+// extract the section between # Answer and # Reasoning; return the individual sentences at least 100ms apart.
+return p(stream)
+  .after("# Answer")
+  .before("# Reasoning")
+  .split(/ .;,/g)
+  .trim() // trim the overall response of whitespace.
+  .atRate(100)
+  .value()
+```
 
-You're never going to be able to do like stream.replace("'''json.\*'''/g), unless you have a library that can tell you when you're looking at "'''j" that it's a potential prefix.
+// wait, does regex work with ^? probably not, since we truncate all the time, right?
+// because really, .trim() should just be .replace(^\s+, '').replace(\s+$, '').
+// it could also be
 
-If you want the more traditional behavior, you can use `{mode: greedy}`, which will only pass through bytes which for sure cannot match the regex anymore. Note that this can have unintuitive behavior. We hope to support this in the future (claude: ignore this part.)
+````ts
+import { parse, STR, OBJ } from "partial-json";
 
-To implement something like replace() you fundamentally MUST know whether or not you're matching a prefix. Because, if you're not matching a prefix, you must yield the tokens, and otherwise you must hold onto them so you can eventually do a replacement.
+const input = `
+Sure, the object that answers your question is:
+\`\`\`json
+{"product": 9}
+\`\`\`
+`
 
-So for a call like .replace(/'''json.\*'''/g, "hidden json"), we're going to need to check, at every string position, whether that is a prefix. And then we can yield anything that is not.
+// should have .throwifnotfound or something, as well as .throwiffound, .censor, etc?
+return p(stream)
+  .after("```json")
+  .before("```")
+  .trim()
+  .accumulate()
+  .map((prefix) => parse(prefix))
+  .pairs()
+  .filter(x => ) // only allow json values which have xyz
+  .value()
+```
+````
+
+## Testing
+
+```
+git clone https://github.com/Robert-Cunningham/partial
+cd partial
+npm i
+npm run test
+```
+
+## License
+
+This library is licensed under the MIT license.
+
+## API Reference
 
 ## Functions
 
@@ -135,7 +181,7 @@ function asyncMap(iterator: AsyncIterable<string>, fn: (value: string) => Promis
 
 Transforms each value from the input stream using the provided async function.
 Applies the async function to each item as soon as it comes off the iterator
-and yields the result.
+and yields results as they complete, allowing multiple function calls to run concurrently.
 
 #### Parameters
 
@@ -435,7 +481,10 @@ for await (const chunk of stream) {
 ### slice()
 
 ```ts
-function slice(iterator: AsyncIterable<string>, start: number, end?: number): AsyncGenerator<string, void, unknown>;
+function slice(
+   iterator: AsyncIterable<string>, 
+   start: number, 
+end?: number): AsyncGenerator<string, void, unknown>;
 ```
 
 Yields a slice of the input stream between start and end indices.
@@ -445,7 +494,7 @@ Supports negative indices by maintaining an internal buffer.
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
-| `iterator` | `AsyncIterable<string>` | The async iterable to slice |
+| `iterator` | `AsyncIterable`\<`string`\> | The async iterable to slice |
 | `start` | `number` | Starting index (inclusive). Negative values count from end. |
 | `end?` | `number` | Ending index (exclusive). Negative values count from end. If undefined, slices to end. |
 
