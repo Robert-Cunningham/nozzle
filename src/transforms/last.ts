@@ -1,3 +1,5 @@
+import { slice } from './slice'
+
 /**
  * Yields only the last value from the input stream.
  *
@@ -14,12 +16,4 @@
  * // => ["!"]
  * ```
  */
-export const last = async function* (iterator: AsyncIterable<string>) {
-  let lastValue: string | undefined
-  for await (const text of iterator) {
-    lastValue = text
-  }
-  if (lastValue !== undefined) {
-    yield lastValue
-  }
-}
+export const last = (iterator: AsyncIterable<string>) => slice(iterator, -1)

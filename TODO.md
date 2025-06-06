@@ -22,6 +22,8 @@
 [ ] should we explicitly state that yielding the empty string must be a no-op?
 [ ] document the chaining behavior
 [ ] write a .trim() function
+[ ] add a bundle size badge
+[ ] figure out how to do releases?
 
 [ ] write a .endIf function ? which ends if something is detected in the stream?
 [ ] try to write the JSON thing and see if there's any way to make it easier.
