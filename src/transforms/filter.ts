@@ -14,7 +14,10 @@
  * // => ["Hello", "World"]
  * ```
  */
-export const filter = async function* (iterator: AsyncIterable<string>, predicate: (chunk: string) => boolean) {
+export const filter = async function* <T>(
+  iterator: AsyncIterable<T>,
+  predicate: (chunk: T) => boolean,
+): AsyncGenerator<T> {
   for await (const text of iterator) {
     if (predicate(text)) {
       yield text
