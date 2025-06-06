@@ -1,3 +1,4 @@
+import { isPatternEmpty, toNonGlobalRegex } from "../regex"
 import { generalRegex } from "../streamingRegex"
 import { StringIterable } from "../types"
 
@@ -21,20 +22,23 @@ export async function* after(
   pattern: RegExp | string,
 ): AsyncIterable<string> {
   let found = false
+  const regex = toNonGlobalRegex(pattern)
 
-  const regex =
-    typeof pattern === "string"
-      ? new RegExp(pattern)
-      : new RegExp(pattern.source, pattern.flags.replace(/g/g, ""))
+  if (isPatternEmpty(pattern)) {
+    yield* source
+    return
+  }
 
   // must not be a global regex; once it matches once, everything else should pass through.
   for await (const result of generalRegex(source, regex)) {
     if ("regex" in result) {
-      found = true
+      if (found) {
+        yield result.regex[0]
+      } else {
+        found = true
+      }
+    } else if (found) {
+      yield result.text
     }
-    if (!found) continue
-
-    if ("text" in result) yield result.text
-    else yield result.regex[0]
   }
 }
