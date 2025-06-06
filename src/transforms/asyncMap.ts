@@ -1,7 +1,7 @@
 /**
  * Transforms each value from the input stream using the provided async function.
  * Applies the async function to each item as soon as it comes off the iterator
- * and yields the result.
+ * and yields results as they complete, allowing multiple function calls to run concurrently.
  *
  * @param iterator - An asynchronous iterable of strings.
  * @param fn - An async function that transforms each string value.
@@ -36,7 +36,32 @@ export const asyncMap = async function* (
   iterator: AsyncIterable<string>, 
   fn: (value: string) => Promise<string>
 ) {
-  for await (const text of iterator) {
-    yield await fn(text)
+  const promises: Promise<string>[] = []
+  let nextIndex = 0
+  let inputDone = false
+  
+  async function processInput() {
+    try {
+      for await (const text of iterator) {
+        promises.push(fn(text))
+      }
+    } finally {
+      inputDone = true
+    }
   }
+  
+  const inputPromise = processInput()
+  
+  while (!inputDone || nextIndex < promises.length) {
+    if (nextIndex >= promises.length) {
+      await new Promise(resolve => setTimeout(resolve, 1))
+      continue
+    }
+    
+    const result = await promises[nextIndex]
+    nextIndex++
+    yield result
+  }
+  
+  await inputPromise
 }
