@@ -1,16 +1,18 @@
-# Partial
+# Nozzle
 
-[![npm version](https://badgen.net/npm/v/partialjs)](https://npm.im/partialjs) [![npm downloads](https://badgen.net/npm/dm/partialjs)](https://npm.im/partialjs)
+![Nozzle Logo](assets/nozzle%20small.png)
 
-Partial is a utility library for manipulating streams of text, and in particular streamed responses from LLMs.
+[![npm version](https://badgen.net/npm/v/nozzle-js)](https://npm.im/nozzle-js) [![npm downloads](https://badgen.net/npm/dm/nozzle-js)](https://npm.im/nozzle-js)
+
+Nozzle is a utility library for manipulating streams of text, and in particular streamed responses from LLMs.
 
 ## Installation
 
 ```bash
-npm i partial-js # or pnpm / bun / yarn
+npm i nozzle-js # or pnpm / bun / yarn
 ```
 
-partial is written in TypeScript and has both cjs and esm builds.
+nozzle is written in TypeScript and has both cjs and esm builds.
 
 ## Usage
 
@@ -45,7 +47,7 @@ return p(stream)
 // it could also be
 
 ````ts
-import { parse, STR, OBJ } from "partial-json";
+import { parse, STR, OBJ } from "nozzle-json";
 
 const input = `
 Sure, the object that answers your question is:
@@ -72,8 +74,8 @@ return p(stream)
 Install the library:
 
 ```bash
-git clone https://github.com/Robert-Cunningham/partial
-cd partial
+git clone https://github.com/Robert-Cunningham/nozzle
+cd nozzle
 npm i
 ```
 
