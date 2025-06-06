@@ -31,19 +31,6 @@ export async function* delayedStream<T>(
 }
 
 /**
- * Collects items from an async iterable with precise timestamps
- */
-export async function collectWithTimestamps<T>(
-  source: AsyncIterable<T>,
-): Promise<Array<{ value: T; timestamp: number }>> {
-  const results: Array<{ value: T; timestamp: number }> = []
-  for await (const value of source) {
-    results.push({ value, timestamp: Date.now() })
-  }
-  return results
-}
-
-/**
  * Collects items with timestamps relative to a start time
  */
 export async function collectWithTimings<T>(
