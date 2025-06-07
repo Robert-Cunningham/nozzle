@@ -16,7 +16,7 @@
  * // => logs: "Hello", "World", "!", then "Processed: Hello", "Processed: World", "Processed: !"
  * ```
  */
-export const tap = async function* (iterator: AsyncIterable<string>, fn: (value: string) => void) {
+export const tap = async function* <T>(iterator: AsyncIterable<T>, fn: (value: T) => void) {
   for await (const text of iterator) {
     fn(text)
     yield text

@@ -33,11 +33,11 @@
  * }
  * ```
  */
-export const asyncMap = async function* (
-  iterator: AsyncIterable<string>, 
-  fn: (value: string) => Promise<string>
+export const asyncMap = async function* <T, U>(
+  iterator: AsyncIterable<T>, 
+  fn: (value: T) => Promise<U>
 ) {
-  const promises: Promise<string>[] = []
+  const promises: Promise<U>[] = []
   let nextIndex = 0
   let inputDone = false
   
