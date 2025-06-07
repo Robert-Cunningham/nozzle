@@ -1,6 +1,6 @@
 import { Pipeline } from "./pipeline"
 import * as tx from "./transforms"
-import { StringIterable, Iterable } from "./types"
+import { Iterable, StringIterable } from "./types"
 
 // 1. the callable builder - overloaded for string and generic types
 function _p(src: StringIterable): Pipeline<string>
@@ -11,7 +11,7 @@ function _p<T>(src: Iterable<T>) {
 
 // 2. merge in the stand-alone helpers *at type level*
 /** @hidden */
-export const p: {
+export const nz: {
   (src: StringIterable): Pipeline<string>
   <T>(src: Iterable<T>): Pipeline<T>
 } & typeof tx = Object.assign(_p, tx)
