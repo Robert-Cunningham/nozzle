@@ -12,29 +12,30 @@
 [x] write .head, .tail, .last, .initial
 [x] choose a name
 [x] figure out how to do releases?
+[x] add a bundle size badge
+[x] generate a nice image
+[x] publish this package
+[x] rename the github repo
 
 // potentially we should have differences like splitEach (applies tokenwise) and split (applies response-wise); same with e.g. .trimEach and .trim(). The each functions are much less useful / common, since they can mostly be implemented with map().
 
-[ ] write a reduce() equivalent?
+[ ] figure out how to make focal depend on it
 [ ] document regex no backreferences, lookaheads, or lookbehinds.
 [ ] generally explain how regexes work
-[ ] publish this package and figure out how to make focal depend on it
-[ ] general an image + write a nice readme
+[ ] write a nice readme
 [ ] read the readme carefully and fix any obvious issues
-[ ] should we explicitly state that yielding the empty string must be a no-op?
 [ ] document the chaining behavior
 [ ] write a .trim() function
-[ ] add a bundle size badge
 [ ] rename the conversion methods, (asList / toString etc)
+[ ] write .at() that selects out just a single element. This is also a slice derivative.
+[ ] allow delay to choose its length with a function indicating how many elements remain / what the upcoming token is / etc?
+[ ] write a reduce() equivalent that takes the same parameters as the delay function? / generally decide what the full group of parameters that gets passed to the iterating function is.
+[ ] better readme examples
+[ ] better readme tagline
+[ ] animated readme example?
 
+[ ] should we explicitly state that yielding the empty string must be a no-op?
 [ ] write a .endIf function ? which ends if something is detected in the stream?
 [ ] try to write the JSON thing and see if there's any way to make it easier.
 
 [ ] generally optimize the pipeline class more; only hold the entire string in memory once, for example.
-
-names: fracturejs
-partialjs
-incrementaljs
-conduit
-conductive
-conduit
