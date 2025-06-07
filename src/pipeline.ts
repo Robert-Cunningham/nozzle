@@ -1,5 +1,5 @@
 import * as tx from "./transforms"
-import { StringIterable } from "./types"
+import { Iterable } from "./types"
 
 /** @hidden
  * A pipeline of transformations.
@@ -8,100 +8,121 @@ import { StringIterable } from "./types"
  * const pipeline = new Pipeline(streamOf(["a", "b", "c", "d", "e"]))
  * ```
  */
-export class Pipeline implements AsyncIterable<string> {
-  constructor(private readonly src: StringIterable) {}
+export class Pipeline<T = string> implements AsyncIterable<T> {
+  constructor(protected readonly src: Iterable<T>) {}
 
-  // ---- 1-to-1 wrappers ------------------------------------
-  accumulate() {
-    return new Pipeline(tx.accumulate(this.src))
-  }
-
-  after(pattern: RegExp | string) {
-    return new Pipeline(tx.after(this.src, pattern))
-  }
-
-  asyncMap(fn: (value: string) => Promise<string>) {
-    return new Pipeline(tx.asyncMap(this.src, fn))
-  }
-
-  before(pattern: RegExp | string) {
-    return new Pipeline(tx.before(this.src, pattern))
-  }
-
-  chunk(size: number) {
-    return new Pipeline(tx.chunk(this.src, size))
-  }
-
-  compact() {
-    return new Pipeline(tx.compact(this.src))
-  }
-
-  diff() {
-    return new Pipeline(tx.diff(this.src))
-  }
-
-  filter(predicate: (value: string) => boolean) {
-    return new Pipeline(tx.filter(this.src, predicate))
+  // ---- Generic methods that work with any type T ----
+  filter(predicate: (value: T) => boolean) {
+    return new Pipeline<T>(tx.filter(this.src, predicate))
   }
 
   first() {
-    return new Pipeline(tx.first(this.src))
+    return new Pipeline<T>(tx.first(this.src))
   }
 
   last() {
-    return new Pipeline(tx.last(this.src))
+    return new Pipeline<T>(tx.last(this.src))
   }
 
-  map(fn: (value: string) => string) {
-    return new Pipeline(tx.map(this.src, fn))
+  map<U>(fn: (value: T) => U) {
+    return new Pipeline<U>(tx.map(this.src, fn))
   }
 
-  atRate(ms: number) {
-    return new Pipeline(tx.minInterval(this.src, ms))
-  }
-
-  replace(regex: RegExp, replacement: string) {
-    return new Pipeline(tx.replace(this.src, regex, replacement))
+  asyncMap<U>(fn: (value: T) => Promise<U>) {
+    return new Pipeline<U>(tx.asyncMap(this.src, fn))
   }
 
   slice(start: number, end?: number) {
-    return new Pipeline(tx.slice(this.src, start, end))
+    return new Pipeline<T>(tx.slice(this.src, start, end))
   }
 
-  split(pattern: RegExp | string) {
-    return new Pipeline(tx.split(this.src, pattern))
-  }
-
-  splitAfter(pattern: RegExp | string) {
-    return new Pipeline(tx.splitAfter(this.src, pattern))
-  }
-
-  splitBefore(pattern: RegExp | string) {
-    return new Pipeline(tx.splitBefore(this.src, pattern))
-  }
-
-  tap(fn: (value: string) => void) {
-    return new Pipeline(tx.tap(this.src, fn))
+  tap(fn: (value: T) => void) {
+    return new Pipeline<T>(tx.tap(this.src, fn))
   }
 
   throttle(intervalMs: number) {
-    return new Pipeline(tx.throttle(this.src, intervalMs))
+    return new Pipeline<T>(tx.throttle(this.src, intervalMs))
   }
 
   // ---- terminators ----------------------------------------
-  asList(): Promise<string[]> {
+  asList(): Promise<T[]> {
     return tx.asList(this.src)
   }
 
-  asString(): Promise<string> {
-    return tx.asString(this.src)
-  }
-
-  value(): StringIterable {
+  value(): Iterable<T> {
     return this.src
   }
 
   [Symbol.asyncIterator]() {
-    return (this.src as AsyncIterable<string>)[Symbol.asyncIterator]()
+    return (this.src as AsyncIterable<T>)[Symbol.asyncIterator]()
   }
 }
+
+// String-specific methods for Pipeline<string>
+declare module "./pipeline" {
+  interface Pipeline<T> {
+    accumulate(this: Pipeline<string>): Pipeline<string>
+    after(this: Pipeline<string>, pattern: RegExp | string): Pipeline<string>
+    before(this: Pipeline<string>, pattern: RegExp | string): Pipeline<string>
+    chunk(this: Pipeline<string>, size: number): Pipeline<string>
+    compact(this: Pipeline<string>): Pipeline<string>
+    diff(this: Pipeline<string>): Pipeline<string>
+    atRate(this: Pipeline<string>, ms: number): Pipeline<string>
+    replace(this: Pipeline<string>, regex: RegExp, replacement: string): Pipeline<string>
+    split(this: Pipeline<string>, pattern: RegExp | string): Pipeline<string>
+    splitAfter(this: Pipeline<string>, pattern: RegExp | string): Pipeline<string>
+    splitBefore(this: Pipeline<string>, pattern: RegExp | string): Pipeline<string>
+    asString(this: Pipeline<string>): Promise<string>
+  }
+}
+
+// Implementation of string-specific methods
+Object.assign(Pipeline.prototype, {
+  accumulate(this: Pipeline<string>) {
+    return new Pipeline<string>(tx.accumulate(this.src))
+  },
+
+  after(this: Pipeline<string>, pattern: RegExp | string) {
+    return new Pipeline<string>(tx.after(this.src, pattern))
+  },
+
+  before(this: Pipeline<string>, pattern: RegExp | string) {
+    return new Pipeline<string>(tx.before(this.src, pattern))
+  },
+
+  chunk(this: Pipeline<string>, size: number) {
+    return new Pipeline<string>(tx.chunk(this.src, size))
+  },
+
+  compact(this: Pipeline<string>) {
+    return new Pipeline<string>(tx.compact(this.src))
+  },
+
+  diff(this: Pipeline<string>) {
+    return new Pipeline<string>(tx.diff(this.src))
+  },
+
+  atRate(this: Pipeline<string>, ms: number) {
+    return new Pipeline<string>(tx.minInterval(this.src, ms))
+  },
+
+  replace(this: Pipeline<string>, regex: RegExp, replacement: string) {
+    return new Pipeline<string>(tx.replace(this.src, regex, replacement))
+  },
+
+  split(this: Pipeline<string>, pattern: RegExp | string) {
+    return new Pipeline<string>(tx.split(this.src, pattern))
+  },
+
+  splitAfter(this: Pipeline<string>, pattern: RegExp | string) {
+    return new Pipeline<string>(tx.splitAfter(this.src, pattern))
+  },
+
+  splitBefore(this: Pipeline<string>, pattern: RegExp | string) {
+    return new Pipeline<string>(tx.splitBefore(this.src, pattern))
+  },
+
+  asString(this: Pipeline<string>) {
+    return tx.asString(this.src)
+  }
+})

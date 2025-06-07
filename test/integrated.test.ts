@@ -44,6 +44,11 @@ describe("Integrated Pipeline Tests", () => {
     ])
   })
 
+  test("pipeline with non-string T", async () => {
+    const source = delayedStream([1], 10)
+    p(source).tap(console.log).value()
+  })
+
   test("complex pipeline with multiple transforms and timing", async () => {
     // Test a more complex pipeline with multiple transforms
     const source = [
