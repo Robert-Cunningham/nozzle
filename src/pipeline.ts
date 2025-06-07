@@ -46,19 +46,27 @@ export class Pipeline<T = string> implements AsyncIterable<T> {
 
   // ---- String-specific methods ----
   accumulate(this: Pipeline<string>): Pipeline<string> {
-    return new Pipeline<string>(tx.accumulate(this.src as AsyncIterable<string>))
+    return new Pipeline<string>(
+      tx.accumulate(this.src as AsyncIterable<string>),
+    )
   }
 
   after(this: Pipeline<string>, pattern: RegExp | string): Pipeline<string> {
-    return new Pipeline<string>(tx.after(this.src as AsyncIterable<string>, pattern))
+    return new Pipeline<string>(
+      tx.after(this.src as AsyncIterable<string>, pattern),
+    )
   }
 
   before(this: Pipeline<string>, pattern: RegExp | string): Pipeline<string> {
-    return new Pipeline<string>(tx.before(this.src as AsyncIterable<string>, pattern))
+    return new Pipeline<string>(
+      tx.before(this.src as AsyncIterable<string>, pattern),
+    )
   }
 
   chunk(this: Pipeline<string>, size: number): Pipeline<string> {
-    return new Pipeline<string>(tx.chunk(this.src as AsyncIterable<string>, size))
+    return new Pipeline<string>(
+      tx.chunk(this.src as AsyncIterable<string>, size),
+    )
   }
 
   compact(this: Pipeline<string>): Pipeline<string> {
@@ -69,24 +77,44 @@ export class Pipeline<T = string> implements AsyncIterable<T> {
     return new Pipeline<string>(tx.diff(this.src as AsyncIterable<string>))
   }
 
-  atRate(this: Pipeline<string>, ms: number): Pipeline<string> {
-    return new Pipeline<string>(tx.minInterval(this.src as AsyncIterable<string>, ms))
+  minInterval(this: Pipeline<string>, delayMs: number): Pipeline<string> {
+    return new Pipeline<string>(
+      tx.minInterval(this.src as AsyncIterable<string>, delayMs),
+    )
   }
 
-  replace(this: Pipeline<string>, regex: RegExp, replacement: string): Pipeline<string> {
-    return new Pipeline<string>(tx.replace(this.src as AsyncIterable<string>, regex, replacement))
+  replace(
+    this: Pipeline<string>,
+    regex: RegExp,
+    replacement: string,
+  ): Pipeline<string> {
+    return new Pipeline<string>(
+      tx.replace(this.src as AsyncIterable<string>, regex, replacement),
+    )
   }
 
   split(this: Pipeline<string>, pattern: RegExp | string): Pipeline<string> {
-    return new Pipeline<string>(tx.split(this.src as AsyncIterable<string>, pattern))
+    return new Pipeline<string>(
+      tx.split(this.src as AsyncIterable<string>, pattern),
+    )
   }
 
-  splitAfter(this: Pipeline<string>, pattern: RegExp | string): Pipeline<string> {
-    return new Pipeline<string>(tx.splitAfter(this.src as AsyncIterable<string>, pattern))
+  splitAfter(
+    this: Pipeline<string>,
+    pattern: RegExp | string,
+  ): Pipeline<string> {
+    return new Pipeline<string>(
+      tx.splitAfter(this.src as AsyncIterable<string>, pattern),
+    )
   }
 
-  splitBefore(this: Pipeline<string>, pattern: RegExp | string): Pipeline<string> {
-    return new Pipeline<string>(tx.splitBefore(this.src as AsyncIterable<string>, pattern))
+  splitBefore(
+    this: Pipeline<string>,
+    pattern: RegExp | string,
+  ): Pipeline<string> {
+    return new Pipeline<string>(
+      tx.splitBefore(this.src as AsyncIterable<string>, pattern),
+    )
   }
 
   asString(this: Pipeline<string>): Promise<string> {
@@ -106,4 +134,3 @@ export class Pipeline<T = string> implements AsyncIterable<T> {
     return (this.src as AsyncIterable<T>)[Symbol.asyncIterator]()
   }
 }
-
