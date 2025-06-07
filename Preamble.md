@@ -52,7 +52,7 @@ return nz(stream)
   .before("# Check")
   .split(/ .;,/g)
   .trim() // trim the overall response of whitespace.
-  .atRate(100)
+  .minInterval(100)
   .value()
 ```
 

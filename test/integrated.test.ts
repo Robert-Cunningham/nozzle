@@ -31,7 +31,7 @@ describe("Integrated Pipeline Tests", () => {
         .after("# Answer")
         .before("# Reasoning")
         .splitAfter(/[.;,]/g)
-        .atRate(100)
+        .minInterval(100)
         .value(),
     )
 
@@ -72,7 +72,7 @@ describe("Integrated Pipeline Tests", () => {
         .split(/[,;.]/g)
         .filter((x) => x.trim().length > 0)
         .map((x) => x.trim().toUpperCase())
-        .atRate(150)
+        .minInterval(150)
         .value(),
     )
 
@@ -118,7 +118,7 @@ describe("Integrated Pipeline Tests", () => {
         .splitAfter(/[.]/g)
         .filter((x) => x.trim().length > 0)
         .map((x) => x.trim())
-        .atRate(800)
+        .minInterval(800)
         .value(),
     )
 
@@ -143,7 +143,7 @@ describe("Integrated Pipeline Tests", () => {
         .after("# Start")
         .before("# End")
         .split(/[.]/g)
-        .atRate(50)
+        .minInterval(50)
         .value(),
     )
 
@@ -157,7 +157,7 @@ describe("Integrated Pipeline Tests", () => {
     const stream = delayedStream(source, 10)
 
     const results = await collectWithTimings(
-      nz(stream).after("prefix").before("suffix").atRate(200).value(),
+      nz(stream).after("prefix").before("suffix").minInterval(200).value(),
     )
 
     expect(results.map((r) => r.item)).toEqual(["single item"])
