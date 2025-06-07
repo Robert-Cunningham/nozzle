@@ -47,7 +47,7 @@ The product is 9.
 The product is 9.
 */
 // extract the section between # Answer and # Reasoning; return the individual sentences at least 100ms apart.
-return p(stream)
+return nz(stream)
   .after("# Answer")
   .before("# Check")
   .split(/ .;,/g)
@@ -71,7 +71,7 @@ Sure, the object that answers your question is:
 `
 
 // should have .throwifnotfound or something, as well as .throwiffound, .censor, etc?
-return p(stream)
+return nz(stream)
   .after("```json")
   .before("```")
   .trim()
