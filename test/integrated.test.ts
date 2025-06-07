@@ -47,6 +47,9 @@ describe("Integrated Pipeline Tests", () => {
   test("pipeline with non-string T", async () => {
     const source = delayedStream([1], 10)
     nz(source).tap(console.log).value()
+
+    const stringSource = delayedStream(["a", "b", "c"], 10)
+    nz(stringSource).split(" ").value()
   })
 
   test("complex pipeline with multiple transforms and timing", async () => {
