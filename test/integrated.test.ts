@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest"
-import { p } from "../src/index"
+import { nz } from "../src/index"
 import {
   assertResultsEqualsWithTiming,
   collectWithTimings,
@@ -27,7 +27,7 @@ describe("Integrated Pipeline Tests", () => {
 
     // Apply the exact pipeline from the preamble example
     const results = await collectWithTimings(
-      p(stream)
+      nz(stream)
         .after("# Answer")
         .before("# Reasoning")
         .splitAfter(/[.;,]/g)
@@ -46,7 +46,7 @@ describe("Integrated Pipeline Tests", () => {
 
   test("pipeline with non-string T", async () => {
     const source = delayedStream([1], 10)
-    p(source).tap(console.log).value()
+    nz(source).tap(console.log).value()
   })
 
   test("complex pipeline with multiple transforms and timing", async () => {
@@ -63,7 +63,7 @@ describe("Integrated Pipeline Tests", () => {
     const stream = delayedStream(source, 20)
 
     const results = await collectWithTimings(
-      p(stream)
+      nz(stream)
         .after("start")
         .before("end")
         .split(/[,;.]/g)
@@ -109,7 +109,7 @@ describe("Integrated Pipeline Tests", () => {
     const stream = delayedStream(markdownResponse, 150)
 
     const results = await collectWithTimings(
-      p(stream)
+      nz(stream)
         .after("# Implementation Notes")
         .before("# Conclusion")
         .splitAfter(/[.]/g)
@@ -136,7 +136,7 @@ describe("Integrated Pipeline Tests", () => {
     const stream = delayedStream(source, 5)
 
     const results = await collectWithTimings(
-      p(stream)
+      nz(stream)
         .after("# Start")
         .before("# End")
         .split(/[.]/g)
@@ -154,7 +154,7 @@ describe("Integrated Pipeline Tests", () => {
     const stream = delayedStream(source, 10)
 
     const results = await collectWithTimings(
-      p(stream).after("prefix").before("suffix").atRate(200).value(),
+      nz(stream).after("prefix").before("suffix").atRate(200).value(),
     )
 
     expect(results.map((r) => r.item)).toEqual(["single item"])

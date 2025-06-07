@@ -229,7 +229,7 @@ for await (const chunk of stream) {
 ### asyncMap()
 
 ```ts
-function asyncMap(iterator: AsyncIterable<string>, fn: (value: string) => Promise<string>): AsyncGenerator<string, void, unknown>;
+function asyncMap<T, U>(iterator: AsyncIterable<T>, fn: (value: T) => Promise<U>): AsyncGenerator<Awaited<U>, void, unknown>;
 ```
 
 Transforms each value from the input stream using the provided async function.
@@ -240,8 +240,8 @@ and yields results as they complete, allowing multiple function calls to run con
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
-| `iterator` | `AsyncIterable`\<`string`\> | An asynchronous iterable of strings. |
-| `fn` | (`value`: `string`) => `Promise`\<`string`\> | An async function that transforms each string value. |
+| `iterator` | `AsyncIterable`\<`T`\> | An asynchronous iterable of strings. |
+| `fn` | (`value`: `T`) => `Promise`\<`U`\> | An async function that transforms each string value. |
 
 #### Examples
 
@@ -351,7 +351,7 @@ for await (const chunk of stream) {
 ### first()
 
 ```ts
-function first(iterator: AsyncIterable<string>): AsyncGenerator<string, void, unknown>;
+function first<T>(iterator: AsyncIterable<T>): AsyncGenerator<Awaited<T>, void, unknown>;
 ```
 
 Yields only the first value from the input stream.
@@ -370,7 +370,7 @@ for await (const chunk of stream) {
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
-| `iterator` | `AsyncIterable`\<`string`\> | An asynchronous iterable of strings. |
+| `iterator` | `AsyncIterable`\<`T`\> | An asynchronous iterable of strings. |
 
 ### head()
 
@@ -548,7 +548,7 @@ for await (const chunk of stream) {
 ### tap()
 
 ```ts
-function tap(iterator: AsyncIterable<string>, fn: (value: string) => void): AsyncGenerator<string, void, unknown>;
+function tap<T>(iterator: AsyncIterable<T>, fn: (value: T) => void): AsyncGenerator<Awaited<T>, void, unknown>;
 ```
 
 Executes a side effect for each value without modifying the stream.
@@ -568,8 +568,8 @@ for await (const chunk of stream) {
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
-| `iterator` | `AsyncIterable`\<`string`\> | An asynchronous iterable of strings. |
-| `fn` | (`value`: `string`) => `void` | A function to execute for each value. |
+| `iterator` | `AsyncIterable`\<`T`\> | An asynchronous iterable of strings. |
+| `fn` | (`value`: `T`) => `void` | A function to execute for each value. |
 
 ### tee()
 
