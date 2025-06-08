@@ -40,8 +40,8 @@ export class Pipeline<T = string> implements AsyncIterable<T> {
     return new Pipeline<T>(tx.tap(this.src, fn))
   }
 
-  throttle(intervalMs: number) {
-    return new Pipeline<T>(tx.throttle(this.src, intervalMs))
+  throttle(intervalMs: number, merge: (values: T[]) => T) {
+    return new Pipeline<T>(tx.throttle(this.src, intervalMs, merge))
   }
 
   // ---- String-specific methods ----
