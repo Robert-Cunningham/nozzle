@@ -5,55 +5,46 @@ import { throttle } from "../src/transforms/throttle"
 import {
   assertResultsEqualsWithTiming,
   collectWithTimings,
-  delayedSource,
+  timedSource,
 } from "./timing-helpers"
 
 describe("throttle", () => {
   test("first chunk immediate, subsequent throttled", async () => {
     // Items arrive at: 0ms, 5ms, 10ms
-    const source = delayedSource([
-      { value: "a", delay: 0 },
-      { value: "b", delay: 5 },
-      { value: "c", delay: 5 },
+    const source = timedSource([
+      { value: "a", time: 1 * 0 },
+      { value: "b", time: 1 * 5 },
+      { value: "c", time: 1 * 5 },
+      { value: "d", time: 1 * 5 },
+      { value: "e", time: 1 * 65 },
+      { value: "f", time: 1 * 67 },
+      { value: "g", time: 1 * 68 },
+      { value: "h", time: 1 * 380 },
+      { value: "i", time: 1 * 390 },
     ])
-    const throttled = throttle(source, 50) // 50ms interval
+    const throttled = throttle(source, 50, (values) => values.join("")) // 50ms interval
 
     const results = await collectWithTimings(throttled)
 
     assertResultsEqualsWithTiming(results, [
-      { item: "a", timestamp: 0 },
-      { item: "bc", timestamp: 50 },
-    ])
-  })
-
-  test("immediate yield if gap exceeds interval", async () => {
-    // Items arrive at: 0ms, 70ms
-    const source = delayedSource([
-      { value: "a", delay: 0 },
-      { value: "b", delay: 70 }, // Gap > 50ms interval
-    ])
-    const throttled = throttle(source, 50)
-
-    const results = await collectWithTimings(throttled)
-
-    assertResultsEqualsWithTiming(results, [
-      { item: "a", timestamp: 0 }, // First: immediate
-      { item: "b", timestamp: 70 }, // Second: immediate when it arrives
+      { item: "abcd", timestamp: 1 * 50 },
+      { item: "efg", timestamp: 1 * (65 + 50) },
+      { item: "hi", timestamp: 1 * (380 + 50) },
     ])
   })
 
   test("single item", async () => {
     const source = fromList(["only"])
-    const throttled = throttle(source, 50)
+    const throttled = throttle(source, 50, (values) => values.join(""))
 
     const results = await collectWithTimings(throttled)
 
-    assertResultsEqualsWithTiming(results, [{ item: "only", timestamp: 0 }])
+    assertResultsEqualsWithTiming(results, [{ item: "only", timestamp: 50 }])
   })
 
   test("empty source", async () => {
     const source = fromList([])
-    const throttled = throttle(source, 50)
+    const throttled = throttle(source, 50, (values) => values.join(""))
 
     const result = await asList(throttled)
     expect(result).toEqual([])
@@ -61,7 +52,7 @@ describe("throttle", () => {
 
   test("zero interval behaves as passthrough", async () => {
     const source = fromList(["a", "b", "c"])
-    const throttled = throttle(source, 0)
+    const throttled = throttle(source, 0, (values) => values.join(""))
 
     const result = await asList(throttled)
     expect(result).toEqual(["a", "b", "c"])
