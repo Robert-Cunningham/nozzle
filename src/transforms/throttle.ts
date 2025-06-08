@@ -56,13 +56,13 @@ export async function* throttle2(
   }
 }
 
-export const throttle = async function* throttle(
-  source: AsyncIterable<string>,
+export const throttle = async function* <T>(
+  source: AsyncIterable<T>,
   intervalMs: number,
-  merge: (values: string[]) => string,
-): AsyncIterable<string> {
+  merge: (values: T[]) => T,
+): AsyncIterable<T> {
   /** items waiting to be flushed */
-  let buf: string[] = []
+  let buf: T[] = []
 
   /** resolve-fn that wakes the generator when it’s time to flush */
   let wake: (() => void) | null = null
