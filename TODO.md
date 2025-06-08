@@ -16,23 +16,28 @@
 [x] generate a nice image
 [x] publish this package
 [x] rename the github repo
+[x] figure out how to make focal depend on it
 
 // potentially we should have differences like splitEach (applies tokenwise) and split (applies response-wise); same with e.g. .trimEach and .trim(). The each functions are much less useful / common, since they can mostly be implemented with map().
 
-[ ] figure out how to make focal depend on it
-[ ] document regex no backreferences, lookaheads, or lookbehinds.
-[ ] generally explain how regexes work
-[ ] write a nice readme
-[ ] read the readme carefully and fix any obvious issues
-[ ] document the chaining behavior
 [ ] write a .trim() function
 [ ] rename the conversion methods, (asList / toString etc)
 [ ] write .at() that selects out just a single element. This is also a slice derivative.
 [ ] allow delay to choose its length with a function indicating how many elements remain / what the upcoming token is / etc?
 [ ] write a reduce() equivalent that takes the same parameters as the delay function? / generally decide what the full group of parameters that gets passed to the iterating function is.
+[ ] make all tests pass
+
 [ ] better readme examples
 [ ] better readme tagline
 [ ] animated readme example?
+[ ] document regex no backreferences, lookaheads, or lookbehinds.
+[ ] generally explain how regexes work
+[ ] write a nice readme
+[ ] read the readme carefully and fix any obvious issues
+[ ] document the chaining behavior
+[ ] shorter examples
+[ ] fuzzing-based testing
+[ ] check for multiline-regexes and assert that we can't processes these.
 
 [ ] should we explicitly state that yielding the empty string must be a no-op?
 [ ] write a .endIf function ? which ends if something is detected in the stream?
