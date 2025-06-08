@@ -17,6 +17,17 @@ export async function* delayedSource<T>(
   }
 }
 
+export async function* timedSource<T>(
+  items: Array<{ value: T; time: number }>,
+): AsyncIterable<T> {
+  let last = 0
+  for (const item of items) {
+    await new Promise((resolve) => setTimeout(resolve, item.time - last))
+    last = item.time
+    yield item.value
+  }
+}
+
 /**
  * Creates a simple delayed stream where each item has the same delay
  */
