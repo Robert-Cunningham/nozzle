@@ -9,98 +9,115 @@
  * @param intervalMs The throttling interval in milliseconds.
  * @returns An async iterable that yields throttled values.
  */
-export async function* throttle<T>(
-  source: AsyncIterable<T>,
+export async function* throttle2(
+  source: AsyncIterable<string>,
   intervalMs: number,
-): AsyncIterable<T> {
-  if (intervalMs === 0) {
-    yield* source
-    return
-  }
+  merge: (values: string[]) => string,
+): AsyncIterable<string> {
+  const it = source[Symbol.asyncIterator]()
 
-  const iterator = source[Symbol.asyncIterator]()
-  let isFirstChunk = true
-  let lastYieldTime = 0
-  
   while (true) {
-    const { value, done } = await iterator.next()
-    
-    if (done) {
-      break
-    }
+    // 1️⃣ – grab the first item for the next window (or quit if none).
+    const first = await it.next()
+    if (first.done) break
 
-    const now = Date.now()
+    const batchStart = Date.now()
+    const buffer: string[] = [first.value]
 
-    if (isFirstChunk) {
-      // First chunk: yield immediately
-      yield value
-      isFirstChunk = false
-      lastYieldTime = now
-    } else {
-      const timeSinceLastYield = now - lastYieldTime
-      
-      if (timeSinceLastYield >= intervalMs) {
-        // Enough time has passed since last yield, emit immediately
-        yield value
-        lastYieldTime = now
-      } else {
-        // Need to batch - start with current item and wait for the interval
-        const batch = [value]
-        const targetTime = lastYieldTime + intervalMs
-        
-        // Collect items until source is exhausted or timeout
-        let sourceExhausted = false
-        while (!sourceExhausted && Date.now() < targetTime) {
-          const timeRemaining = targetTime - Date.now()
-          
-          // Create timeout for remaining time
-          const timeoutPromise = new Promise<{ timeout: true }>((resolve) => 
-            setTimeout(() => resolve({ timeout: true }), timeRemaining)
-          )
-          
-          // Try to get next item
-          const nextItemPromise = iterator.next()
-          
-          const result = await Promise.race([nextItemPromise, timeoutPromise])
-          
-          if ('timeout' in result) {
-            // Timeout - we're done collecting for this batch
-            break
-          } else if (result.done) {
-            // Source finished
-            if (result.value !== undefined) {
-              batch.push(result.value)
-            }
-            sourceExhausted = true
-          } else {
-            // Got another item for the batch
-            batch.push(result.value)
-          }
-        }
-        
-        // Always wait until target time (even if source is exhausted)
-        const timeRemaining = targetTime - Date.now()
-        if (timeRemaining > 0) {
-          await new Promise(resolve => setTimeout(resolve, timeRemaining))
-        }
-        
-        // Yield the batch (we've waited the full interval)
-        if (batch.length === 1) {
-          yield batch[0]
-        } else if (batch.every(item => typeof item === 'string')) {
-          // All items are strings, concatenate them
-          yield batch.join('') as T
-        } else {
-          // Mixed types or non-strings, yield separately  
-          yield* batch
-        }
-        lastYieldTime = Date.now()
-        
-        // If source is exhausted, we're done
-        if (sourceExhausted) {
-          return
-        }
+    let timeLeft = intervalMs
+
+    // 2️⃣ – keep pulling items until the window closes.
+    // We race “next item” against “window timeout”.
+    while (timeLeft > 0) {
+      const nextItem = it.next()
+      const timeout = delay(timeLeft).then(() => ({ timeout: true }) as const)
+
+      const winner = await Promise.race([nextItem, timeout])
+
+      // a. Window closed first → stop collecting.
+      if ((winner as any).timeout) break
+
+      // b. Got another element.
+      const { value, done } = winner as IteratorResult<string>
+      if (done) {
+        // Source finished inside the window → flush what we have.
+        await delay(timeLeft)
+        yield merge(buffer)
+        return
       }
+
+      buffer.push(value)
+      timeLeft = intervalMs - (Date.now() - batchStart)
     }
+
+    // 3️⃣ – flush the batch exactly intervalMs after its first element.
+    await delay(timeLeft) // 0 ≤ timeLeft < intervalMs
+    yield merge(buffer)
   }
 }
+
+export const throttle = async function* throttle(
+  source: AsyncIterable<string>,
+  intervalMs: number,
+  merge: (values: string[]) => string,
+): AsyncIterable<string> {
+  /** items waiting to be flushed */
+  let buf: string[] = []
+
+  /** resolve-fn that wakes the generator when it’s time to flush */
+  let wake: (() => void) | null = null
+
+  /** active timer for the current window (null ⇢ no window in progress) */
+  let timer: ReturnType<typeof setTimeout> | null = null
+
+  /** did the upstream finish? */
+  let finished = false
+
+  /** rings the bell for the generator and clears the timer */
+  const flushDue = () => {
+    timer = null
+    wake?.()
+    wake = null
+  }
+
+  /* ──────────────────────────────────────────────────────────
+     1.  “Slurp” the source in the background
+     ────────────────────────────────────────────────────────── */
+  const consumer = (async () => {
+    for await (const chunk of source) {
+      buf.push(chunk)
+
+      // First element of a new batch → arm a timer
+      if (!timer) timer = setTimeout(flushDue, intervalMs)
+    }
+
+    finished = true
+
+    // If there’s still data but no timer (e.g. source ended immediately
+    // after last flush) we must start one to honour the delay.
+    if (buf.length && !timer) timer = setTimeout(flushDue, intervalMs)
+
+    // Or, if nothing is pending, wake the generator so it can exit.
+    if (!buf.length) flushDue()
+  })()
+
+  /* ──────────────────────────────────────────────────────────
+     2.  Yield whenever the timer says so
+     ────────────────────────────────────────────────────────── */
+  while (true) {
+    if (finished && buf.length === 0) break
+
+    // Sleep until `flushDue` calls the resolver
+    await new Promise<void>((r) => (wake = r))
+
+    if (buf.length) {
+      yield merge(buf)
+      buf = []
+    }
+  }
+
+  // Propagate any error from the background consumer
+  await consumer
+}
+
+const delay = (ms: number) => new Promise<void>((r) => setTimeout(r, ms))
