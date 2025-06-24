@@ -43,7 +43,7 @@ describe("throttle", () => {
   })
 
   test("empty source", async () => {
-    const source = fromList([])
+    const source = fromList<string>([])
     const throttled = throttle(source, 50, (values) => values.join(""))
 
     const result = await asList(throttled)

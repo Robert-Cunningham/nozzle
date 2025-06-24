@@ -22,7 +22,7 @@ describe("asyncMap", () => {
 
   test("should handle an empty source", async () => {
     const result = await asList(
-      asyncMap(fromList([]), async (x) => {
+      asyncMap(fromList<string>([]), async (x) => {
         await new Promise((resolve) => setTimeout(resolve, 10))
         return x.toUpperCase()
       }),
