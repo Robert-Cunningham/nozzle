@@ -44,3 +44,25 @@
 [ ] try to write the JSON thing and see if there's any way to make it easier.
 
 [ ] generally optimize the pipeline class more; only hold the entire string in memory once, for example.
+
+# consider
+
+// trace({ type: "response", response: out, summarize: true })
+
+nz(out).onLast((x) => {
+conversation.push({ raw: x, role: "assistant", enabled: true })
+})
+
+nz(out).tap((x) => {
+convo += x
+conversation.push({ raw: x, role: "assistant", enabled: true })
+})
+
+// or maybe we want some way to zip in "how many left"? e.g. mapWithLeft(value, left => 3, 3, 3, 3, 2, 1, 0)
+nz(out)
+.accumulate()
+.onNth(-1, (x) => {
+conversation.push({ raw: x, role: "assistant", enabled: true })
+})
+.diffs()
+.value()
