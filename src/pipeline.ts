@@ -36,6 +36,14 @@ export class Pipeline<T = string> implements AsyncIterable<T> {
     return new Pipeline<T>(tx.buffer(this.src, n))
   }
 
+  aperture(n: number) {
+    return new Pipeline<T[]>(tx.aperture(this.src, n))
+  }
+
+  flatten<U>(this: Pipeline<U[] | Iterable<U>>) {
+    return new Pipeline<U>(tx.flatten(this.src))
+  }
+
   slice(start: number, end?: number) {
     return new Pipeline<T>(tx.slice(this.src, start, end))
   }
