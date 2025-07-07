@@ -8,7 +8,7 @@ import { expect } from "vitest"
  */
 export async function* delayedSource<T>(
   items: Array<{ value: T; delay: number }>,
-): AsyncIterable<T> {
+): AsyncGenerator<T> {
   for (const item of items) {
     if (item.delay > 0) {
       await new Promise((resolve) => setTimeout(resolve, item.delay))
@@ -19,7 +19,7 @@ export async function* delayedSource<T>(
 
 export async function* timedSource<T>(
   items: Array<{ value: T; time: number }>,
-): AsyncIterable<T> {
+): AsyncGenerator<T> {
   let last = 0
   for (const item of items) {
     await new Promise((resolve) => setTimeout(resolve, item.time - last))
@@ -34,7 +34,7 @@ export async function* timedSource<T>(
 export async function* delayedStream<T>(
   items: T[],
   delayMs: number = 10,
-): AsyncIterable<T> {
+): AsyncGenerator<T> {
   for (const item of items) {
     await new Promise((resolve) => setTimeout(resolve, delayMs))
     yield item

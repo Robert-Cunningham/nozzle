@@ -36,7 +36,7 @@
 export const asyncMap = async function* <T, U>(
   iterator: AsyncIterable<T>, 
   fn: (value: T) => Promise<U>
-) {
+): AsyncGenerator<U> {
   const promises: Promise<U>[] = []
   let nextIndex = 0
   let inputDone = false

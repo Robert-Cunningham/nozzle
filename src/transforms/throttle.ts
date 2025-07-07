@@ -13,7 +13,7 @@ export async function* throttle2(
   source: AsyncIterable<string>,
   intervalMs: number,
   merge: (values: string[]) => string,
-): AsyncIterable<string> {
+): AsyncGenerator<string> {
   const it = source[Symbol.asyncIterator]()
 
   while (true) {
@@ -60,7 +60,7 @@ export const throttle = async function* <T>(
   source: AsyncIterable<T>,
   intervalMs: number,
   merge: (values: T[]) => T,
-): AsyncIterable<T> {
+): AsyncGenerator<T> {
   /** items waiting to be flushed */
   let buf: T[] = []
 

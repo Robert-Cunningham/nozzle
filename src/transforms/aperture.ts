@@ -3,7 +3,7 @@ import { Iterable } from "../types"
 export async function* aperture<T>(
   source: Iterable<T>,
   n: number,
-): AsyncIterable<T[]> {
+): AsyncGenerator<T[]> {
   if (n <= 0) {
     return
   }

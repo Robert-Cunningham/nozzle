@@ -26,7 +26,7 @@
  * // => ["d", "e"]
  * ```
  */
-export async function* slice<T>(iterator: AsyncIterable<T>, start: number, end?: number) {
+export async function* slice<T>(iterator: AsyncIterable<T>, start: number, end?: number): AsyncGenerator<T> {
   let index = 0
   
   // Case 1: Both positive indices - stream without buffering

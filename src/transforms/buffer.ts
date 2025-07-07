@@ -24,7 +24,7 @@
 export const buffer = async function* <T>(
   source: AsyncIterable<T>,
   n?: number,
-): AsyncIterable<T> {
+): AsyncGenerator<T> {
   /** internal buffer to store pre-fetched items */
   const buf: T[] = []
 

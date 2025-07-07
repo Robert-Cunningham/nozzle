@@ -14,7 +14,7 @@
  * // => ["Hello"]
  * ```
  */
-export const first = async function* <T>(iterator: AsyncIterable<T>) {
+export const first = async function* <T>(iterator: AsyncIterable<T>): AsyncGenerator<T> {
   for await (const text of iterator) {
     yield text
     return

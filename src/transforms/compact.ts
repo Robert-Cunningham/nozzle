@@ -14,7 +14,7 @@
  * // => ["Hello", "World"]
  * ```
  */
-export const compact = async function* (iterator: AsyncIterable<string>) {
+export const compact = async function* (iterator: AsyncIterable<string>): AsyncGenerator<string> {
   for await (const text of iterator) {
     if (text !== "") {
       yield text
