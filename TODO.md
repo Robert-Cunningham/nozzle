@@ -66,3 +66,5 @@ conversation.push({ raw: x, role: "assistant", enabled: true })
 })
 .diffs()
 .value()
+
+also: it's possible that we're supposed to deal with AsyncIterators (which can hold a place in a stream) instead of AsyncGenerators or AsyncIterables or the like. Need to think more carefully about this.

@@ -4,75 +4,90 @@
  * @group Side Effects
  * @param iterator - The source async iterator to split.
  * @param n - Number of independent iterables to create.
- * @returns An array of N independent async iterables.
+ * @returns An array of N independent async generators.
  */
-export function tee<T>(iterator: AsyncIterator<T>, n: number): AsyncGenerator<T>[] {
-  const queues: T[][] = Array.from({ length: n }, () => []);
-  const resolvers: Array<{ resolve: (value: IteratorResult<T>) => void; reject: (error: any) => void }[]> = Array.from({ length: n }, () => []);
-  let finished = false;
-  let error: any = null;
+export function tee<T>(
+  iterator: AsyncIterator<T>,
+  n: number,
+): AsyncGenerator<T>[] {
+  const queues: T[][] = Array.from({ length: n }, () => [])
+  const resolvers: Array<
+    {
+      resolve: (value: IteratorResult<T>) => void
+      reject: (error: any) => void
+    }[]
+  > = Array.from({ length: n }, () => [])
+  let finished = false
+  let error: any = null
 
   const advance = async () => {
-    if (finished) return;
-    
+    if (finished) return
+
     try {
-      const result = await iterator.next();
-      
+      const result = await iterator.next()
+
       if (result.done) {
-        finished = true;
+        finished = true
         for (let i = 0; i < n; i++) {
-          const queueResolvers = resolvers[i];
+          const queueResolvers = resolvers[i]
           while (queueResolvers.length > 0) {
-            const { resolve } = queueResolvers.shift()!;
-            resolve({ done: true, value: undefined });
+            const { resolve } = queueResolvers.shift()!
+            resolve({ done: true, value: undefined })
           }
         }
       } else {
         for (let i = 0; i < n; i++) {
-          queues[i].push(result.value);
+          queues[i].push(result.value)
           if (resolvers[i].length > 0) {
-            const { resolve } = resolvers[i].shift()!;
-            resolve({ done: false, value: queues[i].shift()! });
+            const { resolve } = resolvers[i].shift()!
+            resolve({ done: false, value: queues[i].shift()! })
           }
         }
       }
     } catch (err) {
-      error = err;
-      finished = true;
+      error = err
+      finished = true
       for (let i = 0; i < n; i++) {
-        const queueResolvers = resolvers[i];
+        const queueResolvers = resolvers[i]
         while (queueResolvers.length > 0) {
-          const { reject } = queueResolvers.shift()!;
-          reject(err);
+          const { reject } = queueResolvers.shift()!
+          reject(err)
         }
       }
     }
-  };
+  }
 
-  const createIterable = (index: number): AsyncGenerator<T> => ({
-    [Symbol.asyncIterator](): AsyncIterator<T> {
-      return {
-        async next(): Promise<IteratorResult<T>> {
-          if (error) {
-            throw error;
-          }
+  const createGenerator = async function* (index: number): AsyncGenerator<T> {
+    while (true) {
+      if (error) {
+        throw error
+      }
 
-          if (queues[index].length > 0) {
-            return { done: false, value: queues[index].shift()! };
-          }
+      if (queues[index].length > 0) {
+        yield queues[index].shift()!
+        continue
+      }
 
-          if (finished) {
-            return { done: true, value: undefined };
-          }
+      if (finished) {
+        return
+      }
 
-          return new Promise((resolve, reject) => {
-            resolvers[index].push({ resolve, reject });
-            advance();
-          });
-        }
-      };
+      await new Promise<void>((resolve, reject) => {
+        resolvers[index].push({ 
+          resolve: (result) => {
+            if (result.done) {
+              resolve()
+            } else {
+              queues[index].push(result.value)
+              resolve()
+            }
+          }, 
+          reject 
+        })
+        advance()
+      })
     }
-  });
+  }
 
-  return Array.from({ length: n }, (_, i) => createIterable(i));
+  return Array.from({ length: n }, (_, i) => createGenerator(i))
 }
