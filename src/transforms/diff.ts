@@ -13,7 +13,7 @@
  * // => ["This ", "is ", "a ", "test!"]
  * ```
  */
-export const diff = async function* (iterator: AsyncIterable<string>) {
+export const diff = async function* (iterator: AsyncIterable<string>): AsyncGenerator<string> {
   let last = ""
   for await (const text of iterator) {
     yield text.replace(last, "")

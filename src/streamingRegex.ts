@@ -1,7 +1,7 @@
 import { earliestPossibleMatchIndex } from "./regex"
 import { filter } from "./transforms/filter"
 
-const emptyGeneralRegex = async function* (input: AsyncIterable<string>) {
+const emptyGeneralRegex = async function* (input: AsyncIterable<string>): AsyncGenerator<{ text: string } | { regex: RegExpExecArray }> {
   let first = true
   for await (const chunk of input) {
     for (const c of chunk.split("")) {
@@ -16,7 +16,7 @@ const emptyGeneralRegex = async function* (input: AsyncIterable<string>) {
 export async function* generalRegex(
   input: AsyncIterable<string>,
   regex: RegExp,
-): AsyncIterable<{ text: string } | { regex: RegExpExecArray }> {
+): AsyncGenerator<{ text: string } | { regex: RegExpExecArray }> {
   if (regex.exec("")) {
     yield* emptyGeneralRegex(input)
     return

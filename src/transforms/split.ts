@@ -12,7 +12,7 @@ import { generalRegex } from "../streamingRegex"
 export async function* split(
   source: AsyncIterable<string>,
   separator: string | RegExp,
-): AsyncIterable<string> {
+): AsyncGenerator<string> {
   const regex = toGlobalRegex(separator)
   let buffer = ""
   for await (const result of generalRegex(source, regex)) {
@@ -39,7 +39,7 @@ export async function* split(
 export async function* splitBefore(
   source: AsyncIterable<string>,
   separator: string | RegExp,
-): AsyncIterable<string> {
+): AsyncGenerator<string> {
   const regex = toGlobalRegex(separator)
   let buffer = ""
   for await (const result of generalRegex(source, regex)) {
@@ -66,7 +66,7 @@ export async function* splitBefore(
 export async function* splitAfter(
   source: AsyncIterable<string>,
   separator: string | RegExp,
-): AsyncIterable<string> {
+): AsyncGenerator<string> {
   const regex = toGlobalRegex(separator)
   let buffer = ""
 

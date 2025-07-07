@@ -26,7 +26,7 @@ export async function* replace(
   input: AsyncIterable<string>,
   regex: RegExp,
   replacement: string,
-): AsyncIterable<string> {
+): AsyncGenerator<string> {
   for await (const next of generalRegex(input, regex)) {
     if ("text" in next) {
       yield next.text!

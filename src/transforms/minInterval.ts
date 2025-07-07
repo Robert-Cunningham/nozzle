@@ -11,7 +11,7 @@
 export async function* minInterval<T>(
   source: AsyncIterable<T>,
   delayMs: number,
-): AsyncIterable<T> {
+): AsyncGenerator<T> {
   const iterator = source[Symbol.asyncIterator]()
   let lastYieldTime = 0
   let isFirstToken = true

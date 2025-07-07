@@ -10,7 +10,7 @@
 export async function* chunk(
   source: AsyncIterable<string>,
   size: number,
-): AsyncIterable<string> {
+): AsyncGenerator<string> {
   let buffer: string[] = []
   
   for await (const token of source) {

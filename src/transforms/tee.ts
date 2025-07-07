@@ -6,7 +6,7 @@
  * @param n - Number of independent iterables to create.
  * @returns An array of N independent async iterables.
  */
-export function tee<T>(iterator: AsyncIterator<T>, n: number): AsyncIterable<T>[] {
+export function tee<T>(iterator: AsyncIterator<T>, n: number): AsyncGenerator<T>[] {
   const queues: T[][] = Array.from({ length: n }, () => []);
   const resolvers: Array<{ resolve: (value: IteratorResult<T>) => void; reject: (error: any) => void }[]> = Array.from({ length: n }, () => []);
   let finished = false;
@@ -49,7 +49,7 @@ export function tee<T>(iterator: AsyncIterator<T>, n: number): AsyncIterable<T>[
     }
   };
 
-  const createIterable = (index: number): AsyncIterable<T> => ({
+  const createIterable = (index: number): AsyncGenerator<T> => ({
     [Symbol.asyncIterator](): AsyncIterator<T> {
       return {
         async next(): Promise<IteratorResult<T>> {

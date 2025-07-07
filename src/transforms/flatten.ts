@@ -33,10 +33,6 @@ export const flatten = async function* <T>(
       for await (const subItem of item as AsyncIterable<T>) {
         yield subItem
       }
-    } else if (item && typeof item === "object" && Symbol.iterator in item) {
-      for (const subItem of item as Iterable<T>) {
-        yield subItem
-      }
     } else {
       yield item as T
     }
