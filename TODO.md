@@ -45,6 +45,10 @@
 
 [ ] generally optimize the pipeline class more; only hold the entire string in memory once, for example.
 
+[ ] explain that streams are pull-based, a la https://chatgpt.com/c/685aecc4-7828-8012-831e-294dbb7dcf03.
+
+[ ] write a nz.merge method which can consume many streams at once?
+
 # consider
 
 // trace({ type: "response", response: out, summarize: true })
