@@ -48,6 +48,7 @@
 [ ] explain that streams are pull-based, a la https://chatgpt.com/c/685aecc4-7828-8012-831e-294dbb7dcf03.
 
 [ ] write a nz.merge method which can consume many streams at once?
+[ ] write a `wrap` method which maps a stream to something like {value, error, done}? Or `wrapError`? Basically it should never throw / allow you to handle errors without try/catch.
 
 # consider
 
