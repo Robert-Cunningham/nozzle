@@ -1,6 +1,9 @@
 /**
  * Splits a single iterator into N independent iterables.
  *
+ * Error handling follows the pattern described in {@link file://./../../ASYNC_ERROR_HANDLING.md}
+ * to ensure errors are thrown during await ticks for proper try/catch handling.
+ *
  * @group Side Effects
  * @param iterator - The source async iterator to split.
  * @param n - Number of independent iterables to create.

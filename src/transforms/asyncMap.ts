@@ -3,6 +3,9 @@
  * Applies the async function to each item as soon as it comes off the iterator
  * and yields results as they complete, allowing multiple function calls to run concurrently.
  *
+ * Error handling follows the pattern described in {@link file://./../../ASYNC_ERROR_HANDLING.md}
+ * to ensure errors are thrown during await ticks for proper try/catch handling.
+ *
  * @group Elements
  * @param iterator - An asynchronous iterable of strings.
  * @param fn - An async function that transforms each string value.

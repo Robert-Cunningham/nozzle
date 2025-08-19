@@ -7,6 +7,10 @@
  * requested from the buffer, they are yielded from this pre-filled buffer.
  * This creates a decoupling between the consumption rate and the production rate.
  *
+ * Error handling follows the pattern described in {@link file://./../../ASYNC_ERROR_HANDLING.md}.
+ * This function serves as a reference implementation for proper error handling
+ * with background consumers.
+ *
  * @group Buffering
  * @param source The async iterable source of values.
  * @param n The maximum number of items to buffer. If undefined, buffers unlimited items.
