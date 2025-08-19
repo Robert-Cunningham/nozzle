@@ -21,8 +21,7 @@ const functionsToTest = [
   },
   {
     name: "throttle",
-    fn: (source: AsyncIterable<string>) =>
-      throttle(source, 10, (items) => items.join("")),
+    fn: (source: AsyncIterable<string>) => throttle(source, 10, (items) => items.join("")),
   },
   {
     name: "buffer",
@@ -30,8 +29,7 @@ const functionsToTest = [
   },
   {
     name: "asyncMap",
-    fn: (source: AsyncIterable<string>) =>
-      asyncMap(source, async (x) => x.toUpperCase()),
+    fn: (source: AsyncIterable<string>) => asyncMap(source, async (x) => x.toUpperCase()),
   },
   {
     name: "tee (first branch)",
@@ -231,11 +229,7 @@ describe("Edge Cases - Error Handling", () => {
     const source = errorSources.errorAfterDelay()
 
     // Chain multiple functions together
-    const chained = throttle(
-      minInterval(source, 5),
-      15,
-      (items) => items.join("-"),
-    )
+    const chained = throttle(minInterval(source, 5), 15, (items) => items.join("-"))
 
     await expect(async () => {
       await asList(chained)
