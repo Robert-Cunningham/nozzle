@@ -63,7 +63,7 @@ describe("throttle", () => {
 
     let caughtError: Error | null = null
     try {
-      await asList(throttle(errorSource(), 50, (values) => values.join("")))
+      await asList(throttle(errorSource(), 50, (values: string[]) => values.join("")))
     } catch (err) {
       caughtError = err as Error
     }
@@ -83,7 +83,7 @@ describe("throttle", () => {
     }
 
     await expect(async () => {
-      for await (const item of throttle(problematicSource(), 100, (values) => values.join(""))) {
+      for await (const _item of throttle(problematicSource(), 100, (values: string[]) => values.join(""))) {
         // This should be able to catch the error with try/catch
       }
     }).rejects.toThrow("delayed error")

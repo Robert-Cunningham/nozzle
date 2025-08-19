@@ -147,7 +147,7 @@ describe("minInterval", () => {
     }
 
     await expect(async () => {
-      for await (const item of minInterval(problematicSource(), 50)) {
+      for await (const _item of minInterval(problematicSource(), 50)) {
         // This should be able to catch the error with try/catch
       }
     }).rejects.toThrow("delayed error")

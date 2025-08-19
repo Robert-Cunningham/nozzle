@@ -92,5 +92,3 @@ export const throttle = async function* <T>(
   // Propagate any error from the background consumer
   await consumer
 }
-
-const delay = (ms: number) => new Promise<void>((r) => setTimeout(r, ms))
