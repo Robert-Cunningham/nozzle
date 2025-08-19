@@ -175,9 +175,7 @@ describe("earliestPossibleMatchIndex", () => {
 
   test("should handle complex email pattern", () => {
     const regex = /[a-z]+@[a-z]+\.[a-z]{2,}/
-    expect(
-      earliestPossibleMatchIndex("Contact: user@example.com", regex),
-    ).toEqual({ start: 9, end: 25 })
+    expect(earliestPossibleMatchIndex("Contact: user@example.com", regex)).toEqual({ start: 9, end: 25 })
     expect(earliestPossibleMatchIndex("No email here", regex)).toEqual({
       start: 9,
       end: 13,
@@ -186,9 +184,7 @@ describe("earliestPossibleMatchIndex", () => {
 
   test("should match email prefix", () => {
     const regex = /[a-z]+@[a-z]+\.[a-z]{2,}/
-    expect(
-      earliestPossibleMatchIndex("Contact: user@example.c", regex),
-    ).toEqual({ start: 9, end: 23 })
+    expect(earliestPossibleMatchIndex("Contact: user@example.c", regex)).toEqual({ start: 9, end: 23 })
     expect(earliestPossibleMatchIndex("No email here", regex)).toEqual({
       start: 9,
       end: 13,
@@ -203,9 +199,7 @@ describe("generalRegex", () => {
     }
   }
 
-  async function collectResults(
-    asyncIterable: AsyncIterable<{ text: string } | { regex: RegExpExecArray }>,
-  ) {
+  async function collectResults(asyncIterable: AsyncIterable<{ text: string } | { regex: RegExpExecArray }>) {
     const results = []
     for await (const result of asyncIterable) {
       results.push(result)
@@ -218,13 +212,7 @@ describe("generalRegex", () => {
     const regex = new RegExp(escapeRegex("xyz"))
     const results = await collectResults(generalRegex(input, regex))
 
-    expect(results).toEqual([
-      { text: "a" },
-      { text: "b" },
-      { text: "c" },
-      { text: "d" },
-      { text: "e" },
-    ])
+    expect(results).toEqual([{ text: "a" }, { text: "b" }, { text: "c" }, { text: "d" }, { text: "e" }])
   })
 
   test("should match simple pattern", async () => {
@@ -232,11 +220,7 @@ describe("generalRegex", () => {
     const regex = /world/
     const results = await collectResults(generalRegex(input, regex))
 
-    expect(results).toEqual([
-      { text: "hello" },
-      { text: " " },
-      { regex: expect.arrayContaining(["world"]) },
-    ])
+    expect(results).toEqual([{ text: "hello" }, { text: " " }, { regex: expect.arrayContaining(["world"]) }])
   })
 
   test("should handle global regex", async () => {
@@ -259,12 +243,7 @@ describe("generalRegex", () => {
     const regex = /a/
     const results = await collectResults(generalRegex(input, regex))
 
-    expect(results).toEqual([
-      { regex: expect.arrayContaining(["a"]) },
-      { text: "bc" },
-      { text: "a" },
-      { text: "bc" },
-    ])
+    expect(results).toEqual([{ regex: expect.arrayContaining(["a"]) }, { text: "bc" }, { text: "a" }, { text: "bc" }])
   })
 
   test("should handle global regex", async () => {
@@ -272,11 +251,7 @@ describe("generalRegex", () => {
     const regex = new RegExp(escapeRegex("||"))
     const results = await collectResults(generalRegex(input, regex))
 
-    expect(results).toEqual([
-      { text: "hello" },
-      { regex: expect.arrayContaining(["||"]) },
-      { text: "world" },
-    ])
+    expect(results).toEqual([{ text: "hello" }, { regex: expect.arrayContaining(["||"]) }, { text: "world" }])
   })
 
   test("should handle pattern across chunks", async () => {

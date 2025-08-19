@@ -6,10 +6,7 @@
  * @param n - Number of independent iterables to create.
  * @returns An array of N independent async generators.
  */
-export function tee<T>(
-  iterator: AsyncIterator<T>,
-  n: number,
-): AsyncGenerator<T>[] {
+export function tee<T>(iterator: AsyncIterator<T>, n: number): AsyncGenerator<T>[] {
   const queues: T[][] = Array.from({ length: n }, () => [])
   const resolvers: Array<
     {
@@ -73,7 +70,7 @@ export function tee<T>(
       }
 
       await new Promise<void>((resolve, reject) => {
-        resolvers[index].push({ 
+        resolvers[index].push({
           resolve: (result) => {
             if (result.done) {
               resolve()
@@ -81,8 +78,8 @@ export function tee<T>(
               queues[index].push(result.value)
               resolve()
             }
-          }, 
-          reject 
+          },
+          reject,
         })
         advance()
       })

@@ -32,9 +32,7 @@ export async function* replace(
       yield next.text!
     } else {
       const match = next.regex
-      yield match
-        .input!.slice(match.index, match.index! + match[0].length)
-        .replace(regex, replacement)
+      yield match.input!.slice(match.index, match.index! + match[0].length).replace(regex, replacement)
     }
   }
 }

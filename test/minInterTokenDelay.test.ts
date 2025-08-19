@@ -2,11 +2,7 @@ import { describe, expect, test } from "vitest"
 import { asList } from "../src/transforms/asList"
 import { fromList } from "../src/transforms/fromList"
 import { minInterval } from "../src/transforms/minInterval"
-import {
-  assertResultsEqualsWithTiming,
-  collectWithTimings,
-  delayedSource,
-} from "./timing-helpers"
+import { assertResultsEqualsWithTiming, collectWithTimings, delayedSource } from "./timing-helpers"
 
 describe("minInterval", () => {
   test("enforces minimum delay between tokens", async () => {

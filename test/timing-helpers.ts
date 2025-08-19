@@ -6,9 +6,7 @@ import { expect } from "vitest"
 /**
  * Creates an async iterable with specified delays between items
  */
-export async function* delayedSource<T>(
-  items: Array<{ value: T; delay: number }>,
-): AsyncGenerator<T> {
+export async function* delayedSource<T>(items: Array<{ value: T; delay: number }>): AsyncGenerator<T> {
   for (const item of items) {
     if (item.delay > 0) {
       await new Promise((resolve) => setTimeout(resolve, item.delay))
@@ -17,9 +15,7 @@ export async function* delayedSource<T>(
   }
 }
 
-export async function* timedSource<T>(
-  items: Array<{ value: T; time: number }>,
-): AsyncGenerator<T> {
+export async function* timedSource<T>(items: Array<{ value: T; time: number }>): AsyncGenerator<T> {
   let last = 0
   for (const item of items) {
     await new Promise((resolve) => setTimeout(resolve, item.time - last))
@@ -31,10 +27,7 @@ export async function* timedSource<T>(
 /**
  * Creates a simple delayed stream where each item has the same delay
  */
-export async function* delayedStream<T>(
-  items: T[],
-  delayMs: number = 10,
-): AsyncGenerator<T> {
+export async function* delayedStream<T>(items: T[], delayMs: number = 10): AsyncGenerator<T> {
   for (const item of items) {
     await new Promise((resolve) => setTimeout(resolve, delayMs))
     yield item
@@ -44,9 +37,7 @@ export async function* delayedStream<T>(
 /**
  * Collects items with timestamps relative to a start time
  */
-export async function collectWithTimings<T>(
-  stream: AsyncIterable<T>,
-): Promise<Array<{ item: T; timestamp: number }>> {
+export async function collectWithTimings<T>(stream: AsyncIterable<T>): Promise<Array<{ item: T; timestamp: number }>> {
   const results: Array<{ item: T; timestamp: number }> = []
   const startTime = Date.now()
 

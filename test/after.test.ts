@@ -86,21 +86,21 @@ describe("after", () => {
   test("should preserve timing when pattern matches early", async () => {
     const source = delayedStream(["a", "match", "c", "d"], 50)
     const filtered = after(source, "match")
-    
+
     const results = await collectWithTimings(filtered)
-    
+
     assertResultsEqualsWithTiming(results, [
       { item: "c", timestamp: 150 },
-      { item: "d", timestamp: 200 }
+      { item: "d", timestamp: 200 },
     ])
   })
 
   test("should handle timing when pattern never matches", async () => {
     const source = delayedStream(["a", "b", "c"], 30)
     const filtered = after(source, "nomatch")
-    
+
     const results = await collectWithTimings(filtered)
-    
+
     expect(results).toEqual([])
   })
 })

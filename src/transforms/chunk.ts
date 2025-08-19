@@ -7,21 +7,18 @@
  * @param size The number of input tokens to group together in each output chunk.
  * @returns An async iterable that yields concatenated chunks.
  */
-export async function* chunk(
-  source: AsyncIterable<string>,
-  size: number,
-): AsyncGenerator<string> {
+export async function* chunk(source: AsyncIterable<string>, size: number): AsyncGenerator<string> {
   let buffer: string[] = []
-  
+
   for await (const token of source) {
     buffer.push(token)
-    
+
     if (buffer.length >= size) {
       yield buffer.join("")
       buffer = []
     }
   }
-  
+
   // Yield any remaining tokens in the buffer
   if (buffer.length > 0) {
     yield buffer.join("")

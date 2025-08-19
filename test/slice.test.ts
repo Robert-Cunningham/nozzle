@@ -1,23 +1,15 @@
 import { describe, expect, test } from "vitest"
 import { asList, fromList, slice } from "../src/transforms"
-import {
-  assertResultsEqualsWithTiming,
-  collectWithTimings,
-  delayedStream,
-} from "./timing-helpers"
+import { assertResultsEqualsWithTiming, collectWithTimings, delayedStream } from "./timing-helpers"
 
 describe("slice", () => {
   test("basic positive slice", async () => {
-    const result = await asList(
-      slice(fromList(["a", "b", "c", "d", "e"]), 1, 3),
-    )
+    const result = await asList(slice(fromList(["a", "b", "c", "d", "e"]), 1, 3))
     expect(result).toEqual(["b", "c"])
   })
 
   test("slice from start", async () => {
-    const result = await asList(
-      slice(fromList(["a", "b", "c", "d", "e"]), 0, 2),
-    )
+    const result = await asList(slice(fromList(["a", "b", "c", "d", "e"]), 0, 2))
     expect(result).toEqual(["a", "b"])
   })
 
@@ -32,16 +24,12 @@ describe("slice", () => {
   })
 
   test("negative end index", async () => {
-    const result = await asList(
-      slice(fromList(["a", "b", "c", "d", "e"]), 0, -2),
-    )
+    const result = await asList(slice(fromList(["a", "b", "c", "d", "e"]), 0, -2))
     expect(result).toEqual(["a", "b", "c"])
   })
 
   test("both negative indices", async () => {
-    const result = await asList(
-      slice(fromList(["a", "b", "c", "d", "e"]), -3, -1),
-    )
+    const result = await asList(slice(fromList(["a", "b", "c", "d", "e"]), -3, -1))
     expect(result).toEqual(["c", "d"])
   })
 
@@ -82,11 +70,7 @@ describe("slice timing behavior", () => {
 
   test("negative end index should use sliding window and yield incrementally", async () => {
     // slice(1, -2) on ["a", "b", "c", "d", "e", "f"] should yield ["b", "c", "d"] (indices 1 to 4)
-    const stream = slice(
-      delayedStream(["a", "b", "c", "d", "e", "f"], 40),
-      1,
-      -2,
-    )
+    const stream = slice(delayedStream(["a", "b", "c", "d", "e", "f"], 40), 1, -2)
     const results = await collectWithTimings(stream)
 
     assertResultsEqualsWithTiming(results, [

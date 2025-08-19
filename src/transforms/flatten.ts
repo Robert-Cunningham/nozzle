@@ -17,19 +17,13 @@ import { Iterable } from "../types"
  * // => "a", "b", "c", "d", "e"
  * ```
  */
-export const flatten = async function* <T>(
-  src: Iterable<T[] | Iterable<T>>,
-): AsyncGenerator<T> {
+export const flatten = async function* <T>(src: Iterable<T[] | Iterable<T>>): AsyncGenerator<T> {
   for await (const item of src) {
     if (Array.isArray(item)) {
       for (const subItem of item) {
         yield subItem
       }
-    } else if (
-      item &&
-      typeof item === "object" &&
-      Symbol.asyncIterator in item
-    ) {
+    } else if (item && typeof item === "object" && Symbol.asyncIterator in item) {
       for await (const subItem of item as AsyncIterable<T>) {
         yield subItem
       }

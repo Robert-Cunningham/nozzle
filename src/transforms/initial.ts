@@ -1,4 +1,4 @@
-import { slice } from './slice'
+import { slice } from "./slice"
 
 /**
  * Yields all values except the last from the input stream.

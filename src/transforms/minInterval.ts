@@ -8,10 +8,7 @@
  * @param delayMs The minimum delay in milliseconds between adjacent tokens.
  * @returns An async iterable that yields tokens with enforced delays.
  */
-export async function* minInterval<T>(
-  source: AsyncIterable<T>,
-  delayMs: number,
-): AsyncGenerator<T> {
+export async function* minInterval<T>(source: AsyncIterable<T>, delayMs: number): AsyncGenerator<T> {
   const iterator = source[Symbol.asyncIterator]()
   let lastYieldTime = 0
   let isFirstToken = true

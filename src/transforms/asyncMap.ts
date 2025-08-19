@@ -34,13 +34,13 @@
  * ```
  */
 export const asyncMap = async function* <T, U>(
-  iterator: AsyncIterable<T>, 
-  fn: (value: T) => Promise<U>
+  iterator: AsyncIterable<T>,
+  fn: (value: T) => Promise<U>,
 ): AsyncGenerator<U> {
   const promises: Promise<U>[] = []
   let nextIndex = 0
   let inputDone = false
-  
+
   async function processInput() {
     try {
       for await (const text of iterator) {
@@ -50,19 +50,19 @@ export const asyncMap = async function* <T, U>(
       inputDone = true
     }
   }
-  
+
   const inputPromise = processInput()
-  
+
   while (!inputDone || nextIndex < promises.length) {
     if (nextIndex >= promises.length) {
-      await new Promise(resolve => setTimeout(resolve, 1))
+      await new Promise((resolve) => setTimeout(resolve, 1))
       continue
     }
-    
+
     const result = await promises[nextIndex]
     nextIndex++
     yield result
   }
-  
+
   await inputPromise
 }

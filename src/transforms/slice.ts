@@ -28,11 +28,11 @@
  */
 export async function* slice<T>(iterator: AsyncIterable<T>, start: number, end?: number): AsyncGenerator<T> {
   let index = 0
-  
+
   // Case 1: Both positive indices - stream without buffering
   if (start >= 0 && (end === undefined || end >= 0)) {
     const normalizedEnd = end === undefined ? Infinity : end
-    
+
     for await (const text of iterator) {
       if (index >= start && index < normalizedEnd) {
         yield text
@@ -44,18 +44,18 @@ export async function* slice<T>(iterator: AsyncIterable<T>, start: number, end?:
     }
     return
   }
-  
+
   // Case 2: Start positive, end negative - use sliding window buffer
   if (start >= 0 && end !== undefined && end < 0) {
     const bufferSize = Math.abs(end)
-    
+
     // Special case: if end is -0 (which equals 0), slice should be empty
     if (bufferSize === 0) {
       return
     }
-    
+
     const buffer: T[] = []
-    
+
     for await (const text of iterator) {
       if (index >= start) {
         buffer.push(text)
@@ -67,18 +67,17 @@ export async function* slice<T>(iterator: AsyncIterable<T>, start: number, end?:
     }
     return
   }
-  
+
   // Case 3: Start negative - need to buffer everything to know total length
   const items: T[] = []
   for await (const text of iterator) {
     items.push(text)
   }
-  
+
   const length = items.length
   const normalizedStart = start < 0 ? Math.max(0, length + start) : Math.min(start, length)
-  const normalizedEnd = end === undefined ? length : 
-                        end < 0 ? Math.max(0, length + end) : Math.min(end, length)
-  
+  const normalizedEnd = end === undefined ? length : end < 0 ? Math.max(0, length + end) : Math.min(end, length)
+
   for (let i = normalizedStart; i < normalizedEnd; i++) {
     yield items[i]
   }

@@ -2,11 +2,7 @@ import { describe, expect, test } from "vitest"
 import { asList } from "../src/transforms/asList"
 import { fromList } from "../src/transforms/fromList"
 import { throttle } from "../src/transforms/throttle"
-import {
-  assertResultsEqualsWithTiming,
-  collectWithTimings,
-  timedSource,
-} from "./timing-helpers"
+import { assertResultsEqualsWithTiming, collectWithTimings, timedSource } from "./timing-helpers"
 
 describe("throttle", () => {
   test("first chunk immediate, subsequent throttled", async () => {

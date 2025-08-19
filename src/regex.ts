@@ -152,14 +152,9 @@ type PartialMatchRegex = RegExp & {
   return new RegExp(process(), this.flags)
 }
 
-export function earliestPossibleMatchIndex(
-  text: string,
-  regex: RegExp,
-): { start: number; end: number } {
+export function earliestPossibleMatchIndex(text: string, regex: RegExp): { start: number; end: number } {
   const match = (regex as PartialMatchRegex).toPartialMatchRegex().exec(text)
-  return match
-    ? { start: match.index, end: match.index + match[0].length }
-    : { start: text.length, end: text.length }
+  return match ? { start: match.index, end: match.index + match[0].length } : { start: text.length, end: text.length }
 }
 
 export function escapeRegex(string: string) {
@@ -169,10 +164,7 @@ export function escapeRegex(string: string) {
 export const toGlobalRegex = (separator: RegExp | string) => {
   return typeof separator === "string"
     ? new RegExp(escapeRegex(separator), "g")
-    : new RegExp(
-        separator.source,
-        separator.flags.includes("g") ? separator.flags : separator.flags + "g",
-      )
+    : new RegExp(separator.source, separator.flags.includes("g") ? separator.flags : separator.flags + "g")
 }
 
 export const toNonGlobalRegex = (separator: RegExp | string) => {
@@ -182,13 +174,9 @@ export const toNonGlobalRegex = (separator: RegExp | string) => {
 }
 
 export const isPatternEmpty = (pattern: RegExp | string) => {
-  return typeof pattern === "string"
-    ? pattern.length === 0
-    : pattern.source.length === 0
+  return typeof pattern === "string" ? pattern.length === 0 : pattern.source.length === 0
 }
 
 export const toRegex = (pattern: RegExp | string) => {
-  return typeof pattern === "string"
-    ? new RegExp(escapeRegex(pattern))
-    : pattern
+  return typeof pattern === "string" ? new RegExp(escapeRegex(pattern)) : pattern
 }
