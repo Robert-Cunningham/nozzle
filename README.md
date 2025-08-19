@@ -375,6 +375,39 @@ for await (const chunk of stream) {
 | `iterator` | `AsyncIterable`\<`T`\> | An asynchronous iterable of strings. |
 | `fn` | (`value`: `T`) => `U` | A function that transforms each string value. |
 
+## Error Handling
+
+### safe()
+
+```ts
+function safe<T>(iterator: AsyncIterable<T>): AsyncGenerator<{
+  error?: unknown;
+  success?: T;
+}>;
+```
+
+Wraps an iterator to catch any errors and return them in a result object format.
+Instead of throwing, errors are yielded as `{error}` and successful values as `{success}`.
+
+#### Example
+
+```ts
+const stream = safe(streamOf(["hello", "world"]))
+for await (const result of stream) {
+  if (result.success !== undefined) {
+    console.log("Got:", result.success)
+  } else {
+    console.log("Error:", result.error)
+  }
+}
+```
+
+#### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `iterator` | `AsyncIterable`\<`T`\> | An asynchronous iterable. |
+
 ## Filtering
 
 ### compact()
