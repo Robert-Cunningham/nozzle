@@ -23,7 +23,7 @@
     "lint:fix": "prettier --write .",
     "docs": "typedoc && pnpm run clean-docs",
     "prepublishOnly": "pnpm run build && pnpm run docs",
-    "prerelease": "true || (pnpm run test && pnpm run lint)",
+    "prerelease": "pnpm run build && pnpm run docs && pnpm run lint && (true || pnpm run test)",
     "release:patch": "pnpm run prerelease && npm version patch && npm publish && git push --follow-tags",
     "release:minor": "pnpm run prerelease && npm version minor && npm publish && git push --follow-tags",
     "release:major": "pnpm run prerelease && npm version major && npm publish && git push --follow-tags",
