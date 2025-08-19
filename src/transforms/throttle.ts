@@ -9,53 +9,6 @@
  * @param intervalMs The throttling interval in milliseconds.
  * @returns An async iterable that yields throttled values.
  */
-export async function* throttle2(
-  source: AsyncIterable<string>,
-  intervalMs: number,
-  merge: (values: string[]) => string,
-): AsyncGenerator<string> {
-  const it = source[Symbol.asyncIterator]()
-
-  while (true) {
-    // 1️⃣ – grab the first item for the next window (or quit if none).
-    const first = await it.next()
-    if (first.done) break
-
-    const batchStart = Date.now()
-    const buffer: string[] = [first.value]
-
-    let timeLeft = intervalMs
-
-    // 2️⃣ – keep pulling items until the window closes.
-    // We race “next item” against “window timeout”.
-    while (timeLeft > 0) {
-      const nextItem = it.next()
-      const timeout = delay(timeLeft).then(() => ({ timeout: true }) as const)
-
-      const winner = await Promise.race([nextItem, timeout])
-
-      // a. Window closed first → stop collecting.
-      if ((winner as any).timeout) break
-
-      // b. Got another element.
-      const { value, done } = winner as IteratorResult<string>
-      if (done) {
-        // Source finished inside the window → flush what we have.
-        await delay(timeLeft)
-        yield merge(buffer)
-        return
-      }
-
-      buffer.push(value)
-      timeLeft = intervalMs - (Date.now() - batchStart)
-    }
-
-    // 3️⃣ – flush the batch exactly intervalMs after its first element.
-    await delay(timeLeft) // 0 ≤ timeLeft < intervalMs
-    yield merge(buffer)
-  }
-}
-
 export const throttle = async function* <T>(
   source: AsyncIterable<T>,
   intervalMs: number,
