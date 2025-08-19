@@ -3,6 +3,9 @@
  * The first token is yielded immediately, then subsequent tokens are delayed
  * to ensure at least `delayMs` milliseconds pass between each yield.
  *
+ * Error handling follows the pattern described in {@link file://./../../ASYNC_ERROR_HANDLING.md}
+ * to ensure errors are thrown during await ticks for proper try/catch handling.
+ *
  * @group Timing
  * @param source The async iterable source of tokens.
  * @param delayMs The minimum delay in milliseconds between adjacent tokens.
