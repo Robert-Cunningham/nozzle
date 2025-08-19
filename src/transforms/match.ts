@@ -23,15 +23,9 @@ import { map } from "./map"
  * // => ["abba", "bb"]
  * ```
  */
-export async function* match(
-  input: AsyncIterable<string>,
-  regex: RegExp,
-): AsyncGenerator<RegExpExecArray> {
+export async function* match(input: AsyncIterable<string>, regex: RegExp): AsyncGenerator<RegExpExecArray> {
   yield* map(
-    filter(
-      generalRegex(input, regex),
-      (result) => "regex" in result,
-    ) as AsyncIterable<{ regex: RegExpExecArray }>,
+    filter(generalRegex(input, regex), (result) => "regex" in result) as AsyncIterable<{ regex: RegExpExecArray }>,
     (x: { regex: RegExpExecArray }) => x.regex,
   )
 }

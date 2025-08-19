@@ -5,9 +5,7 @@ import { match } from "./match"
 
 describe("match", () => {
   test("should extract basic regex matches", async () => {
-    const result = await asList(
-      match(fromList(["hello", " ", "world"]), /world/g),
-    )
+    const result = await asList(match(fromList(["hello", " ", "world"]), /world/g))
     console.log("result", result)
     expect(result).toHaveLength(1)
     expect(result[0][0]).toBe("world")
@@ -15,25 +13,19 @@ describe("match", () => {
   })
 
   test("should handle the header.md example: /a[ab]*a/g with ['a', 'b', 'b', 'a']", async () => {
-    const result = await asList(
-      match(fromList(["a", "b", "b", "a"]), /a[ab]*a/g),
-    )
+    const result = await asList(match(fromList(["a", "b", "b", "a"]), /a[ab]*a/g))
     expect(result).toHaveLength(1)
     expect(result[0][0]).toBe("abba")
   })
 
   test("should handle the header.md example: /a[ab]*a/g with ['a', 'a', 'b', 'b', 'a']", async () => {
-    const result = await asList(
-      match(fromList(["a", "a", "b", "b", "a"]), /a[ab]*a/g),
-    )
+    const result = await asList(match(fromList(["a", "a", "b", "b", "a"]), /a[ab]*a/g))
     expect(result).toHaveLength(1)
     expect(result[0][0]).toBe("aabba")
   })
 
   test("should extract capture groups", async () => {
-    const result = await asList(
-      match(fromList(["start", "123", "end"]), /(\d+)/g),
-    )
+    const result = await asList(match(fromList(["start", "123", "end"]), /(\d+)/g))
     expect(result).toHaveLength(1)
     expect(result[0][0]).toBe("123")
     expect(result[0][1]).toBe("123")
@@ -41,12 +33,7 @@ describe("match", () => {
   })
 
   test("should handle multiple capture groups", async () => {
-    const result = await asList(
-      match(
-        fromList(["user", ":", "john", "@", "example.com"]),
-        /(\w+)@(\w+\.\w+)/g,
-      ),
-    )
+    const result = await asList(match(fromList(["user", ":", "john", "@", "example.com"]), /(\w+)@(\w+\.\w+)/g))
     expect(result).toHaveLength(1)
     expect(result[0][0]).toBe("john@example.com")
     expect(result[0][1]).toBe("john")
@@ -54,12 +41,7 @@ describe("match", () => {
   })
 
   test("should handle nested capture groups", async () => {
-    const result = await asList(
-      match(
-        fromList(["prefix", "(", "123", "-", "456", ")", "suffix"]),
-        /\((\d+)-(\d+)\)/g,
-      ),
-    )
+    const result = await asList(match(fromList(["prefix", "(", "123", "-", "456", ")", "suffix"]), /\((\d+)-(\d+)\)/g))
     expect(result).toHaveLength(1)
     expect(result[0][0]).toBe("(123-456)")
     expect(result[0][1]).toBe("123")
@@ -67,9 +49,7 @@ describe("match", () => {
   })
 
   test("should handle multiple matches", async () => {
-    const result = await asList(
-      match(fromList(["a", "1", "a", "2", "a"]), /a/g),
-    )
+    const result = await asList(match(fromList(["a", "1", "a", "2", "a"]), /a/g))
     expect(result).toHaveLength(3)
     expect(result[0][0]).toBe("a")
     expect(result[1][0]).toBe("a")
@@ -84,9 +64,7 @@ describe("match", () => {
   })
 
   test("should handle no matches", async () => {
-    const result = await asList(
-      match(fromList(["hello", " ", "world"]), /xyz/g),
-    )
+    const result = await asList(match(fromList(["hello", " ", "world"]), /xyz/g))
     expect(result).toHaveLength(0)
   })
 
@@ -102,9 +80,7 @@ describe("match", () => {
   })
 
   test("should handle pattern at the beginning", async () => {
-    const result = await asList(
-      match(fromList(["test", "ing", " done"]), /test/g),
-    )
+    const result = await asList(match(fromList(["test", "ing", " done"]), /test/g))
     expect(result).toHaveLength(1)
     expect(result[0][0]).toBe("test")
     // expect(result[0].index).toBe(0)
@@ -125,28 +101,19 @@ describe("match", () => {
   })
 
   test("should handle case-insensitive regex", async () => {
-    const result = await asList(
-      match(fromList(["Hello", " ", "WORLD"]), /hello/gi),
-    )
+    const result = await asList(match(fromList(["Hello", " ", "WORLD"]), /hello/gi))
     expect(result).toHaveLength(1)
     expect(result[0][0]).toBe("Hello")
   })
 
   test("should handle single character chunks building up a match", async () => {
-    const result = await asList(
-      match(fromList(["h", "e", "l", "l", "o"]), /hello/g),
-    )
+    const result = await asList(match(fromList(["h", "e", "l", "l", "o"]), /hello/g))
     expect(result).toHaveLength(1)
     expect(result[0][0]).toBe("hello")
   })
 
   test("should handle word boundaries", async () => {
-    const result = await asList(
-      match(
-        fromList(["the", " ", "cat", " in ", "cat", "astrophe"]),
-        /\bcat\b/g,
-      ),
-    )
+    const result = await asList(match(fromList(["the", " ", "cat", " in ", "cat", "astrophe"]), /\bcat\b/g))
     expect(result).toHaveLength(1)
     expect(result[0][0]).toBe("cat")
     // expect(result[0].index).toBe(4)
@@ -166,9 +133,7 @@ describe("match", () => {
     */
 
   test("should handle optional groups", async () => {
-    const result = await asList(
-      match(fromList(["color", " and ", "colour"]), /(colou?r)/g),
-    )
+    const result = await asList(match(fromList(["color", " and ", "colour"]), /(colou?r)/g))
     expect(result).toHaveLength(2)
     expect(result[0][0]).toBe("color")
     expect(result[0][1]).toBe("color")
@@ -177,9 +142,7 @@ describe("match", () => {
   })
 
   test("should handle quantifiers correctly", async () => {
-    const result = await asList(
-      match(fromList(["a", "bb", "ccc", "dddd"]), /\w{3}/g),
-    )
+    const result = await asList(match(fromList(["a", "bb", "ccc", "dddd"]), /\w{3}/g))
     expect(result).toHaveLength(3)
     expect(result[0][0]).toBe("abb")
     expect(result[1][0]).toBe("ccc")
@@ -188,43 +151,13 @@ describe("match", () => {
 
   test("should handle greedy vs non-greedy quantifiers", async () => {
     const greedyResult = await asList(
-      match(
-        fromList([
-          "<",
-          "div",
-          "><",
-          "span",
-          ">",
-          "text",
-          "<",
-          "/span",
-          "><",
-          "/div",
-          ">",
-        ]),
-        /<.*>/g,
-      ),
+      match(fromList(["<", "div", "><", "span", ">", "text", "<", "/span", "><", "/div", ">"]), /<.*>/g),
     )
     expect(greedyResult).toHaveLength(1)
     expect(greedyResult[0][0]).toBe("<div><span>text</span></div>")
 
     const nonGreedyResult = await asList(
-      match(
-        fromList([
-          "<",
-          "div",
-          "><",
-          "span",
-          ">",
-          "text",
-          "<",
-          "/span",
-          "><",
-          "/div",
-          ">",
-        ]),
-        /<.*?>/g,
-      ),
+      match(fromList(["<", "div", "><", "span", ">", "text", "<", "/span", "><", "/div", ">"]), /<.*?>/g),
     )
     expect(nonGreedyResult).toHaveLength(4)
     expect(nonGreedyResult[0][0]).toBe("<div>")
@@ -235,10 +168,7 @@ describe("match", () => {
 
   test("should handle named capture groups", async () => {
     const result = await asList(
-      match(
-        fromList(["user", ":", "john", "@", "example.com"]),
-        /(?<user>\w+)@(?<domain>\w+\.\w+)/g,
-      ),
+      match(fromList(["user", ":", "john", "@", "example.com"]), /(?<user>\w+)@(?<domain>\w+\.\w+)/g),
     )
     expect(result).toHaveLength(1)
     expect(result[0][0]).toBe("john@example.com")
@@ -464,9 +394,7 @@ describe("match", () => {
         ),
       )
       expect(result).toHaveLength(2)
-      expect(result[0][0]).toBe(
-        "https://www.example.com/path?param=value&other=123",
-      )
+      expect(result[0][0]).toBe("https://www.example.com/path?param=value&other=123")
       expect(result[0][1]).toBe("https")
       expect(result[0][2]).toBe("www.example.com/path?param=value&other=123")
       expect(result[1][0]).toBe("http://api.test.org/v1")
@@ -474,25 +402,10 @@ describe("match", () => {
     })
 
     test("should extract dates in various formats with capture groups", async () => {
-      const dateRegex =
-        /(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})|(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})/g
+      const dateRegex = /(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})|(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})/g
       const result = await asList(
         match(
-          fromList([
-            "Born on ",
-            "12",
-            "/",
-            "25",
-            "/",
-            "1990",
-            " and graduated ",
-            "2023",
-            "-",
-            "05",
-            "-",
-            "15",
-            ".",
-          ]),
+          fromList(["Born on ", "12", "/", "25", "/", "1990", " and graduated ", "2023", "-", "05", "-", "15", "."]),
           dateRegex,
         ),
       )
@@ -665,24 +578,7 @@ describe("match", () => {
     test("should handle extremely fragmented text with single character tokens", async () => {
       const result = await asList(
         match(
-          fromList([
-            "t",
-            "e",
-            "s",
-            "t",
-            "@",
-            "e",
-            "x",
-            "a",
-            "m",
-            "p",
-            "l",
-            "e",
-            ".",
-            "c",
-            "o",
-            "m",
-          ]),
+          fromList(["t", "e", "s", "t", "@", "e", "x", "a", "m", "p", "l", "e", ".", "c", "o", "m"]),
           /([a-zA-Z0-9._%+-]+)@([a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/g,
         ),
       )
@@ -737,41 +633,28 @@ describe("match", () => {
         "2023",
       ]
 
-      const emailResults = await asList(
-        match(
-          fromList(input),
-          /([a-zA-Z0-9._%+-]+)@([a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/g,
-        ),
-      )
+      const emailResults = await asList(match(fromList(input), /([a-zA-Z0-9._%+-]+)@([a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/g))
       expect(emailResults).toHaveLength(1)
       expect(emailResults[0][0]).toBe("john.doe@company.com")
       expect(emailResults[0][1]).toBe("john.doe")
       expect(emailResults[0][2]).toBe("company.com")
 
-      const phoneResults = await asList(
-        match(fromList(input), /\((\d{3})\)\s?(\d{3})-(\d{4})/g),
-      )
+      const phoneResults = await asList(match(fromList(input), /\((\d{3})\)\s?(\d{3})-(\d{4})/g))
       expect(phoneResults).toHaveLength(1)
       expect(phoneResults[0][0]).toBe("(555) 123-4567")
       expect(phoneResults[0][1]).toBe("555")
       expect(phoneResults[0][2]).toBe("123")
       expect(phoneResults[0][3]).toBe("4567")
 
-      const ssnResults = await asList(
-        match(fromList(input), /(\d{3})-(\d{2})-(\d{4})/g),
-      )
+      const ssnResults = await asList(match(fromList(input), /(\d{3})-(\d{2})-(\d{4})/g))
       expect(ssnResults).toHaveLength(1)
       expect(ssnResults[0][0]).toBe("123-45-6789")
 
-      const cardResults = await asList(
-        match(fromList(input), /(\d{4})\s(\d{4})\s(\d{4})\s(\d{4})/g),
-      )
+      const cardResults = await asList(match(fromList(input), /(\d{4})\s(\d{4})\s(\d{4})\s(\d{4})/g))
       expect(cardResults).toHaveLength(1)
       expect(cardResults[0][0]).toBe("4532 1234 5678 9012")
 
-      const dateResults = await asList(
-        match(fromList(input), /(\d{1,2})\/(\d{1,2})\/(\d{4})/g),
-      )
+      const dateResults = await asList(match(fromList(input), /(\d{1,2})\/(\d{1,2})\/(\d{4})/g))
       expect(dateResults).toHaveLength(1)
       expect(dateResults[0][0]).toBe("12/25/2023")
       expect(dateResults[0][1]).toBe("12")
@@ -806,10 +689,7 @@ describe("match", () => {
 
   test("should handle complex backreference patterns", async () => {
     const result = await asList(
-      match(
-        fromList(["<", "tag", ">", "content", "<", "/", "tag", ">"]),
-        /<(\w+)>.*?<\/\1>/g,
-      ),
+      match(fromList(["<", "tag", ">", "content", "<", "/", "tag", ">"]), /<(\w+)>.*?<\/\1>/g),
     )
     expect(result).toHaveLength(1)
     expect(result[0][0]).toBe("<tag>content</tag>")
@@ -824,12 +704,7 @@ describe("match", () => {
   })
 
   test("should handle multi-byte Unicode characters", async () => {
-    const result = await asList(
-      match(
-        fromList(["🎉", "👍", "🚀", "text", "🎯"]),
-        /[\u{1F300}-\u{1F6FF}]/gu,
-      ),
-    )
+    const result = await asList(match(fromList(["🎉", "👍", "🚀", "text", "🎯"]), /[\u{1F300}-\u{1F6FF}]/gu))
     expect(result).toHaveLength(4)
     expect(result[0][0]).toBe("🎉")
     expect(result[1][0]).toBe("👍")

@@ -1,4 +1,4 @@
-import { slice } from './slice'
+import { slice } from "./slice"
 
 /**
  * Yields only the first value from the input stream.

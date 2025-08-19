@@ -1,7 +1,9 @@
 import { earliestPossibleMatchIndex } from "./regex"
 import { filter } from "./transforms/filter"
 
-const emptyGeneralRegex = async function* (input: AsyncIterable<string>): AsyncGenerator<{ text: string } | { regex: RegExpExecArray }> {
+const emptyGeneralRegex = async function* (
+  input: AsyncIterable<string>,
+): AsyncGenerator<{ text: string } | { regex: RegExpExecArray }> {
   let first = true
   for await (const chunk of input) {
     for (const c of chunk.split("")) {
@@ -32,9 +34,7 @@ export async function* generalRegex(
   let alreadyFound = false // tracks “done” for non-global mode
 
   /** Flush everything we’re *certain* can no longer change */
-  async function* flush(
-    endOfInput = false,
-  ): AsyncGenerator<{ text: string } | { regex: RegExpExecArray }> {
+  async function* flush(endOfInput = false): AsyncGenerator<{ text: string } | { regex: RegExpExecArray }> {
     while (buffer) {
       // Non-global: once we’ve replaced once, nothing else changes
       if (findAtMostOneMatch && alreadyFound) {

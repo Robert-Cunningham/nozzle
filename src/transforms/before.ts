@@ -18,10 +18,7 @@ import { StringIterable } from "../types"
  * ```
  */
 
-export async function* before(
-  source: StringIterable,
-  separator: string | RegExp,
-): AsyncGenerator<string> {
+export async function* before(source: StringIterable, separator: string | RegExp): AsyncGenerator<string> {
   const regex = toNonGlobalRegex(separator)
 
   if (isPatternEmpty(separator)) {

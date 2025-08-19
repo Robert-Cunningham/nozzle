@@ -1,10 +1,6 @@
 import { describe, expect, test } from "vitest"
 import { nz } from "../src/index"
-import {
-  assertResultsEqualsWithTiming,
-  collectWithTimings,
-  delayedStream,
-} from "./timing-helpers"
+import { assertResultsEqualsWithTiming, collectWithTimings, delayedStream } from "./timing-helpers"
 
 describe("Integrated Pipeline Tests", () => {
   test("preamble example: extract section between headers, split sentences, and throttle at 100ms", async () => {
@@ -27,12 +23,7 @@ describe("Integrated Pipeline Tests", () => {
 
     // Apply the exact pipeline from the preamble example
     const results = await collectWithTimings(
-      nz(stream)
-        .after("# Answer")
-        .before("# Reasoning")
-        .splitAfter(/[.;,]/g)
-        .minInterval(100)
-        .value(),
+      nz(stream).after("# Answer").before("# Reasoning").splitAfter(/[.;,]/g).minInterval(100).value(),
     )
 
     // Verify timing: first item immediate, subsequent items 100ms apart
@@ -54,14 +45,7 @@ describe("Integrated Pipeline Tests", () => {
 
   test("complex pipeline with multiple transforms and timing", async () => {
     // Test a more complex pipeline with multiple transforms
-    const source = [
-      "prefix: ",
-      "start",
-      "item1,item2;item3",
-      ".item4,item5",
-      "end",
-      " suffix",
-    ]
+    const source = ["prefix: ", "start", "item1,item2;item3", ".item4,item5", "end", " suffix"]
 
     const stream = delayedStream(source, 20)
 
@@ -139,12 +123,7 @@ describe("Integrated Pipeline Tests", () => {
     const stream = delayedStream(source, 5)
 
     const results = await collectWithTimings(
-      nz(stream)
-        .after("# Start")
-        .before("# End")
-        .split(/[.]/g)
-        .minInterval(50)
-        .value(),
+      nz(stream).after("# Start").before("# End").split(/[.]/g).minInterval(50).value(),
     )
 
     // Should be empty since there's no content between the sections
@@ -156,15 +135,11 @@ describe("Integrated Pipeline Tests", () => {
 
     const stream = delayedStream(source, 10)
 
-    const results = await collectWithTimings(
-      nz(stream).after("prefix").before("suffix").minInterval(200).value(),
-    )
+    const results = await collectWithTimings(nz(stream).after("prefix").before("suffix").minInterval(200).value())
 
     expect(results.map((r) => r.item)).toEqual(["single item"])
 
     // Single item should be immediate
-    assertResultsEqualsWithTiming(results, [
-      { item: "single item", timestamp: 0 },
-    ])
+    assertResultsEqualsWithTiming(results, [{ item: "single item", timestamp: 0 }])
   })
 })

@@ -2,11 +2,7 @@ import { describe, expect, test } from "vitest"
 import { asList } from "../src/transforms/asList"
 import { asyncMap } from "../src/transforms/asyncMap"
 import { fromList } from "../src/transforms/fromList"
-import {
-  assertResultsEqualsWithTiming,
-  collectWithTimings,
-  delayedStream,
-} from "./timing-helpers"
+import { assertResultsEqualsWithTiming, collectWithTimings, delayedStream } from "./timing-helpers"
 
 describe("asyncMap", () => {
   test("should transform each value using the provided async function", async () => {
@@ -87,15 +83,12 @@ describe("asyncMap", () => {
   })
 
   test("should handle async function that throws", async () => {
-    const asyncMapIterable = asyncMap(
-      fromList(["good", "bad", "good"]),
-      async (x) => {
-        if (x === "bad") {
-          throw new Error("Bad input")
-        }
-        return x.toUpperCase()
-      },
-    )
+    const asyncMapIterable = asyncMap(fromList(["good", "bad", "good"]), async (x) => {
+      if (x === "bad") {
+        throw new Error("Bad input")
+      }
+      return x.toUpperCase()
+    })
 
     await expect(asList(asyncMapIterable)).rejects.toThrow("Bad input")
   })
@@ -106,9 +99,7 @@ describe("asyncMap", () => {
       return `Response from ${url}`
     }
 
-    const result = await asList(
-      asyncMap(fromList(["api/users", "api/posts"]), mockFetch),
-    )
+    const result = await asList(asyncMap(fromList(["api/users", "api/posts"]), mockFetch))
     const expected = ["Response from api/users", "Response from api/posts"]
     expect(result).toEqual(expected)
   })

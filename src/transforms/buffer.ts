@@ -21,10 +21,7 @@
  * const unbuffered = buffer(source)
  * ```
  */
-export const buffer = async function* <T>(
-  source: AsyncIterable<T>,
-  n?: number,
-): AsyncGenerator<T> {
+export const buffer = async function* <T>(source: AsyncIterable<T>, n?: number): AsyncGenerator<T> {
   /** internal buffer to store pre-fetched items */
   const buf: T[] = []
 
