@@ -119,4 +119,47 @@ describe("minInterval", () => {
       { item: "e", timestamp: 400 },
     ])
   })
+
+  test("errors from source are properly caught by try/catch", async () => {
+    const errorSource = async function* () {
+      yield "item1"
+      throw new Error("source error")
+    }
+
+    let caughtError: Error | null = null
+    try {
+      await asList(minInterval(errorSource(), 100))
+    } catch (err) {
+      caughtError = err as Error
+    }
+
+    expect(caughtError).toBeTruthy()
+    expect(caughtError?.message).toBe("source error")
+  })
+
+  test("errors thrown during timing operations are catchable", async () => {
+    // Create a source that throws an error after some items
+    const problematicSource = async function* () {
+      yield "item1"
+      yield "item2"
+      // Simulate error that might happen during a timing window
+      throw new Error("delayed error")
+    }
+
+    await expect(async () => {
+      for await (const item of minInterval(problematicSource(), 50)) {
+        // This should be able to catch the error with try/catch
+      }
+    }).rejects.toThrow("delayed error")
+  })
+
+  test("immediate error from source is caught", async () => {
+    const immediateErrorSource = async function* (): AsyncGenerator<string> {
+      throw new Error("immediate error")
+    }
+
+    await expect(async () => {
+      await asList(minInterval(immediateErrorSource(), 100))
+    }).rejects.toThrow("immediate error")
+  })
 })

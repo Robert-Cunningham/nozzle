@@ -53,4 +53,49 @@ describe("throttle", () => {
     const result = await asList(throttled)
     expect(result).toEqual(["a", "b", "c"])
   })
+
+  test("errors from source are properly caught by try/catch", async () => {
+    const errorSource = async function* () {
+      yield "item1"
+      yield "item2"
+      throw new Error("source error")
+    }
+
+    let caughtError: Error | null = null
+    try {
+      await asList(throttle(errorSource(), 50, (values) => values.join("")))
+    } catch (err) {
+      caughtError = err as Error
+    }
+
+    expect(caughtError).toBeTruthy()
+    expect(caughtError?.message).toBe("source error")
+  })
+
+  test("errors thrown during throttling operations are catchable", async () => {
+    // Create a source that throws an error after some items with timing
+    const problematicSource = async function* () {
+      yield "item1"
+      // Small delay to ensure we're in the middle of throttling
+      await new Promise((resolve) => setTimeout(resolve, 25))
+      yield "item2"
+      throw new Error("delayed error")
+    }
+
+    await expect(async () => {
+      for await (const item of throttle(problematicSource(), 100, (values) => values.join(""))) {
+        // This should be able to catch the error with try/catch
+      }
+    }).rejects.toThrow("delayed error")
+  })
+
+  test("immediate error from source is caught", async () => {
+    const immediateErrorSource = async function* (): AsyncGenerator<string> {
+      throw new Error("immediate error")
+    }
+
+    await expect(async () => {
+      await asList(throttle(immediateErrorSource(), 100, (values) => values.join("")))
+    }).rejects.toThrow("immediate error")
+  })
 })
