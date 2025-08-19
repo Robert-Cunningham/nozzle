@@ -73,3 +73,7 @@ conversation.push({ raw: x, role: "assistant", enabled: true })
 .value()
 
 also: it's possible that we're supposed to deal with AsyncIterators (which can hold a place in a stream) instead of AsyncGenerators or AsyncIterables or the like. Need to think more carefully about this.
+
+## GOTCHAS:
+
+You have to make sure to throw errors DURING an await tick, not randomly when they happen. For example, with throttle(), if you throw an error inside a setTimeout it will flow all the way to the surface (i.e. the top level rejected promise handler). Almost certainly the behavior the client wants is to throw when they next await(), so they can handle it with lexical try / catch.

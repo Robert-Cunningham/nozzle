@@ -64,7 +64,7 @@ export const throttle = async function* <T>(
   /** items waiting to be flushed */
   let buf: T[] = []
 
-  /** resolve-fn that wakes the generator when it’s time to flush */
+  /** resolve-fn that wakes the generator when it's time to flush */
   let wake: (() => void) | null = null
 
   /** active timer for the current window (null ⇢ no window in progress) */
@@ -72,6 +72,9 @@ export const throttle = async function* <T>(
 
   /** did the upstream finish? */
   let finished = false
+
+  /** stores errors from the background consumer to throw on await tick */
+  let storedError: Error | null = null
 
   /** rings the bell for the generator and clears the timer */
   const flushDue = () => {
@@ -81,19 +84,27 @@ export const throttle = async function* <T>(
   }
 
   /* ──────────────────────────────────────────────────────────
-     1.  “Slurp” the source in the background
+     1.  "Slurp" the source in the background
      ────────────────────────────────────────────────────────── */
   const consumer = (async () => {
-    for await (const chunk of source) {
-      buf.push(chunk)
+    try {
+      for await (const chunk of source) {
+        buf.push(chunk)
 
-      // First element of a new batch → arm a timer
-      if (!timer) timer = setTimeout(flushDue, intervalMs)
+        // First element of a new batch → arm a timer
+        if (!timer) timer = setTimeout(flushDue, intervalMs)
+      }
+    } catch (err) {
+      // Store error to throw on next await tick
+      storedError = err instanceof Error ? err : new Error(String(err))
+      finished = true
+      flushDue() // Wake the generator to handle the error
+      return
     }
 
     finished = true
 
-    // If there’s still data but no timer (e.g. source ended immediately
+    // If there's still data but no timer (e.g. source ended immediately
     // after last flush) we must start one to honour the delay.
     if (buf.length && !timer) timer = setTimeout(flushDue, intervalMs)
 
@@ -105,10 +116,16 @@ export const throttle = async function* <T>(
      2.  Yield whenever the timer says so
      ────────────────────────────────────────────────────────── */
   while (true) {
+    // Check for stored errors before each operation
+    if (storedError) throw storedError
+
     if (finished && buf.length === 0) break
 
     // Sleep until `flushDue` calls the resolver
     await new Promise<void>((r) => (wake = r))
+
+    // Check for stored errors after waking up
+    if (storedError) throw storedError
 
     if (buf.length) {
       yield merge(buf)

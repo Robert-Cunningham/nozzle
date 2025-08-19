@@ -12,11 +12,22 @@ export async function* minInterval<T>(source: AsyncIterable<T>, delayMs: number)
   const iterator = source[Symbol.asyncIterator]()
   let lastYieldTime = 0
   let isFirstToken = true
+  let storedError: Error | null = null
 
   while (true) {
-    const { value, done } = await iterator.next()
+    // Check for stored errors before each operation
+    if (storedError) throw storedError
 
-    if (done) {
+    let result: IteratorResult<T>
+    try {
+      result = await iterator.next()
+    } catch (err) {
+      // Store error to throw on next await tick
+      storedError = err instanceof Error ? err : new Error(String(err))
+      continue
+    }
+
+    if (result.done) {
       break
     }
 
@@ -24,7 +35,7 @@ export async function* minInterval<T>(source: AsyncIterable<T>, delayMs: number)
 
     if (isFirstToken) {
       // First token: yield immediately
-      yield value
+      yield result.value
       lastYieldTime = now
       isFirstToken = false
     } else {
@@ -37,8 +48,11 @@ export async function* minInterval<T>(source: AsyncIterable<T>, delayMs: number)
         await new Promise((resolve) => setTimeout(resolve, remainingDelay))
       }
 
+      // Check for stored errors after timing operations
+      if (storedError) throw storedError
+
       // Yield the token
-      yield value
+      yield result.value
       lastYieldTime = Date.now()
     }
   }
