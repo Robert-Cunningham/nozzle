@@ -120,23 +120,6 @@ function aperture<T>(source: Iterable<T>, n: number): AsyncGenerator<T[]>;
 | `source` | `Iterable`\<`T`\> |
 | `n` | `number` |
 
-### throttle()
-
-```ts
-function throttle<T>(
-   source: AsyncIterable<T>, 
-   intervalMs: number, 
-merge: (values: T[]) => T): AsyncGenerator<T>;
-```
-
-#### Parameters
-
-| Parameter | Type |
-| ------ | ------ |
-| `source` | `AsyncIterable`\<`T`\> |
-| `intervalMs` | `number` |
-| `merge` | (`values`: `T`[]) => `T` |
-
 ## Accumulation
 
 ### accumulate()
@@ -202,6 +185,10 @@ The buffer() function "slurps up" as much of the input iterator as it can
 as fast as it can, storing items in an internal buffer. When items are
 requested from the buffer, they are yielded from this pre-filled buffer.
 This creates a decoupling between the consumption rate and the production rate.
+
+Error handling follows the pattern described in file://./../../ASYNC\_ERROR\_HANDLING.md.
+This function serves as a reference implementation for proper error handling
+with background consumers.
 
 #### Example
 
@@ -300,6 +287,9 @@ function asyncMap<T, U>(iterator: AsyncIterable<T>, fn: (value: T) => Promise<U>
 Transforms each value from the input stream using the provided async function.
 Applies the async function to each item as soon as it comes off the iterator
 and yields results as they complete, allowing multiple function calls to run concurrently.
+
+Error handling follows the pattern described in file://./../../ASYNC\_ERROR\_HANDLING.md
+to ensure errors are thrown during await ticks for proper try/catch handling.
 
 #### Parameters
 
@@ -644,6 +634,9 @@ function tee<T>(iterator: AsyncIterator<T>, n: number): AsyncGenerator<T, any, a
 
 Splits a single iterator into N independent iterables.
 
+Error handling follows the pattern described in file://./../../ASYNC\_ERROR\_HANDLING.md
+to ensure errors are thrown during await ticks for proper try/catch handling.
+
 #### Parameters
 
 | Parameter | Type | Description |
@@ -778,12 +771,40 @@ Enforces a minimum delay between adjacent tokens in a stream.
 The first token is yielded immediately, then subsequent tokens are delayed
 to ensure at least `delayMs` milliseconds pass between each yield.
 
+Error handling follows the pattern described in file://./../../ASYNC\_ERROR\_HANDLING.md
+to ensure errors are thrown during await ticks for proper try/catch handling.
+
 #### Parameters
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
 | `source` | `AsyncIterable`\<`T`\> | The async iterable source of tokens. |
 | `delayMs` | `number` | The minimum delay in milliseconds between adjacent tokens. |
+
+### throttle()
+
+```ts
+function throttle<T>(
+   source: AsyncIterable<T>, 
+   intervalMs: number, 
+merge: (values: T[]) => T): AsyncGenerator<T>;
+```
+
+Throttles the output from a source, with special timing behavior:
+- The first chunk is yielded immediately
+- Subsequent chunks are batched and yielded together after the interval
+- If no chunks arrive during an interval, the next chunk is yielded immediately when it arrives
+
+Error handling follows the pattern described in file://./../../ASYNC\_ERROR\_HANDLING.md
+to ensure errors are thrown during await ticks for proper try/catch handling.
+
+#### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `source` | `AsyncIterable`\<`T`\> | The async iterable source of values. |
+| `intervalMs` | `number` | The throttling interval in milliseconds. |
+| `merge` | (`values`: `T`[]) => `T` | - |
 
 ## Transformation
 
