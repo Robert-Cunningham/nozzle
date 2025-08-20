@@ -77,3 +77,5 @@ also: it's possible that we're supposed to deal with AsyncIterators (which can h
 ## GOTCHAS:
 
 You have to make sure to throw errors DURING an await tick, not randomly when they happen. For example, with throttle(), if you throw an error inside a setTimeout it will flow all the way to the surface (i.e. the top level rejected promise handler). Almost certainly the behavior the client wants is to throw when they next await(), so they can handle it with lexical try / catch.
+
+You must make sure to handle the return types of iterators (not just their yield types) correctly! Functions like tap(), for exapmle, have to return their parent's return type.

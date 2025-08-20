@@ -1,8 +1,8 @@
 import { describe, expect, test } from "vitest"
-import { safe } from "../src/transforms/safe"
+import { wrap } from "../src/transforms/wrap"
 import { errorSources } from "./error-test-sources"
 
-describe("safe", () => {
+describe("wrap", () => {
   test("yields value results for normal iteration", async () => {
     const source = async function* () {
       yield "hello"
@@ -10,7 +10,7 @@ describe("safe", () => {
     }
 
     const results = []
-    for await (const result of safe(source())) {
+    for await (const result of wrap(source())) {
       results.push(result)
     }
 
@@ -19,7 +19,7 @@ describe("safe", () => {
 
   test("yields error result for immediate error", async () => {
     const results = []
-    for await (const result of safe(errorSources.immediateError())) {
+    for await (const result of wrap(errorSources.immediateError())) {
       results.push(result)
     }
 
@@ -31,7 +31,7 @@ describe("safe", () => {
 
   test("yields value results then error for errorAfterOne", async () => {
     const results = []
-    for await (const result of safe(errorSources.errorAfterOne())) {
+    for await (const result of wrap(errorSources.errorAfterOne())) {
       results.push(result)
     }
 
@@ -43,7 +43,7 @@ describe("safe", () => {
 
   test("yields multiple value results then error for errorAfterMultiple", async () => {
     const results = []
-    for await (const result of safe(errorSources.errorAfterMultiple())) {
+    for await (const result of wrap(errorSources.errorAfterMultiple())) {
       results.push(result)
     }
 
@@ -57,7 +57,7 @@ describe("safe", () => {
 
   test("preserves custom error types", async () => {
     const results = []
-    for await (const result of safe(errorSources.customError())) {
+    for await (const result of wrap(errorSources.customError())) {
       results.push(result)
     }
 
@@ -70,7 +70,7 @@ describe("safe", () => {
 
   test("handles error after delay", async () => {
     const results = []
-    for await (const result of safe(errorSources.errorAfterDelay())) {
+    for await (const result of wrap(errorSources.errorAfterDelay())) {
       results.push(result)
     }
 
@@ -87,7 +87,7 @@ describe("safe", () => {
     }
 
     const results = []
-    for await (const result of safe(source())) {
+    for await (const result of wrap(source())) {
       results.push(result)
     }
 
@@ -104,7 +104,7 @@ describe("safe", () => {
     }
 
     const results = []
-    for await (const result of safe(source())) {
+    for await (const result of wrap(source())) {
       results.push(result)
     }
 
@@ -123,12 +123,12 @@ describe("safe", () => {
     }
 
     const results1 = []
-    for await (const result of safe(source1())) {
+    for await (const result of wrap(source1())) {
       results1.push(result)
     }
 
     const results2 = []
-    for await (const result of safe(source2())) {
+    for await (const result of wrap(source2())) {
       results2.push(result)
     }
 
@@ -142,7 +142,7 @@ describe("safe", () => {
     }
 
     const results = []
-    for await (const result of safe(source())) {
+    for await (const result of wrap(source())) {
       results.push(result)
     }
 
@@ -157,7 +157,7 @@ describe("safe", () => {
     }
 
     const results = []
-    for await (const result of safe(source())) {
+    for await (const result of wrap(source())) {
       results.push(result)
     }
 
@@ -174,7 +174,7 @@ describe("safe", () => {
     }
 
     const results = []
-    for await (const result of safe(source())) {
+    for await (const result of wrap(source())) {
       results.push(result)
     }
 
