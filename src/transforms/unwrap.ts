@@ -16,9 +16,9 @@
  * }
  * ```
  */
-export const unwrap = async function* <T>(
-  iterator: AsyncIterable<{ value?: T; return?: any; error?: unknown }>,
-): AsyncGenerator<T, any, any> {
+export const unwrap = async function* <T, R = any>(
+  iterator: AsyncIterable<{ value?: T; return?: R; error?: any }>,
+): AsyncGenerator<T, R | undefined, any> {
   for await (const result of iterator) {
     if (result.error !== undefined) {
       throw result.error
