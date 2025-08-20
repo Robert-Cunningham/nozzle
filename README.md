@@ -377,10 +377,10 @@ for await (const chunk of stream) {
 
 ## Error Handling
 
-### safe()
+### wrap()
 
 ```ts
-function safe<T>(iterator: AsyncIterable<T>): AsyncGenerator<{
+function wrap<T>(iterator: AsyncIterable<T>): AsyncGenerator<{
   value?: T;
   return?: any;
   error?: unknown;
@@ -393,7 +393,7 @@ Instead of throwing, errors are yielded as `{error}`, successful values as `{val
 #### Example
 
 ```ts
-const stream = safe(streamOf(["hello", "world"]))
+const stream = wrap(streamOf(["hello", "world"]))
 for await (const result of stream) {
   if (result.value !== undefined) {
     console.log("Got:", result.value)
@@ -421,15 +421,15 @@ function unwrap<T>(iterator: AsyncIterable<{
 }>): AsyncGenerator<T, any, any>;
 ```
 
-Unwraps results from safe() back into a normal iterator that throws/returns/yields.
-The opposite of safe() - takes `{value, return, error}` objects and converts them back
+Unwraps results from wrap() back into a normal iterator that throws/returns/yields.
+The opposite of wrap() - takes `{value, return, error}` objects and converts them back
 to normal iterator behavior.
 
 #### Example
 
 ```ts
-const safeStream = safe(streamOf(["hello", "world"]))
-const unwrapped = unwrap(safeStream)
+const wrappedStream = wrap(streamOf(["hello", "world"]))
+const unwrapped = unwrap(wrappedStream)
 for await (const value of unwrapped) {
   console.log("Got:", value) // "hello", "world"
 }
@@ -439,7 +439,7 @@ for await (const value of unwrapped) {
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
-| `iterator` | `AsyncIterable`\<`{ value?: T; return?: any; error?: unknown }`\> | An asynchronous iterable of safe result objects. |
+| `iterator` | `AsyncIterable`\<`{ value?: T; return?: any; error?: unknown }`\> | An asynchronous iterable of wrapped result objects. |
 
 ## Filtering
 

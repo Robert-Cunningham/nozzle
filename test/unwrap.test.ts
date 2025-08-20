@@ -1,13 +1,13 @@
 import { describe, expect, test } from "vitest"
-import { safe } from "../src/transforms/safe"
+import { wrap } from "../src/transforms/wrap"
 import { unwrap } from "../src/transforms/unwrap"
 import { fromList } from "../src/transforms/fromList"
 
 describe("unwrap", () => {
-  test("unwraps safe values back to normal iterator", async () => {
+  test("unwraps wrapped values back to normal iterator", async () => {
     const source = fromList(["hello", "world"])
-    const safeResults = safe(source)
-    const unwrapped = unwrap(safeResults)
+    const wrappedResults = wrap(source)
+    const unwrapped = unwrap(wrappedResults)
 
     const results = []
     for await (const value of unwrapped) {
@@ -23,8 +23,8 @@ describe("unwrap", () => {
       throw new Error("test error")
     }
 
-    const safeResults = safe(errorSource())
-    const unwrapped = unwrap(safeResults)
+    const wrappedResults = wrap(errorSource())
+    const unwrapped = unwrap(wrappedResults)
 
     const results = []
     await expect(async () => {
@@ -43,8 +43,8 @@ describe("unwrap", () => {
       return "final value"
     }
 
-    const safeResults = safe(sourceWithReturn())
-    const unwrapped = unwrap(safeResults)
+    const wrappedResults = wrap(sourceWithReturn())
+    const unwrapped = unwrap(wrappedResults)
 
     const results = []
     const iterator = unwrapped[Symbol.asyncIterator]()
@@ -65,8 +65,8 @@ describe("unwrap", () => {
       throw new TypeError("custom type error")
     }
 
-    const safeResults = safe(customErrorSource())
-    const unwrapped = unwrap(safeResults)
+    const wrappedResults = wrap(customErrorSource())
+    const unwrapped = unwrap(wrappedResults)
 
     const results = []
     await expect(async () => {
@@ -84,8 +84,8 @@ describe("unwrap", () => {
       throw "string error"
     }
 
-    const safeResults = safe(stringErrorSource())
-    const unwrapped = unwrap(safeResults)
+    const wrappedResults = wrap(stringErrorSource())
+    const unwrapped = unwrap(wrappedResults)
 
     const results = []
     await expect(async () => {
@@ -104,8 +104,8 @@ describe("unwrap", () => {
       throw thrownObject
     }
 
-    const safeResults = safe(objectErrorSource())
-    const unwrapped = unwrap(safeResults)
+    const wrappedResults = wrap(objectErrorSource())
+    const unwrapped = unwrap(wrappedResults)
 
     const results = []
     await expect(async () => {
@@ -122,8 +122,8 @@ describe("unwrap", () => {
       throw null
     }
 
-    const safeResults = safe(nullErrorSource())
-    const unwrapped = unwrap(safeResults)
+    const wrappedResults = wrap(nullErrorSource())
+    const unwrapped = unwrap(wrappedResults)
 
     await expect(async () => {
       for await (const value of unwrapped) {
@@ -137,8 +137,8 @@ describe("unwrap", () => {
       // yields nothing
     }
 
-    const safeResults = safe(emptySource())
-    const unwrapped = unwrap(safeResults)
+    const wrappedResults = wrap(emptySource())
+    const unwrapped = unwrap(wrappedResults)
 
     const results = []
     for await (const value of unwrapped) {
@@ -148,7 +148,7 @@ describe("unwrap", () => {
     expect(results).toHaveLength(0)
   })
 
-  test("round trip: safe -> unwrap preserves behavior", async () => {
+  test("round trip: wrap -> unwrap preserves behavior", async () => {
     const originalSource = fromList(["a", "b", "c"])
 
     // Original behavior
@@ -159,8 +159,8 @@ describe("unwrap", () => {
 
     // Round trip behavior
     const roundTripSource = fromList(["a", "b", "c"])
-    const safeResults = safe(roundTripSource)
-    const unwrapped = unwrap(safeResults)
+    const wrappedResults = wrap(roundTripSource)
+    const unwrapped = unwrap(wrappedResults)
 
     const roundTripResults = []
     for await (const value of unwrapped) {

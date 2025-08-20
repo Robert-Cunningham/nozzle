@@ -8,7 +8,7 @@
  *
  * @example
  * ```ts
- * const stream = safe(streamOf(["hello", "world"]))
+ * const stream = wrap(streamOf(["hello", "world"]))
  * for await (const result of stream) {
  *   if (result.value !== undefined) {
  *     console.log("Got:", result.value)
@@ -20,7 +20,7 @@
  * }
  * ```
  */
-export const safe = async function* <T>(
+export const wrap = async function* <T>(
   iterator: AsyncIterable<T>,
 ): AsyncGenerator<{ value?: T; return?: any; error?: unknown }> {
   try {
