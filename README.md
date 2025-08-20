@@ -381,21 +381,24 @@ for await (const chunk of stream) {
 
 ```ts
 function safe<T>(iterator: AsyncIterable<T>): AsyncGenerator<{
+  value?: T;
+  return?: any;
   error?: unknown;
-  success?: T;
 }>;
 ```
 
 Wraps an iterator to catch any errors and return them in a result object format.
-Instead of throwing, errors are yielded as `{error}` and successful values as `{success}`.
+Instead of throwing, errors are yielded as `{error}`, successful values as `{value}`, and return values as `{return}`.
 
 #### Example
 
 ```ts
 const stream = safe(streamOf(["hello", "world"]))
 for await (const result of stream) {
-  if (result.success !== undefined) {
-    console.log("Got:", result.success)
+  if (result.value !== undefined) {
+    console.log("Got:", result.value)
+  } else if (result.return !== undefined) {
+    console.log("Return:", result.return)
   } else {
     console.log("Error:", result.error)
   }
