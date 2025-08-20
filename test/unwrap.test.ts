@@ -1,7 +1,7 @@
 import { describe, expect, test } from "vitest"
-import { wrap } from "../src/transforms/wrap"
-import { unwrap } from "../src/transforms/unwrap"
 import { fromList } from "../src/transforms/fromList"
+import { unwrap } from "../src/transforms/unwrap"
+import { wrap } from "../src/transforms/wrap"
 
 describe("unwrap", () => {
   test("unwraps wrapped values back to normal iterator", async () => {
@@ -26,7 +26,7 @@ describe("unwrap", () => {
     const wrappedResults = wrap(errorSource())
     const unwrapped = unwrap(wrappedResults)
 
-    const results = []
+    const results: string[] = []
     await expect(async () => {
       for await (const value of unwrapped) {
         results.push(value)
@@ -68,7 +68,7 @@ describe("unwrap", () => {
     const wrappedResults = wrap(customErrorSource())
     const unwrapped = unwrap(wrappedResults)
 
-    const results = []
+    const results: string[] = []
     await expect(async () => {
       for await (const value of unwrapped) {
         results.push(value)
@@ -87,7 +87,7 @@ describe("unwrap", () => {
     const wrappedResults = wrap(stringErrorSource())
     const unwrapped = unwrap(wrappedResults)
 
-    const results = []
+    const results: string[] = []
     await expect(async () => {
       for await (const value of unwrapped) {
         results.push(value)
@@ -107,7 +107,7 @@ describe("unwrap", () => {
     const wrappedResults = wrap(objectErrorSource())
     const unwrapped = unwrap(wrappedResults)
 
-    const results = []
+    const results: string[] = []
     await expect(async () => {
       for await (const value of unwrapped) {
         results.push(value)
@@ -126,7 +126,7 @@ describe("unwrap", () => {
     const unwrapped = unwrap(wrappedResults)
 
     await expect(async () => {
-      for await (const value of unwrapped) {
+      for await (const _value of unwrapped) {
         // should not reach here
       }
     }).rejects.toBe(null)
