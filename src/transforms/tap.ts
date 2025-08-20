@@ -17,7 +17,7 @@
  * ```
  */
 export const tap = async function* <T, R = any>(
-  iterator: AsyncIterable<T>,
+  iterator: AsyncIterable<T, R>,
   fn: (value: T) => void,
 ): AsyncGenerator<T, R, undefined> {
   const iter = iterator[Symbol.asyncIterator]()
