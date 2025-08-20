@@ -3,7 +3,7 @@ import { safe } from "../src/transforms/safe"
 import { errorSources } from "./error-test-sources"
 
 describe("safe", () => {
-  test("yields success results for normal iteration", async () => {
+  test("yields value results for normal iteration", async () => {
     const source = async function* () {
       yield "hello"
       yield "world"
@@ -14,7 +14,7 @@ describe("safe", () => {
       results.push(result)
     }
 
-    expect(results).toEqual([{ success: "hello" }, { success: "world" }])
+    expect(results).toEqual([{ value: "hello" }, { value: "world" }])
   })
 
   test("yields error result for immediate error", async () => {
@@ -29,28 +29,28 @@ describe("safe", () => {
     expect((results[0].error as Error).message).toBe("immediate error")
   })
 
-  test("yields success results then error for errorAfterOne", async () => {
+  test("yields value results then error for errorAfterOne", async () => {
     const results = []
     for await (const result of safe(errorSources.errorAfterOne())) {
       results.push(result)
     }
 
     expect(results).toHaveLength(2)
-    expect(results[0]).toEqual({ success: "item1" })
+    expect(results[0]).toEqual({ value: "item1" })
     expect(results[1]).toHaveProperty("error")
     expect((results[1].error as Error).message).toBe("error after one")
   })
 
-  test("yields multiple success results then error for errorAfterMultiple", async () => {
+  test("yields multiple value results then error for errorAfterMultiple", async () => {
     const results = []
     for await (const result of safe(errorSources.errorAfterMultiple())) {
       results.push(result)
     }
 
     expect(results).toHaveLength(4)
-    expect(results[0]).toEqual({ success: "item1" })
-    expect(results[1]).toEqual({ success: "item2" })
-    expect(results[2]).toEqual({ success: "item3" })
+    expect(results[0]).toEqual({ value: "item1" })
+    expect(results[1]).toEqual({ value: "item2" })
+    expect(results[2]).toEqual({ value: "item3" })
     expect(results[3]).toHaveProperty("error")
     expect((results[3].error as Error).message).toBe("error after multiple")
   })
@@ -62,7 +62,7 @@ describe("safe", () => {
     }
 
     expect(results).toHaveLength(2)
-    expect(results[0]).toEqual({ success: "item1" })
+    expect(results[0]).toEqual({ value: "item1" })
     expect(results[1]).toHaveProperty("error")
     expect(results[1].error).toBeInstanceOf(TypeError)
     expect((results[1].error as TypeError).message).toBe("custom type error")
@@ -75,7 +75,7 @@ describe("safe", () => {
     }
 
     expect(results).toHaveLength(2)
-    expect(results[0]).toEqual({ success: "item1" })
+    expect(results[0]).toEqual({ value: "item1" })
     expect(results[1]).toHaveProperty("error")
     expect((results[1].error as Error).message).toBe("error after delay")
   })
@@ -92,7 +92,7 @@ describe("safe", () => {
     }
 
     expect(results).toHaveLength(2)
-    expect(results[0]).toEqual({ success: "item1" })
+    expect(results[0]).toEqual({ value: "item1" })
     expect(results[1]).toEqual({ error: "string error" })
   })
 
@@ -109,7 +109,7 @@ describe("safe", () => {
     }
 
     expect(results).toHaveLength(2)
-    expect(results[0]).toEqual({ success: "item1" })
+    expect(results[0]).toEqual({ value: "item1" })
     expect(results[1]).toEqual({ error: thrownObject })
   })
 
@@ -149,6 +149,24 @@ describe("safe", () => {
     expect(results).toHaveLength(0)
   })
 
+  test("iterator with return value yields return result", async () => {
+    const source = async function* () {
+      yield "item1"
+      yield "item2"
+      return "final value"
+    }
+
+    const results = []
+    for await (const result of safe(source())) {
+      results.push(result)
+    }
+
+    expect(results).toHaveLength(3)
+    expect(results[0]).toEqual({ value: "item1" })
+    expect(results[1]).toEqual({ value: "item2" })
+    expect(results[2]).toEqual({ return: "final value" })
+  })
+
   test("result objects have correct shape", async () => {
     const source = async function* () {
       yield "test"
@@ -162,14 +180,14 @@ describe("safe", () => {
 
     expect(results).toHaveLength(2)
 
-    // Success result should have success property, no error property
-    expect(results[0]).toHaveProperty("success")
+    // Success result should have value property, no error property
+    expect(results[0]).toHaveProperty("value")
     expect(results[0]).not.toHaveProperty("error")
-    expect(Object.keys(results[0])).toEqual(["success"])
+    expect(Object.keys(results[0])).toEqual(["value"])
 
-    // Error result should have error property, no success property
+    // Error result should have error property, no value property
     expect(results[1]).toHaveProperty("error")
-    expect(results[1]).not.toHaveProperty("success")
+    expect(results[1]).not.toHaveProperty("value")
     expect(Object.keys(results[1])).toEqual(["error"])
   })
 })
