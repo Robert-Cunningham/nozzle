@@ -56,6 +56,14 @@ export class Pipeline<T = string> implements AsyncIterable<T> {
     return new Pipeline<T>(tx.throttle(this.src, intervalMs, merge))
   }
 
+  safe() {
+    return new Pipeline<{ value?: T; return?: any; error?: unknown }>(tx.safe(this.src))
+  }
+
+  unwrap(this: Pipeline<{ value?: T; return?: any; error?: unknown }>) {
+    return new Pipeline<T>(tx.unwrap(this.src))
+  }
+
   // ---- String-specific methods ----
   accumulate(this: Pipeline<string>): Pipeline<string> {
     return new Pipeline<string>(tx.accumulate(this.src as AsyncIterable<string>))
