@@ -1,16 +1,16 @@
 /**
- * Unwraps results from safe() back into a normal iterator that throws/returns/yields.
- * The opposite of safe() - takes {value, return, error} objects and converts them back
+ * Unwraps results from wrap() back into a normal iterator that throws/returns/yields.
+ * The opposite of wrap() - takes {value, return, error} objects and converts them back
  * to normal iterator behavior.
  *
  * @group Error Handling
- * @param iterator - An asynchronous iterable of safe result objects.
+ * @param iterator - An asynchronous iterable of wrapped result objects.
  * @returns An asynchronous generator that yields values and throws errors normally.
  *
  * @example
  * ```ts
- * const safeStream = safe(streamOf(["hello", "world"]))
- * const unwrapped = unwrap(safeStream)
+ * const wrappedStream = wrap(streamOf(["hello", "world"]))
+ * const unwrapped = unwrap(wrappedStream)
  * for await (const value of unwrapped) {
  *   console.log("Got:", value) // "hello", "world"
  * }
