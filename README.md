@@ -377,18 +377,48 @@ for await (const chunk of stream) {
 
 ## Error Handling
 
+### unwrap()
+
+```ts
+function unwrap<T, R>(iterator: AsyncIterable<{
+  error?: any;
+  return?: R;
+  value?: T;
+}>): AsyncGenerator<T, undefined | R, any>;
+```
+
+Unwraps results from wrap() back into a normal iterator that throws/returns/yields.
+The opposite of wrap() - takes {value, return, error} objects and converts them back
+to normal iterator behavior.
+
+#### Example
+
+```ts
+const wrappedStream = wrap(streamOf(["hello", "world"]))
+const unwrapped = unwrap(wrappedStream)
+for await (const value of unwrapped) {
+  console.log("Got:", value) // "hello", "world"
+}
+```
+
+#### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `iterator` | `AsyncIterable`\<\{ `error?`: `any`; `return?`: `R`; `value?`: `T`; \}\> | An asynchronous iterable of wrapped result objects. |
+
 ### wrap()
 
 ```ts
 function wrap<T>(iterator: AsyncIterable<T>): AsyncGenerator<{
-  value?: T;
-  return?: any;
   error?: unknown;
+  return?: any;
+  value?: T;
 }>;
 ```
 
 Wraps an iterator to catch any errors and return them in a result object format.
-Instead of throwing, errors are yielded as `{error}`, successful values as `{value}`, and return values as `{return}`.
+Instead of throwing, errors are yielded as `{error}` and successful values as `{value}`.
 
 #### Example
 
@@ -410,36 +440,6 @@ for await (const result of stream) {
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
 | `iterator` | `AsyncIterable`\<`T`\> | An asynchronous iterable. |
-
-### unwrap()
-
-```ts
-function unwrap<T>(iterator: AsyncIterable<{
-  value?: T;
-  return?: any;
-  error?: unknown;
-}>): AsyncGenerator<T, any, any>;
-```
-
-Unwraps results from wrap() back into a normal iterator that throws/returns/yields.
-The opposite of wrap() - takes `{value, return, error}` objects and converts them back
-to normal iterator behavior.
-
-#### Example
-
-```ts
-const wrappedStream = wrap(streamOf(["hello", "world"]))
-const unwrapped = unwrap(wrappedStream)
-for await (const value of unwrapped) {
-  console.log("Got:", value) // "hello", "world"
-}
-```
-
-#### Parameters
-
-| Parameter | Type | Description |
-| ------ | ------ | ------ |
-| `iterator` | `AsyncIterable`\<`{ value?: T; return?: any; error?: unknown }`\> | An asynchronous iterable of wrapped result objects. |
 
 ## Filtering
 
@@ -669,7 +669,7 @@ for await (const chunk of stream) {
 ### tap()
 
 ```ts
-function tap<T>(iterator: AsyncIterable<T>, fn: (value: T) => void): AsyncGenerator<T>;
+function tap<T, R>(iterator: AsyncIterable<T, R>, fn: (value: T) => void): AsyncGenerator<T, R, undefined>;
 ```
 
 Executes a side effect for each value without modifying the stream.
@@ -689,7 +689,7 @@ for await (const chunk of stream) {
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
-| `iterator` | `AsyncIterable`\<`T`\> | An asynchronous iterable of strings. |
+| `iterator` | `AsyncIterable`\<`T`, `R`\> | An asynchronous iterable of strings. |
 | `fn` | (`value`: `T`) => `void` | A function to execute for each value. |
 
 ### tee()
