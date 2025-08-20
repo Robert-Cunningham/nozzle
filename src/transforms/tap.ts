@@ -16,9 +16,17 @@
  * // => logs: "Hello", "World", "!", then "Processed: Hello", "Processed: World", "Processed: !"
  * ```
  */
-export const tap = async function* <T>(iterator: AsyncIterable<T>, fn: (value: T) => void): AsyncGenerator<T> {
-  for await (const text of iterator) {
-    fn(text)
-    yield text
+export const tap = async function* <T, R = any>(
+  iterator: AsyncIterable<T>,
+  fn: (value: T) => void,
+): AsyncGenerator<T, R, undefined> {
+  const iter = iterator[Symbol.asyncIterator]()
+  while (true) {
+    const result = await iter.next()
+    if (result.done) {
+      return result.value as R
+    }
+    fn(result.value)
+    yield result.value
   }
 }
