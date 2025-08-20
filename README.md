@@ -411,6 +411,36 @@ for await (const result of stream) {
 | ------ | ------ | ------ |
 | `iterator` | `AsyncIterable`\<`T`\> | An asynchronous iterable. |
 
+### unwrap()
+
+```ts
+function unwrap<T>(iterator: AsyncIterable<{
+  value?: T;
+  return?: any;
+  error?: unknown;
+}>): AsyncGenerator<T, any, any>;
+```
+
+Unwraps results from safe() back into a normal iterator that throws/returns/yields.
+The opposite of safe() - takes `{value, return, error}` objects and converts them back
+to normal iterator behavior.
+
+#### Example
+
+```ts
+const safeStream = safe(streamOf(["hello", "world"]))
+const unwrapped = unwrap(safeStream)
+for await (const value of unwrapped) {
+  console.log("Got:", value) // "hello", "world"
+}
+```
+
+#### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `iterator` | `AsyncIterable`\<`{ value?: T; return?: any; error?: unknown }`\> | An asynchronous iterable of safe result objects. |
+
 ## Filtering
 
 ### compact()
