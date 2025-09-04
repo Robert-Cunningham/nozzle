@@ -118,6 +118,10 @@ export class Pipeline<T = string, R = any> implements AsyncIterable<T, R> {
     return tx.asList(this.src)
   }
 
+  return(): Promise<R | undefined> {
+    return tx.asReturn(this.src)
+  }
+
   value(): Iterable<T> {
     return this.src
   }
