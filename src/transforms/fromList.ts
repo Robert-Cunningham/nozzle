@@ -7,11 +7,7 @@
  *
  * @example
  * ```ts
- * const stream = fromList(["Hello", "World", "!"])
- * for await (const chunk of stream) {
- *   console.log(chunk)
- * }
- * // => "Hello", "World", "!"
+ * nz(["Hello", "World", "!"]) // => "Hello", "World", "!"
  * ```
  */
 export const fromList = async function* <T>(list: T[]): AsyncGenerator<T> {

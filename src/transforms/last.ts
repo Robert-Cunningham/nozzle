@@ -7,8 +7,7 @@
  *
  * @example
  * ```ts
- * const value = await last(streamOf(["Hello", "World", "!"]))
- * console.log(value) // => "!"
+ * await nz(["Hello", "World", "!"]).last() // => "!"
  * ```
  */
 export const last = async <T>(iterator: AsyncIterable<T>): Promise<T | undefined> => {

@@ -9,11 +9,7 @@ import { slice } from "./slice"
  *
  * @example
  * ```ts
- * const stream = initial(streamOf(["Hello", "World", "!"]))
- * for await (const chunk of stream) {
- *   console.log(chunk)
- * }
- * // => ["Hello", "World"]
+ * nz(["Hello", "World", "!"]).initial() // => "Hello", "World"
  * ```
  */
 export const initial = <T>(iterator: AsyncIterable<T>) => slice(iterator, 0, -1)

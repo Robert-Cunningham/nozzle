@@ -7,11 +7,7 @@
  *
  * @example
  * ```ts
- * const stream = compact(streamOf(["Hello", "", "World", ""]))
- * for await (const chunk of stream) {
- *   console.log(chunk)
- * }
- * // => ["Hello", "World"]
+ * nz(["Hello", "", "World", ""]).compact() // => "Hello", "World"
  * ```
  */
 export const compact = async function* (iterator: AsyncIterable<string>): AsyncGenerator<string> {

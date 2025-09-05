@@ -8,16 +8,7 @@
  *
  * @example
  * ```ts
- * const stream = wrap(streamOf(["hello", "world"]))
- * for await (const result of stream) {
- *   if (result.value !== undefined) {
- *     console.log("Got:", result.value)
- *   } else if (result.return !== undefined) {
- *     console.log("Return:", result.return)
- *   } else {
- *     console.log("Error:", result.error)
- *   }
- * }
+ * nz(["hello", "world"]).wrap() // => {value: "hello"}, {value: "world"}, {return: undefined}
  * ```
  */
 export const wrap = async function* <T>(

@@ -8,16 +8,7 @@
  *
  * @example
  * ```ts
- * const source = async function* () {
- *   yield "item1"
- *   yield "item2"
- *   return 42
- * }
- *
- * const stream = mapReturn(source(), (returnValue) => returnValue.toString())
- * const consumed = await consume(stream)
- * console.log(consumed.list()) // => ["item1", "item2"]
- * console.log(consumed.return()) // => "42"
+ * nz(["a", "b"]).mapReturn(returnValue => returnValue?.toString() ?? "default") // => "a", "b" (with mapped return value)
  * ```
  */
 export const mapReturn = async function* <T, R, U>(

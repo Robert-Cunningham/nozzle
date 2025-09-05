@@ -8,11 +8,7 @@
  *
  * @example
  * ```ts
- * const stream = map(streamOf(["hello", "world"]), x => x.toUpperCase())
- * for await (const chunk of stream) {
- *   console.log(chunk)
- * }
- * // => ["HELLO", "WORLD"]
+ * nz(["hello", "world"]).map(x => x.toUpperCase()) // => "HELLO", "WORLD"
  * ```
  */
 export const map = async function* <T, U, R = any>(

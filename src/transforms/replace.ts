@@ -15,11 +15,7 @@ import { generalRegex } from "../streamingRegex"
  *
  * @example
  * ```ts
- * const stream = replace(streamOf(["a", "b", "b", "a"]), /a[ab]*a/g, "X")
- * for await (const chunk of stream) {
- *   console.log(chunk)
- * }
- * // => ["X"]
+ * nz(["a", "b", "b", "a"]).replace(/a[ab]*a/g, "X") // => "X"
  * ```
  */
 export async function* replace(
