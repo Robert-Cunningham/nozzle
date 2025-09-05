@@ -1,5 +1,6 @@
 import * as tx from "./transforms"
 import { Iterable } from "./types"
+import { ConsumedPipeline } from "./consumedPipeline"
 
 /** @hidden
  * A pipeline of transformations.
@@ -109,17 +110,9 @@ export class Pipeline<T = string, R = any> implements AsyncIterable<T, R> {
     return new Pipeline<string, R>(tx.splitBefore(this.src as AsyncIterable<string>, pattern))
   }
 
-  asString(this: Pipeline<string, R>): Promise<string> {
-    return tx.asString(this.src as AsyncIterable<string>)
-  }
-
   // ---- terminators ----------------------------------------
-  asList(): Promise<T[]> {
-    return tx.asList(this.src)
-  }
-
-  return(): Promise<R | undefined> {
-    return tx.asReturn(this.src)
+  consume(): Promise<ConsumedPipeline<T, R>> {
+    return tx.consume(this.src)
   }
 
   value(): Iterable<T> {
