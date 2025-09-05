@@ -17,6 +17,7 @@
 [x] publish this package
 [x] rename the github repo
 [x] figure out how to make focal depend on it
+[x] write a `wrap` method which maps a stream to something like {value, error, done}? Or `wrapError`? Basically it should never throw / allow you to handle errors without try/catch.
 
 // potentially we should have differences like splitEach (applies tokenwise) and split (applies response-wise); same with e.g. .trimEach and .trim(). The each functions are much less useful / common, since they can mostly be implemented with map().
 
@@ -48,7 +49,8 @@
 [ ] explain that streams are pull-based, a la https://chatgpt.com/c/685aecc4-7828-8012-831e-294dbb7dcf03.
 
 [ ] write a nz.merge method which can consume many streams at once?
-[ ] write a `wrap` method which maps a stream to something like {value, error, done}? Or `wrapError`? Basically it should never throw / allow you to handle errors without try/catch.
+
+[ ] explain that before and after() specifically make no claims about when they emit empty strings, etc.
 
 # consider
 
