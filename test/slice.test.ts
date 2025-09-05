@@ -1,45 +1,46 @@
 import { describe, expect, test } from "vitest"
-import { asList, fromList, slice } from "../src/transforms"
+import { fromList, slice } from "../src/transforms"
+import { consume } from "../src/transforms/consume"
 import { assertResultsEqualsWithTiming, collectWithTimings, delayedStream } from "./timing-helpers"
 
 describe("slice", () => {
   test("basic positive slice", async () => {
-    const result = await asList(slice(fromList(["a", "b", "c", "d", "e"]), 1, 3))
+    const result = await (await consume(slice(fromList(["a", "b", "c", "d", "e"]), 1, 3))).list()
     expect(result).toEqual(["b", "c"])
   })
 
   test("slice from start", async () => {
-    const result = await asList(slice(fromList(["a", "b", "c", "d", "e"]), 0, 2))
+    const result = await (await consume(slice(fromList(["a", "b", "c", "d", "e"]), 0, 2))).list()
     expect(result).toEqual(["a", "b"])
   })
 
   test("slice to end", async () => {
-    const result = await asList(slice(fromList(["a", "b", "c", "d", "e"]), 2))
+    const result = await (await consume(slice(fromList(["a", "b", "c", "d", "e"]), 2))).list()
     expect(result).toEqual(["c", "d", "e"])
   })
 
   test("negative start index", async () => {
-    const result = await asList(slice(fromList(["a", "b", "c", "d", "e"]), -2))
+    const result = await (await consume(slice(fromList(["a", "b", "c", "d", "e"]), -2))).list()
     expect(result).toEqual(["d", "e"])
   })
 
   test("negative end index", async () => {
-    const result = await asList(slice(fromList(["a", "b", "c", "d", "e"]), 0, -2))
+    const result = await (await consume(slice(fromList(["a", "b", "c", "d", "e"]), 0, -2))).list()
     expect(result).toEqual(["a", "b", "c"])
   })
 
   test("both negative indices", async () => {
-    const result = await asList(slice(fromList(["a", "b", "c", "d", "e"]), -3, -1))
+    const result = await (await consume(slice(fromList(["a", "b", "c", "d", "e"]), -3, -1))).list()
     expect(result).toEqual(["c", "d"])
   })
 
   test("empty stream", async () => {
-    const result = await asList(slice(fromList([]), 0, 2))
+    const result = await (await consume(slice(fromList([]), 0, 2))).list()
     expect(result).toEqual([])
   })
 
   test("out of bounds indices", async () => {
-    const result = await asList(slice(fromList(["a", "b", "c"]), 10, 20))
+    const result = await (await consume(slice(fromList(["a", "b", "c"]), 10, 20))).list()
     expect(result).toEqual([])
   })
 })
