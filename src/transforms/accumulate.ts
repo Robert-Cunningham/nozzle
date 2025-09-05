@@ -7,11 +7,7 @@
  *
  * @example
  * ```ts
- * const stream = accumulate(streamOf(["This ", "is ", "a ", "test!"]))
- * for await (const chunk of stream) {
- *   console.log(chunk)
- * }
- * // => ["This ", "This is ", "This is a ", "This is a test!"]
+ * nz(["This ", "is ", "a ", "test!"]).accumulate() // => "This ", "This is ", "This is a ", "This is a test!"
  * ```
  */
 // accumulate and yield partials: diffsToPrefixes

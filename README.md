@@ -109,9 +109,7 @@ This library is licensed under the MIT license.
 
 ### aperture()
 
-```ts
-function aperture<T>(source: Iterable<T>, n: number): AsyncGenerator<T[]>;
-```
+#### aperture
 
 #### Parameters
 
@@ -120,62 +118,76 @@ function aperture<T>(source: Iterable<T>, n: number): AsyncGenerator<T[]>;
 | `source` | `Iterable`\<`T`\> |
 | `n` | `number` |
 
+</details>
+
 ## Accumulation
 
 ### accumulate()
+
+#### accumulate
+
+#### Example
+
+```ts
+nz(["This ", "is ", "a ", "test!"]).accumulate() // => "This ", "This is ", "This is a ", "This is a test!"
+```
+
+Yields a cumulative prefix of the input stream.
+
+<details><summary>details</summary>
 
 ```ts
 function accumulate(iterator: AsyncIterable<string>): AsyncGenerator<string>;
 ```
 
-Yields a cumulative prefix of the input stream.
-
-#### Example
-
-```ts
-const stream = accumulate(streamOf(["This ", "is ", "a ", "test!"]))
-for await (const chunk of stream) {
-  console.log(chunk)
-}
-// => ["This ", "This is ", "This is a ", "This is a test!"]
-```
-
 #### Parameters
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
 | `iterator` | `AsyncIterable`\<`string`\> | An asynchronous iterable of strings. |
 
+</details>
+
 ### diff()
+
+#### diff
+
+#### Example
+
+```ts
+nz(["This ", "This is ", "This is a ", "This is a test!"]).diff().value() // => "This ", "is ", "a ", "test!"
+```
+
+Yields the difference between the current and previous string in the input stream.
+
+<details><summary>details</summary>
 
 ```ts
 function diff(iterator: AsyncIterable<string>): AsyncGenerator<string>;
 ```
 
-Yields the difference between the current and previous string in the input stream.
-
-#### Example
-
-```ts
-const stream = diff(streamOf(["This ", "This is ", "This is a ", "This is a test!"]))
-for await (const chunk of stream) {
-  console.log(chunk)
-}
-// => ["This ", "is ", "a ", "test!"]
-```
-
 #### Parameters
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
 | `iterator` | `AsyncIterable`\<`string`\> | An asynchronous iterable of strings. |
 
+</details>
+
 ## Buffering
 
 ### buffer()
 
+#### buffer
+
+#### Example
+
 ```ts
-function buffer<T>(source: AsyncIterable<T>, n?: number): AsyncGenerator<T>;
+// Buffer up to 10 items
+const buffered = buffer(source, 10)
+
+// Buffer unlimited items
+const unbuffered = buffer(source)
 ```
 
 Buffers up to N items from the source iterator, consuming them eagerly
@@ -190,16 +202,6 @@ Error handling follows the pattern described in file://./../../ASYNC\_ERROR\_HAN
 This function serves as a reference implementation for proper error handling
 with background consumers.
 
-#### Example
-
-```ts
-// Buffer up to 10 items
-const buffered = buffer(source, 10)
-
-// Buffer unlimited items
-const unbuffered = buffer(source)
-```
-
 #### Parameters
 
 | Parameter | Type | Description |
@@ -207,58 +209,41 @@ const unbuffered = buffer(source)
 | `source` | `AsyncIterable`\<`T`\> | The async iterable source of values. |
 | `n?` | `number` | The maximum number of items to buffer. If undefined, buffers unlimited items. |
 
+</details>
+
 ## Conversion
 
-### asList()
+### consume()
 
-```ts
-function asList<T>(iterator: AsyncIterable<T>): Promise<T[]>;
-```
-
-Consumes an async iterator and returns all values as an array.
+#### consume
 
 #### Example
 
 ```ts
-const result = await asList(streamOf(["Hello", "World", "!"]))
-console.log(result) // => ["Hello", "World", "!"]
+const source = async function* () {
+  yield "item1"
+  yield "item2"
+  return "final value"
+}
+
+const consumed = await consume(source())
+console.log(consumed.list())    // => ["item1", "item2"]
+console.log(consumed.return())  // => "final value"
 ```
+
+Consumes an async iterator completely, collecting both yielded values and the return value.
 
 #### Parameters
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
-| `iterator` | `AsyncIterable`\<`T`\> | An asynchronous iterable of strings. |
+| `iterator` | `AsyncIterable`\<`T`, `R`\> | An asynchronous iterable to consume |
 
-### asString()
-
-```ts
-function asString(iterator: AsyncIterable<string>): Promise<string>;
-```
-
-Consumes an async iterator and returns the final accumulated string.
-Equivalent to calling accumulate().last() but more efficient.
-
-#### Example
-
-```ts
-const result = await asString(streamOf(["Hello", " ", "World"]))
-console.log(result) // => "Hello World"
-```
-
-#### Parameters
-
-| Parameter | Type | Description |
-| ------ | ------ | ------ |
-| `iterator` | `AsyncIterable`\<`string`\> | An asynchronous iterable of strings. |
+</details>
 
 ### fromList()
 
-```ts
-function fromList<T>(list: T[]): AsyncGenerator<T>;
-```
-
-Converts an array to an async iterator.
+#### fromList
 
 #### Example
 
@@ -270,35 +255,23 @@ for await (const chunk of stream) {
 // => "Hello", "World", "!"
 ```
 
+Converts an array to an async iterator.
+
 #### Parameters
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
 | `list` | `T`[] | An array of values. |
 
+</details>
+
 ## Elements
 
 ### asyncMap()
 
-```ts
-function asyncMap<T, U>(iterator: AsyncIterable<T>, fn: (value: T) => Promise<U>): AsyncGenerator<U>;
-```
+#### asyncMap
 
-Transforms each value from the input stream using the provided async function.
-Applies the async function to each item as soon as it comes off the iterator
-and yields results as they complete, allowing multiple function calls to run concurrently.
-
-Error handling follows the pattern described in file://./../../ASYNC\_ERROR\_HANDLING.md
-to ensure errors are thrown during await ticks for proper try/catch handling.
-
-#### Parameters
-
-| Parameter | Type | Description |
-| ------ | ------ | ------ |
-| `iterator` | `AsyncIterable`\<`T`\> | An asynchronous iterable of strings. |
-| `fn` | (`value`: `T`) => `Promise`\<`U`\> | An async function that transforms each string value. |
-
-#### Examples
+#### Example
 
 ```ts
 const stream = asyncMap(streamOf(["hello", "world"]), async x => {
@@ -323,15 +296,25 @@ for await (const data of responses) {
 }
 ```
 
-***
+Transforms each value from the input stream using the provided async function.
+Applies the async function to each item as soon as it comes off the iterator
+and yields results as they complete, allowing multiple function calls to run concurrently.
+
+Error handling follows the pattern described in file://./../../ASYNC\_ERROR\_HANDLING.md
+to ensure errors are thrown during await ticks for proper try/catch handling.
+
+#### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `iterator` | `AsyncIterable`\<`T`\> | An asynchronous iterable of strings. |
+| `fn` | (`value`: `T`) => `Promise`\<`U`\> | An async function that transforms each string value. |
+
+</details>
 
 ### filter()
 
-```ts
-function filter<T>(iterator: AsyncIterable<T>, predicate: (chunk: T) => boolean): AsyncGenerator<T>;
-```
-
-Filters the input stream based on a predicate function.
+#### filter
 
 #### Example
 
@@ -343,20 +326,42 @@ for await (const chunk of stream) {
 // => ["Hello", "World"]
 ```
 
+Filters the input stream based on a predicate function.
+
 #### Parameters
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
-| `iterator` | `AsyncIterable`\<`T`\> | An asynchronous iterable of strings. |
+| `iterator` | `AsyncIterable`\<`T`, `R`\> | An asynchronous iterable of strings. |
 | `predicate` | (`chunk`: `T`) => `boolean` | A function that returns true for items to keep. |
+
+</details>
+
+### find()
+
+#### find
+
+#### Example
+
+```ts
+const value = await find(streamOf(["apple", "banana", "cherry"]), (chunk: string) => chunk.startsWith("b"))
+console.log(value) // => "banana"
+```
+
+Finds the first value from the input stream that matches the predicate.
+
+#### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `iterator` | `AsyncIterable`\<`T`\> | An asynchronous iterable of values. |
+| `predicate` | (`chunk`: `T`) => `boolean` | A function that returns true for the item to find. |
+
+</details>
 
 ### map()
 
-```ts
-function map<T, U>(iterator: AsyncIterable<T>, fn: (value: T) => U): AsyncGenerator<U>;
-```
-
-Transforms each value from the input stream using the provided function.
+#### map
 
 #### Example
 
@@ -368,28 +373,22 @@ for await (const chunk of stream) {
 // => ["HELLO", "WORLD"]
 ```
 
+Transforms each value from the input stream using the provided function.
+
 #### Parameters
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
-| `iterator` | `AsyncIterable`\<`T`\> | An asynchronous iterable of strings. |
+| `iterator` | `AsyncIterable`\<`T`, `R`\> | An asynchronous iterable of strings. |
 | `fn` | (`value`: `T`) => `U` | A function that transforms each string value. |
+
+</details>
 
 ## Error Handling
 
 ### unwrap()
 
-```ts
-function unwrap<T, R>(iterator: AsyncIterable<{
-  error?: any;
-  return?: R;
-  value?: T;
-}>): AsyncGenerator<T, undefined | R, any>;
-```
-
-Unwraps results from wrap() back into a normal iterator that throws/returns/yields.
-The opposite of wrap() - takes {value, return, error} objects and converts them back
-to normal iterator behavior.
+#### unwrap
 
 #### Example
 
@@ -401,24 +400,21 @@ for await (const value of unwrapped) {
 }
 ```
 
+Unwraps results from wrap() back into a normal iterator that throws/returns/yields.
+The opposite of wrap() - takes {value, return, error} objects and converts them back
+to normal iterator behavior.
+
 #### Parameters
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
 | `iterator` | `AsyncIterable`\<\{ `error?`: `any`; `return?`: `R`; `value?`: `T`; \}\> | An asynchronous iterable of wrapped result objects. |
 
+</details>
+
 ### wrap()
 
-```ts
-function wrap<T>(iterator: AsyncIterable<T>): AsyncGenerator<{
-  error?: unknown;
-  return?: any;
-  value?: T;
-}>;
-```
-
-Wraps an iterator to catch any errors and return them in a result object format.
-Instead of throwing, errors are yielded as `{error}` and successful values as `{value}`.
+#### wrap
 
 #### Example
 
@@ -435,21 +431,22 @@ for await (const result of stream) {
 }
 ```
 
+Wraps an iterator to catch any errors and return them in a result object format.
+Instead of throwing, errors are yielded as `{error}` and successful values as `{value}`.
+
 #### Parameters
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
 | `iterator` | `AsyncIterable`\<`T`\> | An asynchronous iterable. |
 
+</details>
+
 ## Filtering
 
 ### compact()
 
-```ts
-function compact(iterator: AsyncIterable<string>): AsyncGenerator<string>;
-```
-
-Filters out empty strings from the input stream.
+#### compact
 
 #### Example
 
@@ -461,45 +458,81 @@ for await (const chunk of stream) {
 // => ["Hello", "World"]
 ```
 
+Filters out empty strings from the input stream.
+
+<details><summary>details</summary>
+
+```ts
+function compact(iterator: AsyncIterable<string>): AsyncGenerator<string>;
+```
+
 #### Parameters
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
 | `iterator` | `AsyncIterable`\<`string`\> | An asynchronous iterable of strings. |
 
+</details>
+
 ## Indexing
 
-### first()
+### at()
 
-```ts
-function first<T>(iterator: AsyncIterable<T>): AsyncGenerator<T>;
-```
-
-Yields only the first value from the input stream.
+#### at
 
 #### Example
 
 ```ts
-const stream = first(streamOf(["Hello", "World", "!"]))
-for await (const chunk of stream) {
-  console.log(chunk)
-}
-// => ["Hello"]
+const value = await at(streamOf(["a", "b", "c", "d", "e"]), 2)
+console.log(value) // => "c"
 ```
+
+```ts
+const value = await at(streamOf(["a", "b", "c", "d", "e"]), -1)
+console.log(value) // => "e"
+```
+
+```ts
+const value = await at(streamOf(["a", "b", "c"]), 10)
+console.log(value) // => undefined
+```
+
+Returns the element at the specified index in the input stream.
+Supports negative indices to count from the end.
 
 #### Parameters
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
-| `iterator` | `AsyncIterable`\<`T`\> | An asynchronous iterable of strings. |
+| `iterator` | `AsyncIterable`\<`T`\> | An asynchronous iterable of values. |
+| `index` | `number` | The index to access. Negative values count from the end. |
+
+</details>
+
+### first()
+
+#### first
+
+#### Example
+
+```ts
+const value = await first(streamOf(["Hello", "World", "!"]))
+console.log(value) // => "Hello"
+```
+
+Returns the first value from the input stream.
+
+#### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `iterator` | `AsyncIterable`\<`T`\> | An asynchronous iterable of values. |
+
+</details>
 
 ### head()
 
-```ts
-function head<T>(iterator: AsyncIterable<T>): AsyncGenerator<T, any, any>;
-```
-
-Yields only the first value from the input stream.
+#### head
 
 #### Example
 
@@ -511,19 +544,19 @@ for await (const chunk of stream) {
 // => ["Hello"]
 ```
 
+Yields only the first value from the input stream.
+
 #### Parameters
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
 | `iterator` | `AsyncIterable`\<`T`\> | An asynchronous iterable of values. |
 
+</details>
+
 ### initial()
 
-```ts
-function initial<T>(iterator: AsyncIterable<T>): AsyncGenerator<T, any, any>;
-```
-
-Yields all values except the last from the input stream.
+#### initial
 
 #### Example
 
@@ -535,29 +568,28 @@ for await (const chunk of stream) {
 // => ["Hello", "World"]
 ```
 
+Yields all values except the last from the input stream.
+
 #### Parameters
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
 | `iterator` | `AsyncIterable`\<`T`\> | An asynchronous iterable of values. |
 
+</details>
+
 ### last()
 
-```ts
-function last<T>(iterator: AsyncIterable<T>): AsyncGenerator<T, any, any>;
-```
-
-Yields only the last value from the input stream.
+#### last
 
 #### Example
 
 ```ts
-const stream = last(streamOf(["Hello", "World", "!"]))
-for await (const chunk of stream) {
-  console.log(chunk)
-}
-// => ["!"]
+const value = await last(streamOf(["Hello", "World", "!"]))
+console.log(value) // => "!"
 ```
+
+Returns the last value from the input stream.
 
 #### Parameters
 
@@ -565,27 +597,13 @@ for await (const chunk of stream) {
 | ------ | ------ | ------ |
 | `iterator` | `AsyncIterable`\<`T`\> | An asynchronous iterable of values. |
 
+</details>
+
 ### slice()
 
-```ts
-function slice<T>(
-   iterator: AsyncIterable<T>, 
-   start: number, 
-end?: number): AsyncGenerator<T>;
-```
+#### slice
 
-Yields a slice of the input stream between start and end indices.
-Supports negative indices by maintaining an internal buffer.
-
-#### Parameters
-
-| Parameter | Type | Description |
-| ------ | ------ | ------ |
-| `iterator` | `AsyncIterable`\<`T`\> | The async iterable to slice |
-| `start` | `number` | Starting index (inclusive). Negative values count from end. |
-| `end?` | `number` | Ending index (exclusive). Negative values count from end. If undefined, slices to end. |
-
-#### Examples
+#### Example
 
 ```ts
 const stream = slice(streamOf(["a", "b", "c", "d", "e"]), 1, 3)
@@ -603,15 +621,22 @@ for await (const chunk of stream) {
 // => ["d", "e"]
 ```
 
-***
+Yields a slice of the input stream between start and end indices.
+Supports negative indices by maintaining an internal buffer.
+
+#### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `iterator` | `AsyncIterable`\<`T`\> | The async iterable to slice |
+| `start` | `number` | Starting index (inclusive). Negative values count from end. |
+| `end?` | `number` | Ending index (exclusive). Negative values count from end. If undefined, slices to end. |
+
+</details>
 
 ### tail()
 
-```ts
-function tail<T>(iterator: AsyncIterable<T>): AsyncGenerator<T, any, any>;
-```
-
-Yields all values except the first from the input stream.
+#### tail
 
 #### Example
 
@@ -623,28 +648,21 @@ for await (const chunk of stream) {
 // => ["World", "!"]
 ```
 
+Yields all values except the first from the input stream.
+
 #### Parameters
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
 | `iterator` | `AsyncIterable`\<`T`\> | An asynchronous iterable of values. |
 
+</details>
+
 ## Regex
 
 ### replace()
 
-```ts
-function replace(
-   input: AsyncIterable<string>, 
-   regex: RegExp, 
-replacement: string): AsyncGenerator<string>;
-```
-
-Replaces matches of a regex pattern with a replacement string in the input stream.
-
-Uses earliestPossibleMatchIndex to efficiently yield tokens as soon as we know
-they don't match the regex, while holding back potential matches until we can
-determine if they should be replaced.
+#### replace
 
 #### Example
 
@@ -656,6 +674,21 @@ for await (const chunk of stream) {
 // => ["X"]
 ```
 
+Replaces matches of a regex pattern with a replacement string in the input stream.
+
+Uses earliestPossibleMatchIndex to efficiently yield tokens as soon as we know
+they don't match the regex, while holding back potential matches until we can
+determine if they should be replaced.
+
+<details><summary>details</summary>
+
+```ts
+function replace(
+   input: AsyncIterable<string>, 
+   regex: RegExp, 
+replacement: string): AsyncGenerator<string>;
+```
+
 #### Parameters
 
 | Parameter | Type | Description |
@@ -664,15 +697,45 @@ for await (const chunk of stream) {
 | `regex` | `RegExp` | The regular expression pattern to match. |
 | `replacement` | `string` | The string to replace matches with. |
 
+</details>
+
+## Return Values
+
+### mapReturn()
+
+#### mapReturn
+
+#### Example
+
+```ts
+const source = async function* () {
+  yield "item1"
+  yield "item2"
+  return 42
+}
+
+const stream = mapReturn(source(), (returnValue) => returnValue.toString())
+const consumed = await consume(stream)
+console.log(consumed.list()) // => ["item1", "item2"]
+console.log(consumed.return()) // => "42"
+```
+
+Maps the return type of an iterator while preserving all yielded values unchanged.
+
+#### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `iterator` | `AsyncIterable`\<`T`, `R`\> | An asynchronous iterable. |
+| `fn` | (`value`: `R`) => `U` | A function that transforms the return value. |
+
+</details>
+
 ## Side Effects
 
 ### tap()
 
-```ts
-function tap<T, R>(iterator: AsyncIterable<T, R>, fn: (value: T) => void): AsyncGenerator<T, R, undefined>;
-```
-
-Executes a side effect for each value without modifying the stream.
+#### tap
 
 #### Example
 
@@ -685,6 +748,8 @@ for await (const chunk of stream) {
 // => logs: "Hello", "World", "!", then "Processed: Hello", "Processed: World", "Processed: !"
 ```
 
+Executes a side effect for each value without modifying the stream.
+
 #### Parameters
 
 | Parameter | Type | Description |
@@ -692,11 +757,11 @@ for await (const chunk of stream) {
 | `iterator` | `AsyncIterable`\<`T`, `R`\> | An asynchronous iterable of strings. |
 | `fn` | (`value`: `T`) => `void` | A function to execute for each value. |
 
+</details>
+
 ### tee()
 
-```ts
-function tee<T>(iterator: AsyncIterator<T>, n: number): AsyncGenerator<T, any, any>[];
-```
+#### tee
 
 Splits a single iterator into N independent iterables.
 
@@ -710,15 +775,13 @@ to ensure errors are thrown during await ticks for proper try/catch handling.
 | `iterator` | `AsyncIterator`\<`T`\> | The source async iterator to split. |
 | `n` | `number` | Number of independent iterables to create. |
 
+</details>
+
 ## Splitting
 
 ### after()
 
-```ts
-function after(source: StringIterable, pattern: string | RegExp): AsyncGenerator<string>;
-```
-
-Emit everything **after** the accumulated prefix that matches `pattern`.
+#### after
 
 #### Example
 
@@ -730,6 +793,14 @@ for await (const chunk of stream) {
 // => ["d", "e"]
 ```
 
+Emit everything **after** the accumulated prefix that matches `pattern`.
+
+<details><summary>details</summary>
+
+```ts
+function after(source: StringIterable, pattern: string | RegExp): AsyncGenerator<string>;
+```
+
 #### Parameters
 
 | Parameter | Type | Description |
@@ -737,13 +808,11 @@ for await (const chunk of stream) {
 | `source` | `StringIterable` | stream or iterable to scan |
 | `pattern` | `string` \| `RegExp` | first `RegExp` that marks the cut-off |
 
+</details>
+
 ### before()
 
-```ts
-function before(source: StringIterable, separator: string | RegExp): AsyncGenerator<string>;
-```
-
-Emit everything **before** the accumulated prefix that contains `separator`.
+#### before
 
 #### Example
 
@@ -755,6 +824,14 @@ for await (const chunk of stream) {
 // => ["a", "b"]
 ```
 
+Emit everything **before** the accumulated prefix that contains `separator`.
+
+<details><summary>details</summary>
+
+```ts
+function before(source: StringIterable, separator: string | RegExp): AsyncGenerator<string>;
+```
+
 #### Parameters
 
 | Parameter | Type | Description |
@@ -762,14 +839,20 @@ for await (const chunk of stream) {
 | `source` | `StringIterable` | stream or iterable to scan |
 | `separator` | `string` \| `RegExp` | string that marks the cut-off |
 
+</details>
+
 ### chunk()
+
+#### chunk
+
+Groups input tokens into chunks of the specified size and yields the joined result.
+Takes N input items and yields N/size output items, where each output is the concatenation of size input items.
+
+<details><summary>details</summary>
 
 ```ts
 function chunk(source: AsyncIterable<string>, size: number): AsyncGenerator<string>;
 ```
-
-Groups input tokens into chunks of the specified size and yields the joined result.
-Takes N input items and yields N/size output items, where each output is the concatenation of size input items.
 
 #### Parameters
 
@@ -778,14 +861,20 @@ Takes N input items and yields N/size output items, where each output is the con
 | `source` | `AsyncIterable`\<`string`\> | The async iterable source of strings (tokens). |
 | `size` | `number` | The number of input tokens to group together in each output chunk. |
 
+</details>
+
 ### split()
+
+#### split
+
+Takes incoming chunks, merges them, and then splits them by a string separator.
+
+<details><summary>details</summary>
 
 ```ts
 function split(source: AsyncIterable<string>, separator: string | RegExp): AsyncGenerator<string>;
 ```
 
-Takes incoming chunks, merges them, and then splits them by a string separator.
-
 #### Parameters
 
 | Parameter | Type | Description |
@@ -793,15 +882,21 @@ Takes incoming chunks, merges them, and then splits them by a string separator.
 | `source` | `AsyncIterable`\<`string`\> | The async iterable source of strings. |
 | `separator` | `string` \| `RegExp` | The string separator to split by. |
 
+</details>
+
 ### splitAfter()
+
+#### splitAfter
+
+Takes incoming chunks, merges them, and then splits them by a string separator,
+keeping the separator at the end of each part (except the last).
+
+<details><summary>details</summary>
 
 ```ts
 function splitAfter(source: AsyncIterable<string>, separator: string | RegExp): AsyncGenerator<string>;
 ```
 
-Takes incoming chunks, merges them, and then splits them by a string separator,
-keeping the separator at the end of each part (except the last).
-
 #### Parameters
 
 | Parameter | Type | Description |
@@ -809,15 +904,21 @@ keeping the separator at the end of each part (except the last).
 | `source` | `AsyncIterable`\<`string`\> | The async iterable source of strings. |
 | `separator` | `string` \| `RegExp` | The string separator to split by. |
 
+</details>
+
 ### splitBefore()
+
+#### splitBefore
+
+Takes incoming chunks, merges them, and then splits them by a string separator,
+keeping the separator at the beginning of each part (except the first).
+
+<details><summary>details</summary>
 
 ```ts
 function splitBefore(source: AsyncIterable<string>, separator: string | RegExp): AsyncGenerator<string>;
 ```
 
-Takes incoming chunks, merges them, and then splits them by a string separator,
-keeping the separator at the beginning of each part (except the first).
-
 #### Parameters
 
 | Parameter | Type | Description |
@@ -825,13 +926,13 @@ keeping the separator at the beginning of each part (except the first).
 | `source` | `AsyncIterable`\<`string`\> | The async iterable source of strings. |
 | `separator` | `string` \| `RegExp` | The string separator to split by. |
 
+</details>
+
 ## Timing
 
 ### minInterval()
 
-```ts
-function minInterval<T>(source: AsyncIterable<T>, delayMs: number): AsyncGenerator<T>;
-```
+#### minInterval
 
 Enforces a minimum delay between adjacent tokens in a stream.
 The first token is yielded immediately, then subsequent tokens are delayed
@@ -847,14 +948,11 @@ to ensure errors are thrown during await ticks for proper try/catch handling.
 | `source` | `AsyncIterable`\<`T`\> | The async iterable source of tokens. |
 | `delayMs` | `number` | The minimum delay in milliseconds between adjacent tokens. |
 
+</details>
+
 ### throttle()
 
-```ts
-function throttle<T>(
-   source: AsyncIterable<T>, 
-   intervalMs: number, 
-merge: (values: T[]) => T): AsyncGenerator<T>;
-```
+#### throttle
 
 Throttles the output from a source, with special timing behavior:
 - The first chunk is yielded immediately
@@ -872,15 +970,13 @@ to ensure errors are thrown during await ticks for proper try/catch handling.
 | `intervalMs` | `number` | The throttling interval in milliseconds. |
 | `merge` | (`values`: `T`[]) => `T` | - |
 
+</details>
+
 ## Transformation
 
 ### flatten()
 
-```ts
-function flatten<T>(src: Iterable<Iterable<T> | T[]>): AsyncGenerator<T>;
-```
-
-Flattens nested arrays or iterables into a single stream.
+#### flatten
 
 #### Example
 
@@ -893,9 +989,13 @@ for await (const chunk of flattened) {
 // => "a", "b", "c", "d", "e"
 ```
 
+Flattens nested arrays or iterables into a single stream.
+
 #### Parameters
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
 | `src` | `Iterable`\<`Iterable`\<`T`\> \| `T`[]\> | The source iterable containing nested arrays or iterables. |
+
+</details>
 
