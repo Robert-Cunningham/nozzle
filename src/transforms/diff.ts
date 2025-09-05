@@ -6,11 +6,7 @@
  * @returns An asynchronous generator that yields the difference between the current and previous string.
  * @example
  * ```ts
- * const stream = diff(streamOf(["This ", "This is ", "This is a ", "This is a test!"]))
- * for await (const chunk of stream) {
- *   console.log(chunk)
- * }
- * // => ["This ", "is ", "a ", "test!"]
+ * nz(["This ", "This is ", "This is a ", "This is a test!"]).diff().value() // => "This ", "is ", "a ", "test!"
  * ```
  */
 export const diff = async function* (iterator: AsyncIterable<string>): AsyncGenerator<string> {
