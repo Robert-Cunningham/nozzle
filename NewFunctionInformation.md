@@ -115,7 +115,8 @@ export async function* yourFunction<T>(source: AsyncIterable<T>, ...params): Asy
 2. **Edge cases** - empty sources, single items, boundary conditions
 3. **Error handling** - source errors, invalid parameters
 4. **Type preservation** - ensure output types match expectations
-5. **Timing behavior** (for timing functions) - use timing helpers
+5. **Return value handling** - test that iterator return values are preserved (use generators with explicit return values and verify with consume().return())
+6. **Timing behavior** (for timing functions) - use timing helpers
 
 ### Test Structure Example
 
