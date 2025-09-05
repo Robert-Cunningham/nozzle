@@ -4,25 +4,22 @@
  * @group Elements
  * @param iterator - An asynchronous iterable of values.
  * @param predicate - A function that returns true for the item to find.
- * @returns An asynchronous generator that yields the first matching value.
+ * @returns A promise that resolves to the first matching value, or undefined if no match is found.
  *
  * @example
  * ```ts
- * const stream = find(streamOf(["apple", "banana", "cherry"]), (chunk: string) => chunk.startsWith("b"))
- * for await (const chunk of stream) {
- *   console.log(chunk)
- * }
- * // => ["banana"]
+ * const value = await find(streamOf(["apple", "banana", "cherry"]), (chunk: string) => chunk.startsWith("b"))
+ * console.log(value) // => "banana"
  * ```
  */
-export const find = async function* <T>(
+export const find = async <T>(
   iterator: AsyncIterable<T>,
   predicate: (chunk: T) => boolean,
-): AsyncGenerator<T> {
+): Promise<T | undefined> => {
   for await (const value of iterator) {
     if (predicate(value)) {
-      yield value
-      return
+      return value
     }
   }
+  return undefined
 }

@@ -1,19 +1,20 @@
-import { slice } from "./slice"
-
 /**
- * Yields only the last value from the input stream.
+ * Returns the last value from the input stream.
  *
  * @group Indexing
  * @param iterator - An asynchronous iterable of values.
- * @returns An asynchronous generator that yields only the last value.
+ * @returns A promise that resolves to the last value, or undefined if the stream is empty.
  *
  * @example
  * ```ts
- * const stream = last(streamOf(["Hello", "World", "!"]))
- * for await (const chunk of stream) {
- *   console.log(chunk)
- * }
- * // => ["!"]
+ * const value = await last(streamOf(["Hello", "World", "!"]))
+ * console.log(value) // => "!"
  * ```
  */
-export const last = <T>(iterator: AsyncIterable<T>) => slice(iterator, -1)
+export const last = async <T>(iterator: AsyncIterable<T>): Promise<T | undefined> => {
+  let lastValue: T | undefined = undefined
+  for await (const value of iterator) {
+    lastValue = value
+  }
+  return lastValue
+}
