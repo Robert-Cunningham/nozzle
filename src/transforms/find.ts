@@ -12,10 +12,7 @@
  * console.log(value) // => "banana"
  * ```
  */
-export const find = async <T>(
-  iterator: AsyncIterable<T>,
-  predicate: (chunk: T) => boolean,
-): Promise<T | undefined> => {
+export const find = async <T>(iterator: AsyncIterable<T>, predicate: (chunk: T) => boolean): Promise<T | undefined> => {
   for await (const value of iterator) {
     if (predicate(value)) {
       return value
