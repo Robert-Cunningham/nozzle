@@ -8,7 +8,7 @@
  *
  * @example
  * ```ts
- * nz(["Hello", "World", "!"]).tap(console.log) // => "Hello", "World", "!" (also logs each value)
+ * nz(["Hello", "World", "!"]).tap(x => console.log(`yielded: ${x}`)) // => "Hello", "World", "!" (logs: yielded: Hello, yielded: World, yielded: !)
  * ```
  */
 export const tap = async function* <T, R = any>(
