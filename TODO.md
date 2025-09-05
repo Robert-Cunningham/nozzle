@@ -19,6 +19,9 @@
 [x] figure out how to make focal depend on it
 [x] write a `wrap` method which maps a stream to something like {value, error, done}? Or `wrapError`? Basically it should never throw / allow you to handle errors without try/catch.
 [x] make all tests pass
+[x] Update asReturn, asList, asetc to be .consume().return() or .consume().list(). Basically .consume() sucks the entire thing into {list: T[], return: K}, then you can call things like .return(), .list(), .count(), etc. on it.
+[x] nz(x) is the chaining operator. You definitely separately need a .from() method, which accepts a list and return, and then the question is whether nz() should be overloaded for convenience or not, so you can do nz(list) instead of nz(nz.from(list)).
+[x] Instead of fromList, it should probably be something like nz(list | iterator).minInterval(30). Possibly it should be nz(list, return) or nz(iterator). Is it better to have nz(list, return) or nz.from(list, return)? => Resolves to nz(list).mapReturn(() => return) for now.
 
 // potentially we should have differences like splitEach (applies tokenwise) and split (applies response-wise); same with e.g. .trimEach and .trim(). The each functions are much less useful / common, since they can mostly be implemented with map().
 
@@ -75,12 +78,6 @@ conversation.push({ raw: x, role: "assistant", enabled: true })
 .value()
 
 also: it's possible that we're supposed to deal with AsyncIterators (which can hold a place in a stream) instead of AsyncGenerators or AsyncIterables or the like. Need to think more carefully about this.
-
-Update asReturn, asList, asetc to be .consume().return() or .consume().list(). Basically .consume() sucks the entire thing into {list: T[], return: K}, then you can call things like .return(), .list(), .count(), etc. on it.
-
-Instead of fromList, it should probably be something like nz(list | iterator).minInterval(30). Possibly it should be nz(list, return) or nz(iterator). Is it better to have nz(list, return) or nz.from(list, return)?
-
-nz(x) is the chaining operator. You definitely separately need a .from() method, which accepts a list and return, and then the question is whether nz() should be overloaded for convenience or not, so you can do nz(list) instead of nz(nz.from(list)).
 
 ## GOTCHAS:
 
