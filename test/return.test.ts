@@ -1,6 +1,6 @@
 import { describe, expect, test } from "vitest"
 import { nz } from "../src"
-import { asReturn } from "../src/transforms/return"
+import { consume } from "../src/transforms/consume"
 
 describe("return", () => {
   test("captures and returns the return value of an async generator", async () => {
@@ -10,7 +10,7 @@ describe("return", () => {
       return "final value"
     }
 
-    const result = await asReturn(source())
+    const result = (await consume(source())).return()
     expect(result).toBe("final value")
   })
 
@@ -20,7 +20,7 @@ describe("return", () => {
       yield "item2"
     }
 
-    const result = await asReturn(source())
+    const result = (await consume(source())).return()
     expect(result).toBeUndefined()
   })
 
@@ -29,14 +29,14 @@ describe("return", () => {
       return "empty return"
     }
 
-    const result = await asReturn(source())
+    const result = (await consume(source())).return()
     expect(result).toBe("empty return")
   })
 
   test("works with empty async generator with no return value", async () => {
     const source = async function* () {}
 
-    const result = await asReturn(source())
+    const result = (await consume(source())).return()
     expect(result).toBeUndefined()
   })
 
@@ -48,7 +48,7 @@ describe("return", () => {
       return 42
     }
 
-    const result = await nz(source()).return()
+    const result = (await nz(source()).consume()).return()
     expect(result).toBe(42)
   })
 
@@ -60,10 +60,12 @@ describe("return", () => {
       return "original"
     }
 
-    const result = await nz(source())
-      .map((x) => x * 2)
-      .filter((x) => x > 2)
-      .return()
+    const result = (
+      await nz(source())
+        .map((x) => x * 2)
+        .filter((x) => x > 2)
+        .consume()
+    ).return()
 
     // Note: return values are lost through map/filter because they use for-await-of
     expect(result).toBeUndefined()
@@ -77,9 +79,11 @@ describe("return", () => {
       return "preserved"
     }
 
-    const result = await nz(source())
-      .tap((x) => {}) // tap preserves return values
-      .return()
+    const result = (
+      await nz(source())
+        .tap((x) => {}) // tap preserves return values
+        .consume()
+    ).return()
 
     expect(result).toBe("preserved")
   })
@@ -90,6 +94,6 @@ describe("return", () => {
       throw new Error("test error")
     }
 
-    await expect(asReturn(source())).rejects.toThrow("test error")
+    await expect(consume(source()).then((c) => c.return())).rejects.toThrow("test error")
   })
 })

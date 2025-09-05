@@ -76,6 +76,8 @@ also: it's possible that we're supposed to deal with AsyncIterators (which can h
 
 Update asReturn, asList, asetc to be .consume().return() or .consume().list(). Basically .consume() sucks the entire thing into {list: T[], return: K}, then you can call things like .return(), .list(), .count(), etc. on it.
 
+Instead of fromList, it should probably be something like nz(list | iterator).minInterval(30). Possibly it should be nz(list, return) or nz(iterator). Is it better to have nz(list, return) or nz.from(list, return)?
+
 ## GOTCHAS:
 
 You have to make sure to throw errors DURING an await tick, not randomly when they happen. For example, with throttle(), if you throw an error inside a setTimeout it will flow all the way to the surface (i.e. the top level rejected promise handler). Almost certainly the behavior the client wants is to throw when they next await(), so they can handle it with lexical try / catch.

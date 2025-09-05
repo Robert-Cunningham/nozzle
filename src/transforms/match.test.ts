@@ -1,7 +1,12 @@
 import { describe, expect, test } from "vitest"
-import { asList } from "./asList"
 import { fromList } from "./fromList"
 import { match } from "./match"
+import { consume } from "./consume"
+
+// Helper function to replace the old asList functionality
+const asList = async <T>(iterable: AsyncIterable<T>): Promise<T[]> => {
+  return (await consume(iterable)).list()
+}
 
 describe("match", () => {
   test("should extract basic regex matches", async () => {
