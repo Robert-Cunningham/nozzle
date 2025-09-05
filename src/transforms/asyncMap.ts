@@ -41,14 +41,25 @@ export const asyncMap = async function* <T, U>(
   fn: (value: T) => Promise<U>,
 ): AsyncGenerator<U> {
   const promises: Promise<U>[] = []
+  const errors = new Map<number, Error>()
   let nextIndex = 0
   let inputDone = false
 
+  let inputError: Error | null = null
+
   async function processInput() {
     try {
+      let promiseIndex = 0
       for await (const text of iterator) {
-        promises.push(fn(text))
+        const currentIndex = promiseIndex++
+        const promise = fn(text).catch((err) => {
+          errors.set(currentIndex, err instanceof Error ? err : new Error(String(err)))
+          return null as any // This will never be yielded since we throw the error first
+        })
+        promises.push(promise)
       }
+    } catch (err) {
+      inputError = err instanceof Error ? err : new Error(String(err))
     } finally {
       inputDone = true
     }
@@ -62,9 +73,19 @@ export const asyncMap = async function* <T, U>(
       continue
     }
 
+    // Check if this index had an error before awaiting the promise
+    if (errors.has(nextIndex)) {
+      throw errors.get(nextIndex)!
+    }
+
     const result = await promises[nextIndex]
     nextIndex++
     yield result
+  }
+
+  // Check for input iterator errors after processing all items
+  if (inputError) {
+    throw inputError
   }
 
   await inputPromise
