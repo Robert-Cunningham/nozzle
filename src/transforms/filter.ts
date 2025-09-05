@@ -15,13 +15,21 @@
  * // => ["Hello", "World"]
  * ```
  */
-export const filter = async function* <T>(
-  iterator: AsyncIterable<T>,
+export const filter = async function* <T, R = any>(
+  iterator: AsyncIterable<T, R>,
   predicate: (chunk: T) => boolean,
-): AsyncGenerator<T> {
-  for await (const text of iterator) {
-    if (predicate(text)) {
-      yield text
+): AsyncGenerator<T, R, undefined> {
+  const iter = iterator[Symbol.asyncIterator]()
+
+  while (true) {
+    const result = await iter.next()
+
+    if (result.done) {
+      return result.value as R
+    }
+
+    if (predicate(result.value)) {
+      yield result.value
     }
   }
 }
