@@ -22,13 +22,14 @@
 [x] Update asReturn, asList, asetc to be .consume().return() or .consume().list(). Basically .consume() sucks the entire thing into {list: T[], return: K}, then you can call things like .return(), .list(), .count(), etc. on it.
 [x] nz(x) is the chaining operator. You definitely separately need a .from() method, which accepts a list and return, and then the question is whether nz() should be overloaded for convenience or not, so you can do nz(list) instead of nz(nz.from(list)).
 [x] Instead of fromList, it should probably be something like nz(list | iterator).minInterval(30). Possibly it should be nz(list, return) or nz(iterator). Is it better to have nz(list, return) or nz.from(list, return)? => Resolves to nz(list).mapReturn(() => return) for now.
+[x] write .at() that selects out just a single element. This is also a slice derivative.
 
 // potentially we should have differences like splitEach (applies tokenwise) and split (applies response-wise); same with e.g. .trimEach and .trim(). The each functions are much less useful / common, since they can mostly be implemented with map().
 
 [ ] write a .trim() function
 [ ] rename the conversion methods, (asList / toString etc)
-[ ] write .at() that selects out just a single element. This is also a slice derivative.
-[ ] allow delay to choose its length with a function indicating how many elements remain / what the upcoming token is / etc?
+[ ] allow delay to choose its length with a function indicating how many elements remain / what the upcoming token is / etc? In particular, it's possible that buffer should expose an option to yield {value, bufferedCount}, which we can then use in the next iterator to determine e.g. what delay to apply? And buffer can pass {value, bufferedCount, done? (is the buffered iterator done?), futureBuffered}. So ideally we would be able to write something like stream().buffer().map({value, count} => if (count < 5) {await sleep(100); yield value;} else {yield value;}).value(). That actually seems like a super useful function. Right, buffer is actually a very core piece of infrastructure here.
+
 [ ] write a reduce() equivalent that takes the same parameters as the delay function? / generally decide what the full group of parameters that gets passed to the iterating function is.
 
 [ ] better readme examples
@@ -55,6 +56,9 @@
 
 [ ] explain that before and after() specifically make no claims about when they emit empty strings, etc.
 
+[ ] make all the functions (e.g. diffs, accumulate) pass through the return type.
+[ ] add a tapNth(-1) function? I guess this can be trivially implemented with buffer or something.
+
 # consider
 
 // trace({ type: "response", response: out, summarize: true })
@@ -78,6 +82,8 @@ conversation.push({ raw: x, role: "assistant", enabled: true })
 .value()
 
 also: it's possible that we're supposed to deal with AsyncIterators (which can hold a place in a stream) instead of AsyncGenerators or AsyncIterables or the like. Need to think more carefully about this.
+
+are we supposed to have like a AssociativePipeline, which indicates that it can emit the zero object as much / whenever it wants? And things like before() and after() can inherit from that?
 
 ## GOTCHAS:
 
