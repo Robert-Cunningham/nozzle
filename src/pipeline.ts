@@ -17,6 +17,10 @@ export class Pipeline<T = string, R = any> implements AsyncIterable<T, R> {
     return new Pipeline<T, R>(tx.filter(this.src, predicate))
   }
 
+  find(predicate: (value: T) => boolean) {
+    return new Pipeline<T>(tx.find(this.src, predicate))
+  }
+
   first() {
     return new Pipeline<T, R>(tx.first(this.src))
   }
