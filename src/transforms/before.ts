@@ -21,10 +21,7 @@ import { StringIterable } from "../types"
 export async function* before(source: StringIterable, separator: string | RegExp): AsyncGenerator<string> {
   const regex = toNonGlobalRegex(separator)
 
-  if (isPatternEmpty(separator)) {
-    yield* source
-    return
-  }
+  if (isPatternEmpty(separator)) return yield* source
 
   for await (const result of generalRegex(source, regex)) {
     if ("text" in result) {

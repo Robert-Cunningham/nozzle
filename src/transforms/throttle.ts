@@ -17,6 +17,9 @@ export const throttle = async function* <T>(
   intervalMs: number,
   merge: (values: T[]) => T,
 ): AsyncGenerator<T> {
+  // Special case: zero interval means passthrough
+  if (intervalMs <= 0) return yield* source
+
   /** items waiting to be flushed */
   let buf: T[] = []
 

@@ -1,7 +1,7 @@
 import { describe, expect, test } from "vitest"
+import { consume } from "../src/transforms/consume"
 import { fromList } from "../src/transforms/fromList"
 import { throttle } from "../src/transforms/throttle"
-import { consume } from "../src/transforms/consume"
 import { assertResultsEqualsWithTiming, collectWithTimings, timedSource } from "./timing-helpers"
 
 describe("throttle", () => {

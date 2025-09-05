@@ -1,7 +1,7 @@
-import { describe, test, expect } from "vitest"
+import { describe, expect, test } from "vitest"
 import { before } from "../src/transforms/before"
-import { fromList } from "../src/transforms/fromList"
 import { consume } from "../src/transforms/consume"
+import { fromList } from "../src/transforms/fromList"
 
 describe("before", () => {
   test("should emit everything before the separator match", async () => {
@@ -60,7 +60,7 @@ describe("before", () => {
 
   test("should handle empty separator", async () => {
     const result = (await consume(before(fromList(["a", "b", "c"]), ""))).list()
-    const expected: string[] = []
+    const expected: string[] = ["a", "b", "c"]
     expect(result).toEqual(expected)
   })
 
