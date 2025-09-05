@@ -78,6 +78,8 @@ Update asReturn, asList, asetc to be .consume().return() or .consume().list(). B
 
 Instead of fromList, it should probably be something like nz(list | iterator).minInterval(30). Possibly it should be nz(list, return) or nz(iterator). Is it better to have nz(list, return) or nz.from(list, return)?
 
+nz(x) is the chaining operator. You definitely separately need a .from() method, which accepts a list and return, and then the question is whether nz() should be overloaded for convenience or not, so you can do nz(list) instead of nz(nz.from(list)).
+
 ## GOTCHAS:
 
 You have to make sure to throw errors DURING an await tick, not randomly when they happen. For example, with throttle(), if you throw an error inside a setTimeout it will flow all the way to the surface (i.e. the top level rejected promise handler). Almost certainly the behavior the client wants is to throw when they next await(), so they can handle it with lexical try / catch.
