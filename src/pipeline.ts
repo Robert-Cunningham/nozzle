@@ -1,6 +1,6 @@
+import { ConsumedPipeline } from "./consumedPipeline"
 import * as tx from "./transforms"
 import { Iterable } from "./types"
-import { ConsumedPipeline } from "./consumedPipeline"
 
 /** @hidden
  * A pipeline of transformations.
@@ -17,16 +17,16 @@ export class Pipeline<T = string, R = any> implements AsyncIterable<T, R> {
     return new Pipeline<T, R>(tx.filter(this.src, predicate))
   }
 
-  find(predicate: (value: T) => boolean) {
-    return new Pipeline<T>(tx.find(this.src, predicate))
+  find(predicate: (value: T) => boolean): Promise<T | undefined> {
+    return tx.find(this.src, predicate)
   }
 
-  first() {
-    return new Pipeline<T, R>(tx.first(this.src))
+  first(): Promise<T | undefined> {
+    return tx.first(this.src)
   }
 
-  last() {
-    return new Pipeline<T, R>(tx.last(this.src))
+  last(): Promise<T | undefined> {
+    return tx.last(this.src)
   }
 
   map<U>(fn: (value: T) => U) {
