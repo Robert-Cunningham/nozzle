@@ -1,10 +1,7 @@
 {
   "entryPoints": ["src/index.ts"],
   "out": ".", // folder for generated files
-  "plugin": [
-    "typedoc-plugin-markdown",
-    "./scripts/typedoc-theme-example-first.mjs"
-  ],
+  "plugin": ["typedoc-plugin-markdown", "./scripts/typedoc-theme-example-first.mjs"],
   "readme": "Preamble.md",
   "mergeReadme": true,
   "excludePrivate": true,

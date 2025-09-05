@@ -11,6 +11,11 @@
  * @param source The async iterable source of values.
  * @param intervalMs The throttling interval in milliseconds.
  * @returns An async iterable that yields throttled values.
+ *
+ * @example
+ * ```ts
+ * nz(["a", "b", "c", "d"]).throttle(100, chunks => chunks.join("")) // => "a", "bcd" (after 100ms intervals)
+ * ```
  */
 export const throttle = async function* <T>(
   source: AsyncIterable<T>,

@@ -8,11 +8,7 @@
  *
  * @example
  * ```ts
- * const stream = filter(streamOf(["Hello", "Hi", "World"]), (chunk: string) => chunk.length > 5)
- * for await (const chunk of stream) {
- *   console.log(chunk)
- * }
- * // => ["Hello", "World"]
+ * nz(["Hello", "Hi", "World"]).filter(chunk => chunk.length > 5) // => "Hello", "World"
  * ```
  */
 export const filter = async function* <T, R = any>(
