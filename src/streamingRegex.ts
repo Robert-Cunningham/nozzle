@@ -20,8 +20,7 @@ export async function* generalRegex(
   regex: RegExp,
 ): AsyncGenerator<{ text: string } | { regex: RegExpExecArray }> {
   if (regex.exec("")) {
-    yield* emptyGeneralRegex(input)
-    return
+    return yield* emptyGeneralRegex(input)
   }
 
   // Force a non-global clone for the searches we do at buffer-start.
