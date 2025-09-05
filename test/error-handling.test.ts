@@ -1,11 +1,11 @@
 import { describe, expect, test } from "vitest"
-import { errorSources, type ErrorSourceName } from "./error-test-sources"
-import { minInterval } from "../src/transforms/minInterval"
-import { throttle } from "../src/transforms/throttle"
-import { buffer } from "../src/transforms/buffer"
 import { asyncMap } from "../src/transforms/asyncMap"
-import { tee } from "../src/transforms/tee"
+import { buffer } from "../src/transforms/buffer"
 import { consume } from "../src/transforms/consume"
+import { minInterval } from "../src/transforms/minInterval"
+import { tee } from "../src/transforms/tee"
+import { throttle } from "../src/transforms/throttle"
+import { errorSources, type ErrorSourceName } from "./error-test-sources"
 
 /**
  * Comprehensive error handling tests for all functions that use background operations,
