@@ -14,7 +14,7 @@
  *
  * @example
  * ```ts
- * nz(["a", "b", "c", "d"]).throttle(100, chunks => chunks.join("")) // => "a", "bcd" (after 100ms intervals)
+ * nz(["a", "b", "c", "d"]).throttle(100, chunks => chunks.join("")) // => "a" (0ms), "bcd" (100ms)
  * ```
  */
 export const throttle = async function* <T>(
