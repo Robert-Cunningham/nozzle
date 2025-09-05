@@ -1,6 +1,7 @@
 export { accumulate } from "./accumulate"
 export { after } from "./after"
 export { aperture } from "./aperture"
+export { at } from "./at"
 export { asyncMap } from "./asyncMap"
 export { before } from "./before"
 export { buffer } from "./buffer"
