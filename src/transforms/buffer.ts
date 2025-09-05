@@ -18,8 +18,7 @@
  *
  * @example
  * ```ts
- * nz(["a", "b", "c"]).buffer(2) // => "a", "b", "c" (buffered up to 2 items ahead)
- * nz(["a", "b", "c"]).buffer() // => "a", "b", "c" (unlimited buffering)
+ * nz(["a", "b", "c"]).tap(x => console.log(`consumed: ${x}`)).buffer(2).tap(x => console.log(`yielded: ${x}`)) // => consumed: a, consumed: b, yielded: a, consumed: c, yielded: b, yielded: c
  * ```
  */
 export const buffer = async function* <T>(source: AsyncIterable<T>, n?: number): AsyncGenerator<T> {

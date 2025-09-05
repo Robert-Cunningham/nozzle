@@ -13,7 +13,7 @@
  *
  * @example
  * ```ts
- * nz(["a", "b", "c"]).minInterval(100) // => "a", "b", "c" (each spaced 100ms apart)
+ * nz(["a", "b", "c"]).minInterval(100) // => "a" (0ms), "b" (100ms), "c" (200ms)
  * ```
  */
 export async function* minInterval<T>(source: AsyncIterable<T>, delayMs: number): AsyncGenerator<T> {
