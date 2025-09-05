@@ -18,6 +18,7 @@
 [x] rename the github repo
 [x] figure out how to make focal depend on it
 [x] write a `wrap` method which maps a stream to something like {value, error, done}? Or `wrapError`? Basically it should never throw / allow you to handle errors without try/catch.
+[x] make all tests pass
 
 // potentially we should have differences like splitEach (applies tokenwise) and split (applies response-wise); same with e.g. .trimEach and .trim(). The each functions are much less useful / common, since they can mostly be implemented with map().
 
@@ -26,7 +27,6 @@
 [ ] write .at() that selects out just a single element. This is also a slice derivative.
 [ ] allow delay to choose its length with a function indicating how many elements remain / what the upcoming token is / etc?
 [ ] write a reduce() equivalent that takes the same parameters as the delay function? / generally decide what the full group of parameters that gets passed to the iterating function is.
-[ ] make all tests pass
 
 [ ] better readme examples
 [ ] better readme tagline
