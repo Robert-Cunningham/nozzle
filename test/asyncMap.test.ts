@@ -1,83 +1,76 @@
 import { describe, expect, test } from "vitest"
-import { asList } from "../src/transforms/asList"
 import { asyncMap } from "../src/transforms/asyncMap"
 import { fromList } from "../src/transforms/fromList"
+import { consume } from "../src/transforms/consume"
 import { assertResultsEqualsWithTiming, collectWithTimings, delayedStream } from "./timing-helpers"
 
 describe("asyncMap", () => {
   test("should transform each value using the provided async function", async () => {
-    const result = await asList(
-      asyncMap(fromList(["hello", "world"]), async (x) => {
-        await new Promise((resolve) => setTimeout(resolve, 10))
-        return x.toUpperCase()
-      }),
-    )
+    const asyncMapIterable = asyncMap(fromList(["hello", "world"]), async (x) => {
+      await new Promise((resolve) => setTimeout(resolve, 10))
+      return x.toUpperCase()
+    })
+    const result = (await consume(asyncMapIterable)).list()
     const expected = ["HELLO", "WORLD"]
     expect(result).toEqual(expected)
   })
 
   test("should handle an empty source", async () => {
-    const result = await asList(
-      asyncMap(fromList<string>([]), async (x) => {
-        await new Promise((resolve) => setTimeout(resolve, 10))
-        return x.toUpperCase()
-      }),
-    )
+    const asyncMapIterable = asyncMap(fromList<string>([]), async (x) => {
+      await new Promise((resolve) => setTimeout(resolve, 10))
+      return x.toUpperCase()
+    })
+    const result = (await consume(asyncMapIterable)).list()
     const expected: string[] = []
     expect(result).toEqual(expected)
   })
 
   test("should handle a source with a single item", async () => {
-    const result = await asList(
-      asyncMap(fromList(["single"]), async (x) => {
-        await new Promise((resolve) => setTimeout(resolve, 10))
-        return `[${x}]`
-      }),
-    )
+    const asyncMapIterable = asyncMap(fromList(["single"]), async (x) => {
+      await new Promise((resolve) => setTimeout(resolve, 10))
+      return `[${x}]`
+    })
+    const result = (await consume(asyncMapIterable)).list()
     const expected = ["[single]"]
     expect(result).toEqual(expected)
   })
 
   test("should handle empty strings in the source", async () => {
-    const result = await asList(
-      asyncMap(fromList(["", "b", "c"]), async (x) => {
-        await new Promise((resolve) => setTimeout(resolve, 5))
-        return `"${x}"`
-      }),
-    )
+    const asyncMapIterable = asyncMap(fromList(["", "b", "c"]), async (x) => {
+      await new Promise((resolve) => setTimeout(resolve, 5))
+      return `"${x}"`
+    })
+    const result = (await consume(asyncMapIterable)).list()
     const expected = ['""', '"b"', '"c"']
     expect(result).toEqual(expected)
   })
 
   test("should work with async number-to-string conversion", async () => {
-    const result = await asList(
-      asyncMap(fromList(["1", "2", "3"]), async (x) => {
-        await new Promise((resolve) => setTimeout(resolve, 5))
-        return (parseInt(x) * 2).toString()
-      }),
-    )
+    const asyncMapIterable = asyncMap(fromList(["1", "2", "3"]), async (x) => {
+      await new Promise((resolve) => setTimeout(resolve, 5))
+      return (parseInt(x) * 2).toString()
+    })
+    const result = (await consume(asyncMapIterable)).list()
     const expected = ["2", "4", "6"]
     expect(result).toEqual(expected)
   })
 
   test("should handle async function that returns promises", async () => {
-    const result = await asList(
-      asyncMap(fromList(["a", "b", "c"]), async (x) => {
-        return Promise.resolve(x.repeat(2))
-      }),
-    )
+    const asyncMapIterable = asyncMap(fromList(["a", "b", "c"]), async (x) => {
+      return Promise.resolve(x.repeat(2))
+    })
+    const result = (await consume(asyncMapIterable)).list()
     const expected = ["aa", "bb", "cc"]
     expect(result).toEqual(expected)
   })
 
   test("should maintain order even with different async delays", async () => {
-    const result = await asList(
-      asyncMap(fromList(["1", "2", "3"]), async (x) => {
-        const delay = parseInt(x) === 2 ? 50 : 10
-        await new Promise((resolve) => setTimeout(resolve, delay))
-        return `item-${x}`
-      }),
-    )
+    const asyncMapIterable = asyncMap(fromList(["1", "2", "3"]), async (x) => {
+      const delay = parseInt(x) === 2 ? 50 : 10
+      await new Promise((resolve) => setTimeout(resolve, delay))
+      return `item-${x}`
+    })
+    const result = (await consume(asyncMapIterable)).list()
     const expected = ["item-1", "item-2", "item-3"]
     expect(result).toEqual(expected)
   })
@@ -90,7 +83,7 @@ describe("asyncMap", () => {
       return x.toUpperCase()
     })
 
-    await expect(asList(asyncMapIterable)).rejects.toThrow("Bad input")
+    await expect(consume(asyncMapIterable).then((c) => c.list())).rejects.toThrow("Bad input")
   })
 
   test("should work with fetch-like async operations", async () => {
@@ -99,7 +92,8 @@ describe("asyncMap", () => {
       return `Response from ${url}`
     }
 
-    const result = await asList(asyncMap(fromList(["api/users", "api/posts"]), mockFetch))
+    const asyncMapIterable = asyncMap(fromList(["api/users", "api/posts"]), mockFetch)
+    const result = (await consume(asyncMapIterable)).list()
     const expected = ["Response from api/users", "Response from api/posts"]
     expect(result).toEqual(expected)
   })
@@ -138,12 +132,11 @@ describe("asyncMap", () => {
   test("should demonstrate speed improvement with concurrency", async () => {
     const startTime = Date.now()
 
-    const results = await asList(
-      asyncMap(fromList(["1", "2", "3", "4"]), async (x) => {
-        await new Promise((resolve) => setTimeout(resolve, 50))
-        return `result-${x}`
-      }),
-    )
+    const asyncMapIterable = asyncMap(fromList(["1", "2", "3", "4"]), async (x) => {
+      await new Promise((resolve) => setTimeout(resolve, 50))
+      return `result-${x}`
+    })
+    const results = (await consume(asyncMapIterable)).list()
 
     const totalTime = Date.now() - startTime
 

@@ -5,7 +5,7 @@ import { throttle } from "../src/transforms/throttle"
 import { buffer } from "../src/transforms/buffer"
 import { asyncMap } from "../src/transforms/asyncMap"
 import { tee } from "../src/transforms/tee"
-import { asList } from "../src/transforms/asList"
+import { consume } from "../src/transforms/consume"
 
 /**
  * Comprehensive error handling tests for all functions that use background operations,
@@ -48,14 +48,15 @@ describe("Error Handling - All Functions", () => {
 
         test(`handles ${sourceName} with expect().rejects`, async () => {
           await expect(async () => {
-            await asList(fn(sourceGen()))
+            const iterable = fn(sourceGen())
+            await (await consume(iterable)).list()
           }).rejects.toThrow()
         })
 
         test(`${sourceName} is catchable with try/catch`, async () => {
           let caughtError: Error | null = null
           try {
-            await asList(fn(sourceGen()))
+            await (await consume(fn(sourceGen()))).list()
           } catch (err) {
             caughtError = err as Error
           }
@@ -90,7 +91,7 @@ describe("Error Handling - All Functions", () => {
 
           let caughtError: Error | null = null
           try {
-            await asList(fn(testSource()))
+            await (await consume(fn(testSource()))).list()
           } catch (err) {
             caughtError = err as Error
           }
@@ -109,7 +110,7 @@ describe("Error Handling - All Functions", () => {
         }
 
         await expect(async () => {
-          await asList(fn(rapidErrorSource()))
+          await (await consume(fn(rapidErrorSource()))).list()
         }).rejects.toThrow("rapid iteration error")
       })
 
@@ -131,7 +132,7 @@ describe("Error Handling - All Functions", () => {
         try {
           // Run a test that should catch all errors
           await expect(async () => {
-            await asList(fn(errorSources.errorAfterMultiple()))
+            await (await consume(fn(errorSources.errorAfterMultiple()))).list()
           }).rejects.toThrow()
 
           // Small delay to let any async operations complete
@@ -156,9 +157,9 @@ describe("tee - Multiple Branches Error Handling", () => {
     const [a, b, c] = tee(source[Symbol.asyncIterator](), 3)
 
     // All branches should receive the same error
-    await expect(asList(a)).rejects.toThrow("error after one")
-    await expect(asList(b)).rejects.toThrow("error after one")
-    await expect(asList(c)).rejects.toThrow("error after one")
+    await expect(consume(a).then((c) => c.list())).rejects.toThrow("error after one")
+    await expect(consume(b).then((c) => c.list())).rejects.toThrow("error after one")
+    await expect(consume(c).then((c) => c.list())).rejects.toThrow("error after one")
   })
 
   test("error during concurrent reading", async () => {
@@ -166,7 +167,7 @@ describe("tee - Multiple Branches Error Handling", () => {
     const [a, b] = tee(source[Symbol.asyncIterator](), 2)
 
     // Start both branches concurrently
-    const promises = [asList(a), asList(b)]
+    const promises = [consume(a).then((c) => c.list()), consume(b).then((c) => c.list())]
 
     // Both should reject with the same error
     await expect(Promise.all(promises)).rejects.toThrow("error after delay")
@@ -180,13 +181,13 @@ describe("tee - Multiple Branches Error Handling", () => {
     let errorB: Error | null = null
 
     try {
-      await asList(a)
+      await (await consume(a)).list()
     } catch (err) {
       errorA = err as Error
     }
 
     try {
-      await asList(b)
+      await (await consume(b)).list()
     } catch (err) {
       errorB = err as Error
     }
@@ -203,7 +204,7 @@ describe("Edge Cases - Error Handling", () => {
     const source = errorSources.errorAfterMultiple()
 
     await expect(async () => {
-      await asList(buffer(source, 2)) // Small buffer size
+      await (await consume(buffer(source, 2))).list() // Small buffer size
     }).rejects.toThrow("error after multiple")
   })
 
@@ -221,7 +222,7 @@ describe("Edge Cases - Error Handling", () => {
     })
 
     await expect(async () => {
-      await asList(asyncMapWithError)
+      await (await consume(asyncMapWithError)).list()
     }).rejects.toThrow("mapping function error")
   })
 
@@ -232,7 +233,7 @@ describe("Edge Cases - Error Handling", () => {
     const chained = throttle(minInterval(source, 5), 15, (items) => items.join("-"))
 
     await expect(async () => {
-      await asList(chained)
+      await (await consume(chained)).list()
     }).rejects.toThrow("error after delay")
   })
 })

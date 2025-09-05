@@ -1,7 +1,7 @@
 import { describe, expect, test } from "vitest"
-import { asList } from "../src/transforms/asList"
 import { fromList } from "../src/transforms/fromList"
 import { throttle } from "../src/transforms/throttle"
+import { consume } from "../src/transforms/consume"
 import { assertResultsEqualsWithTiming, collectWithTimings, timedSource } from "./timing-helpers"
 
 describe("throttle", () => {
@@ -42,7 +42,7 @@ describe("throttle", () => {
     const source = fromList<string>([])
     const throttled = throttle(source, 50, (values) => values.join(""))
 
-    const result = await asList(throttled)
+    const result = await (await consume(throttled)).list()
     expect(result).toEqual([])
   })
 
@@ -50,7 +50,7 @@ describe("throttle", () => {
     const source = fromList(["a", "b", "c"])
     const throttled = throttle(source, 0, (values) => values.join(""))
 
-    const result = await asList(throttled)
+    const result = await (await consume(throttled)).list()
     expect(result).toEqual(["a", "b", "c"])
   })
 
@@ -63,7 +63,7 @@ describe("throttle", () => {
 
     let caughtError: Error | null = null
     try {
-      await asList(throttle(errorSource(), 50, (values: string[]) => values.join("")))
+      await (await consume(throttle(errorSource(), 50, (values: string[]) => values.join("")))).list()
     } catch (err) {
       caughtError = err as Error
     }
@@ -95,7 +95,7 @@ describe("throttle", () => {
     }
 
     await expect(async () => {
-      await asList(throttle(immediateErrorSource(), 100, (values) => values.join("")))
+      await (await consume(throttle(immediateErrorSource(), 100, (values) => values.join("")))).list()
     }).rejects.toThrow("immediate error")
   })
 })

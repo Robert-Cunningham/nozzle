@@ -1,7 +1,7 @@
 import { describe, expect, test } from "vitest"
-import { asList } from "../src/transforms/asList"
 import { fromList } from "../src/transforms/fromList"
 import { minInterval } from "../src/transforms/minInterval"
+import { consume } from "../src/transforms/consume"
 import { assertResultsEqualsWithTiming, collectWithTimings, delayedSource } from "./timing-helpers"
 
 describe("minInterval", () => {
@@ -56,7 +56,7 @@ describe("minInterval", () => {
     const source = fromList(["a", "b", "c"])
     const delayed = minInterval(source, 0)
 
-    const result = await asList(delayed)
+    const result = (await consume(delayed)).list()
     expect(result).toEqual(["a", "b", "c"])
   })
 
@@ -64,7 +64,7 @@ describe("minInterval", () => {
     const source = fromList([])
     const delayed = minInterval(source, 100)
 
-    const result = await asList(delayed)
+    const result = (await consume(delayed)).list()
     expect(result).toEqual([])
   })
 
@@ -100,7 +100,7 @@ describe("minInterval", () => {
     const source = fromList(tokens)
     const delayed = minInterval(source, 50)
 
-    const result = await asList(delayed)
+    const result = (await consume(delayed)).list()
     expect(result).toEqual(tokens)
   })
 
@@ -128,7 +128,8 @@ describe("minInterval", () => {
 
     let caughtError: Error | null = null
     try {
-      await asList(minInterval(errorSource(), 100))
+      const delayedIterable = minInterval(errorSource(), 100)
+      await (await consume(delayedIterable)).list()
     } catch (err) {
       caughtError = err as Error
     }
@@ -159,7 +160,8 @@ describe("minInterval", () => {
     }
 
     await expect(async () => {
-      await asList(minInterval(immediateErrorSource(), 100))
+      const delayedIterable = minInterval(immediateErrorSource(), 100)
+      await (await consume(delayedIterable)).list()
     }).rejects.toThrow("immediate error")
   })
 })
