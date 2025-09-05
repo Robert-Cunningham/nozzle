@@ -1,22 +1,19 @@
 /**
- * Yields only the first value from the input stream.
+ * Returns the first value from the input stream.
  *
  * @group Indexing
- * @param iterator - An asynchronous iterable of strings.
- * @returns An asynchronous generator that yields only the first string.
+ * @param iterator - An asynchronous iterable of values.
+ * @returns A promise that resolves to the first value, or undefined if the stream is empty.
  *
  * @example
  * ```ts
- * const stream = first(streamOf(["Hello", "World", "!"]))
- * for await (const chunk of stream) {
- *   console.log(chunk)
- * }
- * // => ["Hello"]
+ * const value = await first(streamOf(["Hello", "World", "!"]))
+ * console.log(value) // => "Hello"
  * ```
  */
-export const first = async function* <T>(iterator: AsyncIterable<T>): AsyncGenerator<T> {
-  for await (const text of iterator) {
-    yield text
-    return
+export const first = async <T>(iterator: AsyncIterable<T>): Promise<T | undefined> => {
+  for await (const value of iterator) {
+    return value
   }
+  return undefined
 }
