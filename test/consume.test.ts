@@ -73,8 +73,8 @@ describe("consume", () => {
       .consume()
 
     expect(consumed.list()).toEqual([2, 4, 6])
-    // Return value is lost through map transform
-    expect(consumed.return()).toBeUndefined()
+    // Return value is now preserved through map transform
+    expect(consumed.return()).toBe(10)
   })
 
   test("should preserve return value with tap transform", async () => {
