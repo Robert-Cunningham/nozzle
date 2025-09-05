@@ -1,84 +1,84 @@
 import { describe, test, expect } from "vitest"
 import { after } from "../src/transforms/after"
 import { fromList } from "../src/transforms/fromList"
-import { asList } from "../src/transforms/asList"
+import { consume } from "../src/transforms/consume"
 import { delayedStream, collectWithTimings, assertResultsEqualsWithTiming } from "./timing-helpers"
 
 describe("after", () => {
   test("should emit everything after the separator match", async () => {
-    const result = await asList(after(fromList(["a", "b", "c", "d", "e"]), "bc"))
+    const result = (await consume(after(fromList(["a", "b", "c", "d", "e"]), "bc"))).list()
     const expected = ["d", "e"]
     expect(result).toEqual(expected)
   })
 
   test("should handle separator at the end", async () => {
-    const result = await asList(after(fromList(["abc", "def", "ghi"]), "hi"))
+    const result = (await consume(after(fromList(["abc", "def", "ghi"]), "hi"))).list()
     const expected: string[] = []
     expect(result).toEqual(expected)
   })
 
   test("should emit nothing if separator is not found", async () => {
-    const result = await asList(after(fromList(["a", "b", "c", "d", "e"]), "xyz"))
+    const result = (await consume(after(fromList(["a", "b", "c", "d", "e"]), "xyz"))).list()
     const expected: string[] = []
     expect(result).toEqual(expected)
   })
 
   test("should handle empty source", async () => {
-    const result = await asList(after(fromList([]), "abc"))
+    const result = (await consume(after(fromList([]), "abc"))).list()
     const expected: string[] = []
     expect(result).toEqual(expected)
   })
 
   test("should handle single item source with match", async () => {
-    const result = await asList(after(fromList(["abcdef"]), "cd"))
+    const result = (await consume(after(fromList(["abcdef"]), "cd"))).list()
     const expected = ["ef"]
     expect(result).toEqual(expected)
   })
 
   test("should handle single item source without match", async () => {
-    const result = await asList(after(fromList(["abcdef"]), "xyz"))
+    const result = (await consume(after(fromList(["abcdef"]), "xyz"))).list()
     const expected: string[] = []
     expect(result).toEqual(expected)
   })
 
   test("should handle separator match at exact beginning", async () => {
-    const result = await asList(after(fromList(["abc", "def"]), "abc"))
+    const result = (await consume(after(fromList(["abc", "def"]), "abc"))).list()
     const expected = ["def"]
     expect(result).toEqual(expected)
   })
 
   test("should handle multi-character separator", async () => {
-    const result = await asList(after(fromList(["hello ", "world", " test"]), "world"))
+    const result = (await consume(after(fromList(["hello ", "world", " test"]), "world"))).list()
     const expected = [" test"]
     expect(result).toEqual(expected)
   })
 
   test("should handle empty strings in source", async () => {
-    const result = await asList(after(fromList(["a", "", "b", "cd", "e"]), "cd"))
+    const result = (await consume(after(fromList(["a", "", "b", "cd", "e"]), "cd"))).list()
     const expected = ["e"]
     expect(result).toEqual(expected)
   })
 
   test("should handle empty separator", async () => {
-    const result = await asList(after(fromList(["a", "b", "c"]), ""))
+    const result = (await consume(after(fromList(["a", "b", "c"]), ""))).list()
     const expected = ["a", "b", "c"]
     expect(result).toEqual(expected)
   })
 
   test("should handle partial matches across chunks", async () => {
-    const result = await asList(after(fromList(["ab", "cd", "ef"]), "cde"))
+    const result = (await consume(after(fromList(["ab", "cd", "ef"]), "cde"))).list()
     const expected = ["f"]
     expect(result).toEqual(expected)
   })
 
   test("should work with regex patterns", async () => {
-    const result = await asList(after(fromList(["foo123bar", "baz456qux"]), /\d+/))
+    const result = (await consume(after(fromList(["foo123bar", "baz456qux"]), /\d+/))).list()
     const expected = ["bar", "baz456qux"]
     expect(result).toEqual(expected)
   })
 
   test("should handle complex regex patterns", async () => {
-    const result = await asList(after(fromList(["start", "data:", "value", "end"]), /data:\s*/))
+    const result = (await consume(after(fromList(["start", "data:", "value", "end"]), /data:\s*/))).list()
     const expected = ["value", "end"]
     expect(result).toEqual(expected)
   })
