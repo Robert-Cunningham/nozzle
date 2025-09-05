@@ -61,6 +61,10 @@ export class Pipeline<T = string, R = any> implements AsyncIterable<T, R> {
     return new Pipeline<T, R>(tx.throttle(this.src, intervalMs, merge))
   }
 
+  mapReturn<U>(fn: (value: R) => U) {
+    return new Pipeline<T, U>(tx.mapReturn(this.src, fn))
+  }
+
   wrap() {
     return new Pipeline<{ value?: T; return?: R; error?: unknown }, undefined>(tx.wrap(this.src))
   }
