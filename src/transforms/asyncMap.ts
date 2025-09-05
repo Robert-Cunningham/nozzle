@@ -13,27 +13,8 @@
  *
  * @example
  * ```ts
- * const stream = asyncMap(streamOf(["hello", "world"]), async x => {
- *   await new Promise(resolve => setTimeout(resolve, 100))
- *   return x.toUpperCase()
- * })
- * for await (const chunk of stream) {
- *   console.log(chunk)
- * }
- * // => ["HELLO", "WORLD"]
- * ```
- *
- * @example
- * ```ts
- * // Fetch data for each URL as they come in
- * const urls = streamOf(["api/users", "api/posts"])
- * const responses = asyncMap(urls, async url => {
- *   const response = await fetch(url)
- *   return await response.json()
- * })
- * for await (const data of responses) {
- *   console.log(data)
- * }
+ * nz(["hello", "world"]).asyncMap(async x => x.toUpperCase()) // => "HELLO", "WORLD"
+ * nz(["api/users", "api/posts"]).asyncMap(async url => fetch(url).then(r => r.json())) // => [userData], [postsData]
  * ```
  */
 export const asyncMap = async function* <T, U>(

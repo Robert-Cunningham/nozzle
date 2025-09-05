@@ -9,15 +9,8 @@ import { ConsumedPipeline } from "../consumedPipeline"
  *
  * @example
  * ```ts
- * const source = async function* () {
- *   yield "item1"
- *   yield "item2"
- *   return "final value"
- * }
- *
- * const consumed = await consume(source())
- * console.log(consumed.list())    // => ["item1", "item2"]
- * console.log(consumed.return())  // => "final value"
+ * await nz(["a", "b"]).consume().list() // => ["a", "b"]
+ * await nz(["a", "b"]).consume().return() // => undefined (or iterator's return value)
  * ```
  */
 export const consume = async <T, R>(iterator: AsyncIterable<T, R>): Promise<ConsumedPipeline<T, R>> => {

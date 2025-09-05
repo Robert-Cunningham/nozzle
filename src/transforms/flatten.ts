@@ -9,12 +9,7 @@ import { Iterable } from "../types"
  *
  * @example
  * ```ts
- * const stream = fromList([["a", "b"], ["c", "d"], ["e"]])
- * const flattened = flatten(stream)
- * for await (const chunk of flattened) {
- *   console.log(chunk)
- * }
- * // => "a", "b", "c", "d", "e"
+ * nz([["a", "b"], ["c", "d"], ["e"]]).flatten() // => "a", "b", "c", "d", "e"
  * ```
  */
 export const flatten = async function* <T>(src: Iterable<T[] | Iterable<T>>): AsyncGenerator<T> {

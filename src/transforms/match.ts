@@ -16,11 +16,7 @@ import { map } from "./map"
  *
  * @example
  * ```ts
- * const stream = match(streamOf(["a", "b", "b", "a"]), /a([ab]*)a/g)
- * for await (const result of stream) {
- *   console.log(result[0], result[1]) // full match, first capture group
- * }
- * // => ["abba", "bb"]
+ * nz(["a", "b", "b", "a"]).match(/a([ab]*)a/g) // => ["abba", "bb"] (match arrays with capture groups)
  * ```
  */
 export async function* match(input: AsyncIterable<string>, regex: RegExp): AsyncGenerator<RegExpExecArray> {

@@ -8,12 +8,7 @@
  *
  * @example
  * ```ts
- * const stream = tap(streamOf(["Hello", "World", "!"]), console.log)
- * for await (const chunk of stream) {
- *   // console.log will have printed each chunk
- *   console.log("Processed:", chunk)
- * }
- * // => logs: "Hello", "World", "!", then "Processed: Hello", "Processed: World", "Processed: !"
+ * nz(["Hello", "World", "!"]).tap(console.log) // => "Hello", "World", "!" (also logs each value)
  * ```
  */
 export const tap = async function* <T, R = any>(

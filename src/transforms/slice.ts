@@ -10,20 +10,8 @@
  *
  * @example
  * ```ts
- * const stream = slice(streamOf(["a", "b", "c", "d", "e"]), 1, 3)
- * for await (const chunk of stream) {
- *   console.log(chunk)
- * }
- * // => ["b", "c"]
- * ```
- *
- * @example
- * ```ts
- * const stream = slice(streamOf(["a", "b", "c", "d", "e"]), -2)
- * for await (const chunk of stream) {
- *   console.log(chunk)
- * }
- * // => ["d", "e"]
+ * nz(["a", "b", "c", "d", "e"]).slice(1, 3) // => "b", "c"
+ * nz(["a", "b", "c", "d", "e"]).slice(-2) // => "d", "e"
  * ```
  */
 export async function* slice<T>(iterator: AsyncIterable<T>, start: number, end?: number): AsyncGenerator<T> {

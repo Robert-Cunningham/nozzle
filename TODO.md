@@ -59,6 +59,12 @@
 [ ] make all the functions (e.g. diffs, accumulate) pass through the return type.
 [ ] add a tapNth(-1) function? I guess this can be trivially implemented with buffer or something.
 
+[ ] should we add .withLookahead and .withLookbehind methods? Same with withLeftCount, which attaches some metadata to your item? This would be like .aperture but more friendly to actually use?
+
+[ ] document the consumedpipeline?
+
+[ ] unify stuff around buffers?
+
 # consider
 
 // trace({ type: "response", response: out, summarize: true })
@@ -83,7 +89,7 @@ conversation.push({ raw: x, role: "assistant", enabled: true })
 
 also: it's possible that we're supposed to deal with AsyncIterators (which can hold a place in a stream) instead of AsyncGenerators or AsyncIterables or the like. Need to think more carefully about this.
 
-are we supposed to have like a AssociativePipeline, which indicates that it can emit the zero object as much / whenever it wants? And things like before() and after() can inherit from that?
+are we supposed to have like a AssociativePipeline, which indicates that it can emit the zero object as much / whenever it wants? And things like before() and after() can inherit from that? e.g. .compact() applies to this, because it removes "identity" elements.
 
 ## GOTCHAS:
 

@@ -9,11 +9,7 @@
  *
  * @example
  * ```ts
- * const wrappedStream = wrap(streamOf(["hello", "world"]))
- * const unwrapped = unwrap(wrappedStream)
- * for await (const value of unwrapped) {
- *   console.log("Got:", value) // "hello", "world"
- * }
+ * nz(["hello", "world"]).wrap().unwrap() // => "hello", "world"
  * ```
  */
 export const unwrap = async function* <T, R = any>(

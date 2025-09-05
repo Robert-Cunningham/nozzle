@@ -11,20 +11,8 @@ import { slice } from "./slice"
  *
  * @example
  * ```ts
- * const value = await at(streamOf(["a", "b", "c", "d", "e"]), 2)
- * console.log(value) // => "c"
- * ```
- *
- * @example
- * ```ts
- * const value = await at(streamOf(["a", "b", "c", "d", "e"]), -1)
- * console.log(value) // => "e"
- * ```
- *
- * @example
- * ```ts
- * const value = await at(streamOf(["a", "b", "c"]), 10)
- * console.log(value) // => undefined
+ * await nz(["a", "b", "c", "d", "e"]).at(2) // => "c"
+ * await nz(["a", "b", "c", "d", "e"]).at(-1) // => "e"
  * ```
  */
 export const at = async <T>(iterator: AsyncIterable<T>, index: number): Promise<T | undefined> => {

@@ -10,6 +10,11 @@
  * @param source The async iterable source of tokens.
  * @param delayMs The minimum delay in milliseconds between adjacent tokens.
  * @returns An async iterable that yields tokens with enforced delays.
+ *
+ * @example
+ * ```ts
+ * nz(["a", "b", "c"]).minInterval(100) // => "a", "b", "c" (each spaced 100ms apart)
+ * ```
  */
 export async function* minInterval<T>(source: AsyncIterable<T>, delayMs: number): AsyncGenerator<T> {
   const iterator = source[Symbol.asyncIterator]()

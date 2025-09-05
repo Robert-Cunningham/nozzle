@@ -8,8 +8,7 @@
  *
  * @example
  * ```ts
- * const value = await find(streamOf(["apple", "banana", "cherry"]), (chunk: string) => chunk.startsWith("b"))
- * console.log(value) // => "banana"
+ * await nz(["apple", "banana", "cherry"]).find(chunk => chunk.startsWith("b")) // => "banana"
  * ```
  */
 export const find = async <T>(iterator: AsyncIterable<T>, predicate: (chunk: T) => boolean): Promise<T | undefined> => {

@@ -171,17 +171,18 @@ class ExampleFirstContext extends MarkdownThemeContext {
       // Merge comments from declaration and first signature (signature usually holds @example)
       const declComment = model.comment
       const sigComment = signatures[0]?.comment
-      const mergedComment = (sigComment || declComment)
-        ? {
-            ...(sigComment || {}),
-            summary: (sigComment?.summary?.length ? sigComment.summary : declComment?.summary) || [],
-            blockTags: [
-              ...((declComment && declComment.blockTags) || []),
-              ...((sigComment && sigComment.blockTags) || []),
-            ],
-            modifierTags: new Set([...(declComment?.modifierTags || []), ...(sigComment?.modifierTags || [])]),
-          }
-        : undefined
+      const mergedComment =
+        sigComment || declComment
+          ? {
+              ...(sigComment || {}),
+              summary: (sigComment?.summary?.length ? sigComment.summary : declComment?.summary) || [],
+              blockTags: [
+                ...((declComment && declComment.blockTags) || []),
+                ...((sigComment && sigComment.blockTags) || []),
+              ],
+              modifierTags: new Set([...(declComment?.modifierTags || []), ...(sigComment?.modifierTags || [])]),
+            }
+          : undefined
 
       // Examples first
       if (mergedComment?.blockTags?.length) {
