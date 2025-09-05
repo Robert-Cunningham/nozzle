@@ -18,11 +18,8 @@
  *
  * @example
  * ```ts
- * // Buffer up to 10 items
- * const buffered = buffer(source, 10)
- *
- * // Buffer unlimited items
- * const unbuffered = buffer(source)
+ * nz(["a", "b", "c"]).buffer(2) // => "a", "b", "c" (buffered up to 2 items ahead)
+ * nz(["a", "b", "c"]).buffer() // => "a", "b", "c" (unlimited buffering)
  * ```
  */
 export const buffer = async function* <T>(source: AsyncIterable<T>, n?: number): AsyncGenerator<T> {

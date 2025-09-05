@@ -6,6 +6,11 @@
  * @param source The async iterable source of strings (tokens).
  * @param size The number of input tokens to group together in each output chunk.
  * @returns An async iterable that yields concatenated chunks.
+ *
+ * @example
+ * ```ts
+ * nz(["a", "b", "c", "d", "e", "f"]).chunk(3) // => "abc", "def"
+ * ```
  */
 export async function* chunk(source: AsyncIterable<string>, size: number): AsyncGenerator<string> {
   let buffer: string[] = []

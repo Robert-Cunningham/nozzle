@@ -8,6 +8,11 @@ import { generalRegex } from "../streamingRegex"
  * @param source The async iterable source of strings.
  * @param separator The string separator to split by.
  * @returns An async iterable that yields the split parts.
+ *
+ * @example
+ * ```ts
+ * nz(["hello,world,test"]).split(",") // => "hello", "world", "test"
+ * ```
  */
 export async function* split(source: AsyncIterable<string>, separator: string | RegExp): AsyncGenerator<string> {
   const regex = toGlobalRegex(separator)
@@ -32,6 +37,11 @@ export async function* split(source: AsyncIterable<string>, separator: string | 
  * @param source The async iterable source of strings.
  * @param separator The string separator to split by.
  * @returns An async iterable that yields the split parts with separator at the beginning.
+ *
+ * @example
+ * ```ts
+ * nz(["hello,world,test"]).splitBefore(",") // => "hello", ",world", ",test"
+ * ```
  */
 export async function* splitBefore(source: AsyncIterable<string>, separator: string | RegExp): AsyncGenerator<string> {
   const regex = toGlobalRegex(separator)
@@ -56,6 +66,11 @@ export async function* splitBefore(source: AsyncIterable<string>, separator: str
  * @param source The async iterable source of strings.
  * @param separator The string separator to split by.
  * @returns An async iterable that yields the split parts with separator at the end.
+ *
+ * @example
+ * ```ts
+ * nz(["hello,world,test"]).splitAfter(",") // => "hello,", "world,", "test"
+ * ```
  */
 export async function* splitAfter(source: AsyncIterable<string>, separator: string | RegExp): AsyncGenerator<string> {
   const regex = toGlobalRegex(separator)

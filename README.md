@@ -177,24 +177,11 @@ function diff(iterator: AsyncIterable<string>): AsyncGenerator<string>;
 ### buffer()
 
 ```ts
-// Buffer up to 10 items
-const buffered = buffer(source, 10)
-
-// Buffer unlimited items
-const unbuffered = buffer(source)
+nz(["a", "b", "c"]).buffer(2) // => "a", "b", "c" (buffered up to 2 items ahead)
+nz(["a", "b", "c"]).buffer() // => "a", "b", "c" (unlimited buffering)
 ```
 
-Buffers up to N items from the source iterator, consuming them eagerly
-and yielding them on demand. If n is undefined, buffers unlimited items.
-
-The buffer() function "slurps up" as much of the input iterator as it can
-as fast as it can, storing items in an internal buffer. When items are
-requested from the buffer, they are yielded from this pre-filled buffer.
-This creates a decoupling between the consumption rate and the production rate.
-
-Error handling follows the pattern described in file://./../../ASYNC\_ERROR\_HANDLING.md.
-This function serves as a reference implementation for proper error handling
-with background consumers.
+Buffers up to N items from the source iterator, consuming them eagerly and yielding them on demand. If n is undefined, buffers unlimited items.
 
 <details><summary>Details</summary>
 
@@ -216,15 +203,8 @@ function buffer<T>(source: AsyncIterable<T>, n?: number): AsyncGenerator<T>;
 ### consume()
 
 ```ts
-const source = async function* () {
-  yield "item1"
-  yield "item2"
-  return "final value"
-}
-
-const consumed = await consume(source())
-console.log(consumed.list())    // => ["item1", "item2"]
-console.log(consumed.return())  // => "final value"
+await nz(["a", "b"]).consume().list() // => ["a", "b"]
+await nz(["a", "b"]).consume().return() // => undefined (or whatever the iterator returned)
 ```
 
 Consumes an async iterator completely, collecting both yielded values and the return value.
@@ -248,11 +228,7 @@ function consume<T, R>(iterator: AsyncIterable<T, R>): Promise<ConsumedPipeline<
 ### fromList()
 
 ```ts
-const stream = fromList(["Hello", "World", "!"])
-for await (const chunk of stream) {
-  console.log(chunk)
-}
-// => "Hello", "World", "!"
+nz(["Hello", "World", "!"]) // => "Hello", "World", "!"
 ```
 
 Converts an array to an async iterator.

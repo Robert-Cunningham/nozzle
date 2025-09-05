@@ -10,11 +10,7 @@ import { StringIterable } from "../types"
  * @returns async stream with the leading section removed
  * @example
  * ```ts
- * const stream = after(streamOf(["a", "b", "c", "d", "e"]), /bc/)
- * for await (const chunk of stream) {
- *   console.log(chunk)
- * }
- * // => ["d", "e"]
+ * nz(["a", "b", "c", "d", "e"]).after(/bc/) // => "d", "e"
  * ```
  */
 

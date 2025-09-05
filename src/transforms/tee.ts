@@ -8,6 +8,11 @@
  * @param iterator - The source async iterator to split.
  * @param n - Number of independent iterables to create.
  * @returns An array of N independent async generators.
+ *
+ * @example
+ * ```ts
+ * const [stream1, stream2] = nz(["a", "b", "c"]).tee(2) // => Two independent streams of "a", "b", "c"
+ * ```
  */
 export function tee<T>(iterator: AsyncIterator<T>, n: number): AsyncGenerator<T>[] {
   const queues: T[][] = Array.from({ length: n }, () => [])

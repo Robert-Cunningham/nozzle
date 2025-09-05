@@ -5,11 +5,15 @@ import { Iterable, StringIterable } from "./types"
 // Helper function to convert sync iterables to async iterables
 function ensureAsyncIterable<T>(source: T[] | globalThis.Iterable<T> | AsyncIterable<T>): AsyncIterable<T> {
   // Check if it's already an async iterable
-  if (source && typeof source === 'object' && Symbol.asyncIterator in source) {
+  if (source && typeof source === "object" && Symbol.asyncIterator in source) {
     return source as AsyncIterable<T>
   }
   // Check if it's a sync iterable (arrays, strings, Sets, Maps, etc.)
-  if (Array.isArray(source) || (source && typeof source === 'object' && Symbol.iterator in source) || typeof source === 'string') {
+  if (
+    Array.isArray(source) ||
+    (source && typeof source === "object" && Symbol.iterator in source) ||
+    typeof source === "string"
+  ) {
     return (async function* () {
       for (const item of source as globalThis.Iterable<T>) {
         yield item
