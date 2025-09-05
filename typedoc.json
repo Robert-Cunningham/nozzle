@@ -1,7 +1,10 @@
 {
   "entryPoints": ["src/index.ts"],
   "out": ".", // folder for generated files
-  "plugin": ["typedoc-plugin-markdown"],
+  "plugin": [
+    "typedoc-plugin-markdown",
+    "./scripts/typedoc-theme-example-first.mjs"
+  ],
   "readme": "Preamble.md",
   "mergeReadme": true,
   "excludePrivate": true,
@@ -17,7 +20,7 @@
   /* nicer code blocks like lodash.com */
   "useCodeBlocks": true,
   "disableSources": true,
-  "theme": "default",
+  "theme": "example-first",
   /* compact indexes – list instead of tables */
   "indexFormat": "list",
 
