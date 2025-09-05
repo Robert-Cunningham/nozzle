@@ -33,4 +33,33 @@ describe("filter", () => {
     const expected = ["hello", "world"]
     expect(result).toEqual(expected)
   })
+
+  test("should preserve return values from source iterator", async () => {
+    const source = async function* () {
+      yield "apple"
+      yield "banana"
+      yield "cherry"
+      return "final result"
+    }
+
+    const stream = filter(source(), (x) => x.length > 5)
+    const consumed = await consume(stream)
+
+    expect(consumed.list()).toEqual(["banana", "cherry"])
+    expect(consumed.return()).toBe("final result")
+  })
+
+  test("should handle undefined return values", async () => {
+    const source = async function* () {
+      yield "x"
+      yield "y"
+      yield "z"
+    }
+
+    const stream = filter(source(), (x) => x !== "y")
+    const consumed = await consume(stream)
+
+    expect(consumed.list()).toEqual(["x", "z"])
+    expect(consumed.return()).toBe(undefined)
+  })
 })

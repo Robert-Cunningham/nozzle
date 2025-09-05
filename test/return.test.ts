@@ -52,7 +52,7 @@ describe("return", () => {
     expect(result).toBe(42)
   })
 
-  test("return value is lost when using transforms that don't preserve it", async () => {
+  test("return value is preserved when using map and filter transforms", async () => {
     const source = async function* () {
       yield 1
       yield 2
@@ -67,8 +67,8 @@ describe("return", () => {
         .consume()
     ).return()
 
-    // Note: return values are lost through map/filter because they use for-await-of
-    expect(result).toBeUndefined()
+    // Note: return values are now preserved through map/filter
+    expect(result).toBe("original")
   })
 
   test("works with tap transform which preserves return value", async () => {

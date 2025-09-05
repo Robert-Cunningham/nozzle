@@ -43,7 +43,7 @@ describe("map", () => {
 
     const stream = map(source(), (x) => x.toUpperCase())
     const consumed = await consume(stream)
-    
+
     expect(consumed.list()).toEqual(["A", "B"])
     expect(consumed.return()).toBe("final result")
   })
@@ -56,7 +56,7 @@ describe("map", () => {
 
     const stream = map(source(), (x) => x + "!")
     const consumed = await consume(stream)
-    
+
     expect(consumed.list()).toEqual(["x!", "y!"])
     expect(consumed.return()).toBe(undefined)
   })
