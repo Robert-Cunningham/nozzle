@@ -15,8 +15,16 @@
  * // => ["HELLO", "WORLD"]
  * ```
  */
-export const map = async function* <T, U>(iterator: AsyncIterable<T>, fn: (value: T) => U): AsyncGenerator<U> {
-  for await (const text of iterator) {
-    yield fn(text)
+export const map = async function* <T, U, R = any>(iterator: AsyncIterable<T, R>, fn: (value: T) => U): AsyncGenerator<U, R, undefined> {
+  const iter = iterator[Symbol.asyncIterator]()
+  
+  while (true) {
+    const result = await iter.next()
+    
+    if (result.done) {
+      return result.value as R
+    }
+    
+    yield fn(result.value)
   }
 }

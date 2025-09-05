@@ -33,4 +33,31 @@ describe("map", () => {
     const expected = ["2", "4", "6"]
     expect(result).toEqual(expected)
   })
+
+  test("should preserve return values from source iterator", async () => {
+    const source = async function* () {
+      yield "a"
+      yield "b"
+      return "final result"
+    }
+
+    const stream = map(source(), (x) => x.toUpperCase())
+    const consumed = await consume(stream)
+    
+    expect(consumed.list()).toEqual(["A", "B"])
+    expect(consumed.return()).toBe("final result")
+  })
+
+  test("should handle undefined return values", async () => {
+    const source = async function* () {
+      yield "x"
+      yield "y"
+    }
+
+    const stream = map(source(), (x) => x + "!")
+    const consumed = await consume(stream)
+    
+    expect(consumed.list()).toEqual(["x!", "y!"])
+    expect(consumed.return()).toBe(undefined)
+  })
 })
