@@ -61,6 +61,7 @@
  * ```
  *
  * @module
+ * @disableGroups
  */
 
 import { Pipeline } from "./pipeline"
