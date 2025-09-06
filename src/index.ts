@@ -1,7 +1,66 @@
 /**
- * Main nozzle-js library module
+ * # Nozzle - Stream Processing Library
+ *
+ * Nozzle is built for manipulating async iterators and streams through chainable transformations.
+ * It converts various input sources into Pipelines that support functional-style method chaining.
+ *
+ * ## Core Components
+ *
+ * ### nz(source) - Main Entry Point
+ * Creates a Pipeline from various iterable sources. Automatically converts sync iterables to async.
+ *
+ * ```ts
+ * // From arrays
+ * nz(['a', 'b', 'c']).map(x => x.toUpperCase())
+ *
+ * // From async generators
+ * async function* generate() { yield 1; yield 2; yield 3 }
+ * nz(generate()).filter(x => x > 1)
+ *
+ * // From streams (like LLM responses)
+ * const stream = await openai.chat.completions.create({...args, stream: true})
+ * nz(stream).filter(chunk => chunk.choices[0]?.delta?.content)
+ * ```
+ *
+ * ### Pipeline<T, R> - Chainable Transformations
+ * The core class providing immutable method chaining. Each method returns a new Pipeline instance.
+ *
+ * ```ts
+ * const result = await nz([1, 2, 3, 4, 5])
+ *   .filter(x => x > 2)           // Pipeline<number>
+ *   .map(x => x * 2)              // Pipeline<number>
+ *   .slice(0, 2)                  // Pipeline<number>
+ *   .consume()                    // Promise<ConsumedPipeline<number>>
+ * ```
+ *
+ * ### ConsumedPipeline<T, R> - Terminal Result
+ * Result from calling `.consume()` on a Pipeline. Provides access to both yielded values and return values.
+ *
+ * ```ts
+ * const consumed = await pipeline.consume()
+ * const values = consumed.list()      // T[] - all yielded values
+ * const returnVal = consumed.return() // R - the return value from the iterator
+ * ```
+ *
+ * ## Working with Async Iterators
+ * Nozzle works seamlessly with manually constructed async iterators:
+ *
+ * ```ts
+ * async function* customIterator() {
+ *   yield "first"
+ *   yield "second"
+ *   return "final"  // This becomes the return value
+ * }
+ *
+ * const result = await nz(customIterator())
+ *   .map(x => x.toUpperCase())
+ *   .consume()
+ *
+ * console.log(result.list())    // ["FIRST", "SECOND"]
+ * console.log(result.return())  // "final"
+ * ```
+ *
  * @module
- * @disableGroups
  */
 
 import { Pipeline } from "./pipeline"
