@@ -6,7 +6,7 @@
 
 Here's what you're trying to do:
 
-### accumulate()
+### `accumulate`
 
 Yields a cumulative prefix of the input stream.
 
@@ -141,6 +141,16 @@ class ExampleFirstContext extends MarkdownThemeContext {
       md.push(this.partials.inheritance(model, { headingLevel: options.headingLevel }))
 
       return md.filter(Boolean).join("\n\n")
+    }
+
+    // Override memberTitle to format method names with backticks instead of parentheses
+    const originalMemberTitle = this.partials.memberTitle?.bind(this)
+    if (originalMemberTitle) {
+      this.partials.memberTitle = (model) => {
+        const originalTitle = originalMemberTitle(model)
+        // Replace function() with `function` (memberTitle only returns the name part, not the heading)
+        return originalTitle.replace(/^(\w+)\(\)$/, "`$1`")
+      }
     }
 
     // Override declaration to ensure function-like variables/aliases follow the same structure
