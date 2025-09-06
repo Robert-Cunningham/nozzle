@@ -107,7 +107,7 @@ This library is licensed under the MIT license.
 
 Main nozzle-js library module
 
-## accumulate()
+## `accumulate`
 
 ```ts
 nz(["This ", "is ", "a ", "test!"]).accumulate() // => "This ", "This is ", "This is a ", "This is a test!"
@@ -131,7 +131,7 @@ function accumulate(iterator: AsyncIterable<string>): AsyncGenerator<string>;
 
 ***
 
-## after()
+## `after`
 
 ```ts
 nz(["a", "b", "c", "d", "e"]).after(/bc/) // => "d", "e"
@@ -156,7 +156,7 @@ function after(source: StringIterable, pattern: string | RegExp): AsyncGenerator
 
 ***
 
-## aperture()
+## `aperture`
 
 ```ts
 nz([1, 2, 3, 4, 5]).aperture(3) // => [1, 2, 3], [2, 3, 4], [3, 4, 5]
@@ -181,7 +181,7 @@ function aperture<T>(source: Iterable<T>, n: number): AsyncGenerator<T[]>;
 
 ***
 
-## asyncMap()
+## `asyncMap`
 
 ```ts
 nz(["hello", "world"]).asyncMap(async x => x.toUpperCase()) // => "HELLO", "WORLD"
@@ -212,7 +212,7 @@ function asyncMap<T, U>(iterator: AsyncIterable<T>, fn: (value: T) => Promise<U>
 
 ***
 
-## at()
+## `at`
 
 ```ts
 await nz(["a", "b", "c", "d", "e"]).at(2) // => "c"
@@ -239,7 +239,7 @@ function at<T>(iterator: AsyncIterable<T>, index: number): Promise<undefined | T
 
 ***
 
-## before()
+## `before`
 
 ```ts
 nz(["a", "b", "c", "d", "e"]).before("cd") // => "a", "b"
@@ -264,7 +264,7 @@ function before(source: StringIterable, separator: string | RegExp): AsyncGenera
 
 ***
 
-## buffer()
+## `buffer`
 
 ```ts
 nz(["a", "b", "c"]).tap(x => console.log(`consumed: ${x}`)).buffer(2).tap(x => console.log(`yielded: ${x}`)) // => consumed: a, consumed: b, yielded: a, consumed: c, yielded: b, yielded: c
@@ -299,7 +299,7 @@ function buffer<T>(source: AsyncIterable<T>, n?: number): AsyncGenerator<T>;
 
 ***
 
-## chunk()
+## `chunk`
 
 ```ts
 nz(["a", "b", "c", "d", "e", "f"]).chunk(3) // => "abc", "def"
@@ -325,7 +325,7 @@ function chunk(source: AsyncIterable<string>, size: number): AsyncGenerator<stri
 
 ***
 
-## compact()
+## `compact`
 
 ```ts
 nz(["Hello", "", "World", ""]).compact() // => "Hello", "World"
@@ -349,7 +349,7 @@ function compact(iterator: AsyncIterable<string>): AsyncGenerator<string>;
 
 ***
 
-## consume()
+## `consume`
 
 ```ts
 await nz(["a", "b"]).consume().list() // => ["a", "b"]
@@ -374,7 +374,7 @@ function consume<T, R>(iterator: AsyncIterable<T, R>): Promise<ConsumedPipeline<
 
 ***
 
-## diff()
+## `diff`
 
 ```ts
 nz(["This ", "This is ", "This is a ", "This is a test!"]).diff().value() // => "This ", "is ", "a ", "test!"
@@ -398,7 +398,7 @@ function diff(iterator: AsyncIterable<string>): AsyncGenerator<string>;
 
 ***
 
-## filter()
+## `filter`
 
 ```ts
 nz(["Hello", "Hi", "World"]).filter(chunk => chunk.length > 5) // => "Hello", "World"
@@ -423,7 +423,7 @@ function filter<T, R>(iterator: AsyncIterable<T, R>, predicate: (chunk: T) => bo
 
 ***
 
-## find()
+## `find`
 
 ```ts
 await nz(["apple", "banana", "cherry"]).find(chunk => chunk.startsWith("b")) // => "banana"
@@ -448,7 +448,7 @@ function find<T>(iterator: AsyncIterable<T>, predicate: (chunk: T) => boolean): 
 
 ***
 
-## first()
+## `first`
 
 ```ts
 await nz(["Hello", "World", "!"]).first() // => "Hello"
@@ -472,7 +472,7 @@ function first<T>(iterator: AsyncIterable<T>): Promise<undefined | T>;
 
 ***
 
-## flatten()
+## `flatten`
 
 ```ts
 nz([["a", "b"], ["c", "d"], ["e"]]).flatten() // => "a", "b", "c", "d", "e"
@@ -496,7 +496,7 @@ function flatten<T>(src: Iterable<Iterable<T> | T[]>): AsyncGenerator<T>;
 
 ***
 
-## fromList()
+## `fromList`
 
 ```ts
 nz(["Hello", "World", "!"]) // => "Hello", "World", "!"
@@ -520,7 +520,7 @@ function fromList<T>(list: T[]): AsyncGenerator<T>;
 
 ***
 
-## head()
+## `head`
 
 ```ts
 nz(["Hello", "World", "!"]).head() // => "Hello"
@@ -548,7 +548,7 @@ function head<T>(iterator: AsyncIterable<T>): AsyncGenerator<T, any, any>;
 
 ***
 
-## initial()
+## `initial`
 
 ```ts
 nz(["Hello", "World", "!"]).initial() // => "Hello", "World"
@@ -572,7 +572,7 @@ function initial<T>(iterator: AsyncIterable<T>): AsyncGenerator<T, any, any>;
 
 ***
 
-## last()
+## `last`
 
 ```ts
 await nz(["Hello", "World", "!"]).last() // => "!"
@@ -596,7 +596,7 @@ function last<T>(iterator: AsyncIterable<T>): Promise<undefined | T>;
 
 ***
 
-## map()
+## `map`
 
 ```ts
 nz(["hello", "world"]).map(x => x.toUpperCase()) // => "HELLO", "WORLD"
@@ -621,7 +621,7 @@ function map<T, U, R>(iterator: AsyncIterable<T, R>, fn: (value: T) => U): Async
 
 ***
 
-## mapReturn()
+## `mapReturn`
 
 ```ts
 nz(["a", "b"]).mapReturn(returnValue => returnValue?.toString() ?? "default") // => "a", "b" (with mapped return value)
@@ -646,7 +646,7 @@ function mapReturn<T, R, U>(iterator: AsyncIterable<T, R>, fn: (value: R) => U):
 
 ***
 
-## minInterval()
+## `minInterval`
 
 ```ts
 nz(["a", "b", "c"]).minInterval(100) // => "a" (0ms), "b" (100ms), "c" (200ms)
@@ -676,7 +676,7 @@ function minInterval<T>(source: AsyncIterable<T>, delayMs: number): AsyncGenerat
 
 ***
 
-## replace()
+## `replace`
 
 ```ts
 nz(["a", "b", "b", "a"]).replace(/a[ab]*a/g, "X") // => "X"
@@ -709,7 +709,7 @@ replacement: string): AsyncGenerator<string>;
 
 ***
 
-## slice()
+## `slice`
 
 ```ts
 nz(["a", "b", "c", "d", "e"]).slice(1, 3) // => "b", "c"
@@ -740,7 +740,7 @@ end?: number): AsyncGenerator<T>;
 
 ***
 
-## split()
+## `split`
 
 ```ts
 nz(["hello,world,test"]).split(",") // => "hello", "world", "test"
@@ -765,7 +765,7 @@ function split(source: AsyncIterable<string>, separator: string | RegExp): Async
 
 ***
 
-## splitAfter()
+## `splitAfter`
 
 ```ts
 nz(["hello,world,test"]).splitAfter(",") // => "hello,", "world,", "test"
@@ -791,7 +791,7 @@ function splitAfter(source: AsyncIterable<string>, separator: string | RegExp): 
 
 ***
 
-## splitBefore()
+## `splitBefore`
 
 ```ts
 nz(["hello,world,test"]).splitBefore(",") // => "hello", ",world", ",test"
@@ -817,7 +817,7 @@ function splitBefore(source: AsyncIterable<string>, separator: string | RegExp):
 
 ***
 
-## tail()
+## `tail`
 
 ```ts
 nz(["Hello", "World", "!"]).tail() // => "World", "!"
@@ -841,7 +841,7 @@ function tail<T>(iterator: AsyncIterable<T>): AsyncGenerator<T, any, any>;
 
 ***
 
-## tap()
+## `tap`
 
 ```ts
 nz(["Hello", "World", "!"]).tap(x => console.log(`yielded: ${x}`)) // => "Hello", "World", "!" (logs: yielded: Hello, yielded: World, yielded: !)
@@ -866,7 +866,7 @@ function tap<T, R>(iterator: AsyncIterable<T, R>, fn: (value: T) => void): Async
 
 ***
 
-## tee()
+## `tee`
 
 ```ts
 const [stream1, stream2] = nz(["a", "b", "c"]).tee(2) // => Two independent streams of "a", "b", "c"
@@ -894,7 +894,7 @@ function tee<T>(iterator: AsyncIterator<T>, n: number): AsyncGenerator<T, any, a
 
 ***
 
-## throttle()
+## `throttle`
 
 ```ts
 nz(["a", "b", "c", "d"]).throttle(100, chunks => chunks.join("")) // => "a" (0ms), "bcd" (100ms)
@@ -929,7 +929,7 @@ merge: (values: T[]) => T): AsyncGenerator<T>;
 
 ***
 
-## unwrap()
+## `unwrap`
 
 ```ts
 nz(["hello", "world"]).wrap().unwrap() // => "hello", "world"
@@ -959,7 +959,7 @@ function unwrap<T, R>(iterator: AsyncIterable<{
 
 ***
 
-## wrap()
+## `wrap`
 
 ```ts
 nz(["hello", "world"]).wrap() // => {value: "hello"}, {value: "world"}, {return: undefined}
