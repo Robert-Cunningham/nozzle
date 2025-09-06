@@ -11,5 +11,6 @@ import { slice } from "./slice"
  * ```ts
  * nz(["Hello", "World", "!"]).head() // => "Hello"
  * ```
+ * @see {@link at}, {@link tail}, {@link initial}, {@link last}
  */
 export const head = <T>(iterator: AsyncIterable<T>) => slice(iterator, 0, 1)
