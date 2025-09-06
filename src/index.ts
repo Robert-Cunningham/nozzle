@@ -1,3 +1,9 @@
+/**
+ * Main nozzle-js library module
+ * @module
+ * @disableGroups
+ */
+
 import { Pipeline } from "./pipeline"
 import * as tx from "./transforms"
 import { Iterable, StringIterable } from "./types"
