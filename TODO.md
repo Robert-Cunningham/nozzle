@@ -23,51 +23,66 @@
 [x] nz(x) is the chaining operator. You definitely separately need a .from() method, which accepts a list and return, and then the question is whether nz() should be overloaded for convenience or not, so you can do nz(list) instead of nz(nz.from(list)).
 [x] Instead of fromList, it should probably be something like nz(list | iterator).minInterval(30). Possibly it should be nz(list, return) or nz(iterator). Is it better to have nz(list, return) or nz.from(list, return)? => Resolves to nz(list).mapReturn(() => return) for now.
 [x] write .at() that selects out just a single element. This is also a slice derivative.
+[x] rename the conversion methods, (asList / toString etc)
+[x] shorter examples
 
-// potentially we should have differences like splitEach (applies tokenwise) and split (applies response-wise); same with e.g. .trimEach and .trim(). The each functions are much less useful / common, since they can mostly be implemented with map().
+## Before Release
 
-[ ] write a .trim() function
-[ ] rename the conversion methods, (asList / toString etc)
-[ ] allow delay to choose its length with a function indicating how many elements remain / what the upcoming token is / etc? In particular, it's possible that buffer should expose an option to yield {value, bufferedCount}, which we can then use in the next iterator to determine e.g. what delay to apply? And buffer can pass {value, bufferedCount, done? (is the buffered iterator done?), futureBuffered}. So ideally we would be able to write something like stream().buffer().map({value, count} => if (count < 5) {await sleep(100); yield value;} else {yield value;}).value(). That actually seems like a super useful function. Right, buffer is actually a very core piece of infrastructure here.
+Broadly:
 
-[ ] write a reduce() equivalent that takes the same parameters as the delay function? / generally decide what the full group of parameters that gets passed to the iterating function is.
+- make an excellent top-of-readme
+- go through and manually update the descriptions of each function.
+- write more text about the regex
+- fuzz the functions which are easy to fuzz
+- figure out what's going on with buffers
+- modernize all the implementations, with return passthroughs, implementation via composition where possible, etc.
 
-[ ] better readme examples
+[ ] better readme examples at the top
 [ ] better readme tagline
 [ ] animated readme example?
-[ ] document regex no backreferences, lookaheads, or lookbehinds.
-[ ] generally explain how regexes work
 [ ] write a nice readme
 [ ] read the readme carefully and fix any obvious issues
 [ ] document the chaining behavior
-[ ] shorter examples
-[ ] fuzzing-based testing
-[ ] check for multiline-regexes and assert that we can't processes these.
-
-[ ] should we explicitly state that yielding the empty string must be a no-op?
-[ ] write a .endIf function ? which ends if something is detected in the stream?
-[ ] try to write the JSON thing and see if there's any way to make it easier.
-
-[ ] generally optimize the pipeline class more; only hold the entire string in memory once, for example.
-
+[ ] manually check readme examples
 [ ] explain that streams are pull-based, a la https://chatgpt.com/c/685aecc4-7828-8012-831e-294dbb7dcf03.
-
-[ ] write a nz.merge method which can consume many streams at once?
-
-[ ] explain that before and after() specifically make no claims about when they emit empty strings, etc.
-
-[ ] make all the functions (e.g. diffs, accumulate) pass through the return type.
-[ ] add a tapNth(-1) function? I guess this can be trivially implemented with buffer or something.
-
-[ ] should we add .withLookahead and .withLookbehind methods? Same with withLeftCount, which attaches some metadata to your item? This would be like .aperture but more friendly to actually use?
-
 [ ] document the consumedpipeline?
 
+[ ] allow delay to choose its length with a function indicating how many elements remain / what the upcoming token is / etc? In particular, it's possible that buffer should expose an option to yield {value, bufferedCount}, which we can then use in the next iterator to determine e.g. what delay to apply? And buffer can pass {value, bufferedCount, done? (is the buffered iterator done?), futureBuffered}. So ideally we would be able to write something like stream().buffer().map({value, count} => if (count < 5) {await sleep(100); yield value;} else {yield value;}).value(). That actually seems like a super useful function. Right, buffer is actually a very core piece of infrastructure here. Potentially the most general form actually passes (soFar: T[], position: number) or even (past: T[], position: number, upcoming: T[], done: boolean). Then you also need some way to indicate when to yield (e.g. when a timer expires, or when something becomes true of `upcoming`). Then .at(-3) is basically saying "whenever upcoming > 3, advance position; if done, return past.at(0)". chunk is basically saying "whenever a new token gets passed, if upcoming.join("").length > 5, yield upcoming.join(""), otherwise if done yield upcoming.join(""), otherwise continue". Somehow the core primitives here look a lot like "see into the future" and "see into the past".
+
+Then you can implement e.g. slice() as
+[ ] add a tapNth(-1) function? I guess this can be trivially implemented with buffer or something.
+[ ] should we add .withLookahead and .withLookbehind methods? Same with withLeftCount, which attaches some metadata to your item? This would be like .aperture but more friendly to actually use?
 [ ] unify stuff around buffers?
+
+[ ] write a reduce() equivalent that takes the same parameters as the delay function? / generally decide what the full group of parameters that gets passed to the iterating function is.
+[ ] write the simplest version of reduce, which has some internal state and takes an update on every call?
+
+[ ] document regex no backreferences, lookaheads, or lookbehinds.
+[ ] generally explain how regexes work
+[ ] check for multiline-regexes and assert that we can't processes these.
+[ ] should we explicitly state that yielding the empty string must be a no-op?
+[ ] explain that before and after() specifically make no claims about when they emit empty strings, etc.
+
+[ ] fuzzing-based testing
+[ ] try to write the JSON thing and see if there's any way to make it easier.
+[ ] make all the functions (e.g. diffs, accumulate) pass through the return type.
+
+## After Release
+
+[ ] write a .trim() function
+[ ] write a nz.merge method which can consume many streams at once?
+[ ] generally optimize the pipeline class more; only hold the entire string in memory once, for example.
+[ ] write a .endIf function ? which ends if something is detected in the stream?
+
+## What is most urgent for an initial release?
+
+- better docs
+- fuzzing testing
+- return type stuff
 
 # consider
 
-// trace({ type: "response", response: out, summarize: true })
+// potentially we should have differences like splitEach (applies tokenwise) and split (applies response-wise); same with e.g. .trimEach and .trim(). The each functions are much less useful / common, since they can mostly be implemented with map().
 
 nz(out).onLast((x) => {
 conversation.push({ raw: x, role: "assistant", enabled: true })
