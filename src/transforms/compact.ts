@@ -1,3 +1,5 @@
+import { filter } from "./filter"
+
 /**
  * Filters out empty strings from the input stream.
  *
@@ -11,9 +13,5 @@
  * ```
  */
 export const compact = async function* (iterator: AsyncIterable<string>): AsyncGenerator<string> {
-  for await (const text of iterator) {
-    if (text !== "") {
-      yield text
-    }
-  }
+  return yield* filter(iterator, (text) => text !== "")
 }
