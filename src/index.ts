@@ -1,13 +1,15 @@
 /**
- * # Nozzle - Stream Processing Library
- *
- * Nozzle is built for manipulating async iterators and streams through chainable transformations.
- * It converts various input sources into Pipelines that support functional-style method chaining.
- *
- * ## Core Components
- *
- * ### nz(source) - Main Entry Point
- * Creates a Pipeline from various iterable sources. Automatically converts sync iterables to async.
+ * Nozzle provides utility functions for working with async iterables in a functional and chainable manner.
+
+ * The individual functions can be invoked directly on async iterables:
+* ```ts
+ * async function* generate() { yield 1; yield 2; yield 3 }
+ * for await (filter(generate(), x => x > 1)) {
+ *   console.log(x) // 2, 3 
+ * }
+ * ```
+ * 
+ * They can also be chained using the `nz` function, which accepts many iterable sources:
  *
  * ```ts
  * // From arrays
@@ -19,36 +21,7 @@
  *
  * // From streams (like LLM responses)
  * const stream = await openai.chat.completions.create({...args, stream: true})
- * nz(stream).filter(chunk => chunk.choices[0]?.delta?.content)
- * ```
- *
- * ### Pipeline<T, R> - Chainable Transformations
- * The core class providing immutable method chaining. Each method returns a new Pipeline instance.
- *
- * ```ts
- * const result = await nz([1, 2, 3, 4, 5])
- *   .filter(x => x > 2)           // Pipeline<number>
- *   .map(x => x * 2)              // Pipeline<number>
- *   .slice(0, 2)                  // Pipeline<number>
- *   .consume()                    // Promise<ConsumedPipeline<number>>
- * ```
- *
- * ## Working with Async Iterators
- * Nozzle works seamlessly with manually constructed async iterators:
- *
- * ```ts
- * async function* customIterator() {
- *   yield "first"
- *   yield "second"
- *   return "final"  // This becomes the return value
- * }
- *
- * const result = await nz(customIterator())
- *   .map(x => x.toUpperCase())
- *   .consume()
- *
- * console.log(result.list())    // ["FIRST", "SECOND"]
- * console.log(result.return())  // "final"
+ * nz(stream).map(chunk => chunk.choices[0]?.delta?.content).filter(x => !!x).split(' ').slice(0, 10)
  * ```
  *
  * @module
