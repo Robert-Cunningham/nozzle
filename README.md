@@ -13,6 +13,8 @@
   <hr />
 </div>
 
+<video src="assets/parse-demo.mp4" autoplay loop muted playsinline width="100%"></video>
+
 <!-- [![npm version][npm-src]][npm-href]
 [![Bundle size][bundlephobia-src]][bundlephobia-href]
 [![License][license-src]][license-href]
