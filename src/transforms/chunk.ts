@@ -13,6 +13,10 @@
  * ```
  */
 export async function* chunk(source: AsyncIterable<string>, size: number): AsyncGenerator<string> {
+  if (size <= 0 || !Number.isInteger(size)) {
+    throw new Error(`chunk size must be a positive integer, got ${size}`)
+  }
+
   let buffer: string[] = []
 
   for await (const token of source) {
