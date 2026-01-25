@@ -101,6 +101,13 @@ export class Pipeline<T = string, R = any> implements AsyncIterable<T, R> {
   /**
    * @hidden
    */
+  minInterval(delayMs: number) {
+    return new Pipeline<T, R>(tx.minInterval(this.src, delayMs))
+  }
+
+  /**
+   * @hidden
+   */
   mapReturn<U>(fn: (value: R) => U) {
     return new Pipeline<T, U>(tx.mapReturn(this.src, fn))
   }
@@ -170,13 +177,6 @@ export class Pipeline<T = string, R = any> implements AsyncIterable<T, R> {
    */
   diff(this: Pipeline<string, R>): Pipeline<string, R> {
     return new Pipeline<string, R>(tx.diff(this.src as AsyncIterable<string>))
-  }
-
-  /**
-   * @hidden
-   */
-  minInterval(this: Pipeline<string, R>, delayMs: number): Pipeline<string, R> {
-    return new Pipeline<string, R>(tx.minInterval(this.src as AsyncIterable<string>, delayMs))
   }
 
   /**
