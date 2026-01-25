@@ -33,15 +33,6 @@
  *   .consume()                    // Promise<ConsumedPipeline<number>>
  * ```
  *
- * ### ConsumedPipeline<T, R> - Terminal Result
- * Result from calling `.consume()` on a Pipeline. Provides access to both yielded values and return values.
- *
- * ```ts
- * const consumed = await pipeline.consume()
- * const values = consumed.list()      // T[] - all yielded values
- * const returnVal = consumed.return() // R - the return value from the iterator
- * ```
- *
  * ## Working with Async Iterators
  * Nozzle works seamlessly with manually constructed async iterators:
  *
