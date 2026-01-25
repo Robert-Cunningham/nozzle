@@ -81,9 +81,10 @@ async function main() {
     })
     .join("\n\n---\n\n")
 
-  // Combine with preamble
-  const preamble = fs.readFileSync("Preamble.md", "utf-8")
-  fs.writeFileSync("README.md", `${preamble}\n${docs}\n`)
+  // Combine with template
+  const template = fs.readFileSync("README.template.md", "utf-8")
+  const readme = template.replace("{{reference}}", docs)
+  fs.writeFileSync("README.md", readme)
 
   console.log(`Generated docs for ${functions.length} functions in ${sortedGroups.length} groups`)
 }
