@@ -25,11 +25,14 @@ export const buffer = async function* <T>(source: AsyncIterable<T>, n?: number):
   /** internal buffer to store pre-fetched items */
   const buf: T[] = []
 
-  /** resolve function to wake the generator when items are available */
-  let wakeGenerator: (() => void) | null = null
-
-  /** resolve function to wake the consumer when space is available */
-  let wakeConsumer: (() => void) | null = null
+  /** signals for coordinating between consumer and generator */
+  const signals: {
+    wakeGenerator: null | (() => void)
+    wakeConsumer: null | (() => void)
+  } = {
+    wakeGenerator: null,
+    wakeConsumer: null,
+  }
 
   /** indicates if the source has finished */
   let finished = false
@@ -44,28 +47,22 @@ export const buffer = async function* <T>(source: AsyncIterable<T>, n?: number):
         // If we have a size limit and we've reached it, wait for space
         while (n !== undefined && buf.length >= n) {
           await new Promise<void>((resolve) => {
-            wakeConsumer = resolve
+            signals.wakeConsumer = resolve
           })
         }
 
         buf.push(item)
 
         // Wake up the generator if it's waiting for items
-        const wake = wakeGenerator
-        if (wake) {
-          wakeGenerator = null
-          ;(wake as any)()
-        }
+        signals.wakeGenerator?.()
+        signals.wakeGenerator = null
       }
     } catch (err) {
       error = err instanceof Error ? err : new Error(String(err))
     } finally {
       finished = true
-      const wake = wakeGenerator
-      if (wake) {
-        wakeGenerator = null
-        ;(wake as any)()
-      }
+      signals.wakeGenerator?.()
+      signals.wakeGenerator = null
     }
   })()
 
@@ -79,11 +76,8 @@ export const buffer = async function* <T>(source: AsyncIterable<T>, n?: number):
       const item = buf.shift()!
 
       // Wake up the consumer if it was waiting for space
-      const wake = wakeConsumer
-      if (wake) {
-        wakeConsumer = null
-        ;(wake as any)()
-      }
+      signals.wakeConsumer?.()
+      signals.wakeConsumer = null
 
       yield item
       continue
@@ -97,7 +91,7 @@ export const buffer = async function* <T>(source: AsyncIterable<T>, n?: number):
 
     // Wait for more items
     await new Promise<void>((resolve) => {
-      wakeGenerator = resolve
+      signals.wakeGenerator = resolve
     })
   }
 
