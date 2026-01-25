@@ -1052,11 +1052,16 @@ function mapReturn<T, R, U>(iterator: AsyncIterable<T, R>, fn: (value: R) => U):
 ## `consume`
 
 ```ts
-await nz(["a", "b"]).consume().list() // => ["a", "b"]
-await nz(["a", "b"]).consume().return() // => undefined (or iterator's return value)
+const consumed = await nz(["a", "b"]).consume()
+consumed.list()   // => ["a", "b"]
+consumed.return() // => undefined (or iterator's return value)
 ```
 
 Consumes an async iterator completely, collecting both yielded values and the return value.
+
+Returns a ConsumedPipeline which provides access to both yielded values and return values:
+- `.list()` - Returns all yielded values as an array (`T[]`)
+- `.return()` - Returns the iterator's return value (`R`)
 
 <details><summary>Details</summary>
 
