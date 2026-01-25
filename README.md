@@ -13,8 +13,6 @@
   <hr />
 </div>
 
-<video src="assets/parse-demo.webm" autoplay loop muted playsinline width="100%"></video>
-
 ![parse demo](assets/parse-demo.gif)
 
 <!-- [![npm version][npm-src]][npm-href]
