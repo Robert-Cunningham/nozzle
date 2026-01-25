@@ -1,3 +1,5 @@
+import { reduce } from "./reduce"
+
 /**
  * Yields a cumulative prefix of the input stream.
  *
@@ -12,9 +14,5 @@
  */
 // accumulate and yield partials: diffsToPrefixes
 export const accumulate = async function* (iterator: AsyncIterable<string>): AsyncGenerator<string> {
-  let soFar = ""
-  for await (const text of iterator) {
-    soFar += text
-    yield soFar
-  }
+  yield* reduce(iterator, (acc, current) => acc + current, "")
 }
