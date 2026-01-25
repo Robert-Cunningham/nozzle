@@ -1,5 +1,6 @@
 import { ConsumedPipeline } from "./consumedPipeline"
 import * as tx from "./transforms"
+import { ScanResult } from "./transforms/scan"
 import { Iterable } from "./types"
 
 /**
@@ -191,6 +192,31 @@ export class Pipeline<T = string, R = any> implements AsyncIterable<T, R> {
    */
   replace(this: Pipeline<string, R>, regex: RegExp, replacement: string): Pipeline<string, R> {
     return new Pipeline<string, R>(tx.replace(this.src as AsyncIterable<string>, regex, replacement))
+  }
+
+  /**
+   * @hidden
+   */
+  scan(this: Pipeline<string, R>, regex: RegExp): Pipeline<ScanResult, R> {
+    return new Pipeline<ScanResult, R>(tx.scan(this.src as AsyncIterable<string>, regex))
+  }
+
+  /**
+   * @hidden
+   */
+  parse<T>(
+    this: Pipeline<string, R>,
+    regex: RegExp,
+    transform: (match: RegExpExecArray) => T,
+  ): Pipeline<string | T, R> {
+    return new Pipeline<string | T, R>(tx.parse(this.src as AsyncIterable<string>, regex, transform))
+  }
+
+  /**
+   * @hidden
+   */
+  match(this: Pipeline<string, R>, regex: RegExp): Pipeline<RegExpExecArray, R> {
+    return new Pipeline<RegExpExecArray, R>(tx.match(this.src as AsyncIterable<string>, regex))
   }
 
   /**
