@@ -45,7 +45,11 @@
   "license": "MIT",
   "devDependencies": {
     "@egoist/prettier-config": "1.0.0",
+    "@types/fluent-ffmpeg": "^2.1.28",
+    "ffmpeg-static": "^5.2.0",
+    "fluent-ffmpeg": "^2.1.2",
     "prettier": "3.5.3",
+    "puppeteer": "^24.2.1",
     "tsup": "8.5.0",
     "typedoc": "^0.28.5",
     "typedoc-plugin-markdown": "^4.6.4",
