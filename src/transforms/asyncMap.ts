@@ -1,3 +1,5 @@
+type Result<U> = { ok: true; value: U } | { ok: false; error: Error }
+
 /**
  * Transforms each value from the input stream using the provided async function.
  * Applies the async function to each item as soon as it comes off the iterator
@@ -17,8 +19,6 @@
  * nz(["api/users", "api/posts"]).asyncMap(async url => fetch(url).then(r => r.json())) // => [userData], [postsData]
  * ```
  */
-type Result<U> = { ok: true; value: U } | { ok: false; error: Error }
-
 export const asyncMap = async function* <T, U>(
   iterator: AsyncIterable<T>,
   fn: (value: T) => Promise<U>,
