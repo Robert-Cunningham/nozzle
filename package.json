@@ -34,6 +34,7 @@
     "lint": "prettier --check .",
     "lint:fix": "prettier --write .",
     "docs": "typedoc && pnpm run clean-docs",
+    "docs:modern": "npx tsx scripts/generate-docs.ts",
     "prepublishOnly": "pnpm run build && pnpm run docs",
     "prerelease": "pnpm run build && pnpm run docs && pnpm run lint && pnpm run test",
     "release:patch": "pnpm run prerelease && npm version patch && npm publish && git push --follow-tags",
