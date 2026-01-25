@@ -180,3 +180,59 @@ export const isPatternEmpty = (pattern: RegExp | string) => {
 export const toRegex = (pattern: RegExp | string) => {
   return typeof pattern === "string" ? new RegExp(escapeRegex(pattern)) : pattern
 }
+
+/**
+ * Validates that a regex uses only supported features for streaming matching.
+ *
+ * Throws an error if the regex contains unsupported features:
+ * - Backreferences (\1, \2, \k<name>)
+ * - Lookaheads ((?=...), (?!...))
+ * - Lookbehinds ((?<=...), (?<!...))
+ * - Multiline mode (m flag)
+ *
+ * @param regex - The regular expression to validate.
+ * @throws Error if the regex contains unsupported features.
+ */
+export function assertSupportedRegex(regex: RegExp): void {
+  const source = regex.source
+
+  // Check for multiline flag
+  if (regex.multiline) {
+    throw new Error(
+      `Unsupported regex feature: multiline mode (m flag). ` +
+        `Streaming regex matching does not support multiline patterns because buffer boundaries ` +
+        `would cause inconsistent behavior with ^ and $ anchors.`,
+    )
+  }
+
+  // Check for backreferences: \1, \2, etc. or \k<name>
+  const backreferencePattern = /\\(\d+|k<[^>]+>)/
+  if (backreferencePattern.test(source)) {
+    throw new Error(
+      `Unsupported regex feature: backreferences (\\1, \\k<name>). ` +
+        `Streaming regex matching cannot reliably handle backreferences because the referenced ` +
+        `capture group may span multiple chunks.`,
+    )
+  }
+
+  // Check for lookaheads: (?=...) or (?!...)
+  // Need to be careful not to match named capture groups (?<name>...)
+  const lookaheadPattern = /\(\?[=!]/
+  if (lookaheadPattern.test(source)) {
+    throw new Error(
+      `Unsupported regex feature: lookaheads ((?=...), (?!...)). ` +
+        `Streaming regex matching cannot reliably handle lookaheads because the lookahead ` +
+        `content may not have arrived yet.`,
+    )
+  }
+
+  // Check for lookbehinds: (?<=...) or (?<!...)
+  const lookbehindPattern = /\(\?<[=!]/
+  if (lookbehindPattern.test(source)) {
+    throw new Error(
+      `Unsupported regex feature: lookbehinds ((?<=...), (?<!...)). ` +
+        `Streaming regex matching cannot reliably handle lookbehinds because the lookbehind ` +
+        `content may have already been yielded.`,
+    )
+  }
+}

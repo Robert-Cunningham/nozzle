@@ -1,8 +1,10 @@
 import { toGlobalRegex } from "../regex"
-import { generalRegex } from "../streamingRegex"
+import { scan } from "./scan"
 
 /**
  * Takes incoming chunks, merges them, and then splits them by a string separator.
+ *
+ * Built on: `scan(source, regex)` accumulating text between matches
  *
  * @group Splitting
  * @param source The async iterable source of strings.
@@ -17,10 +19,10 @@ import { generalRegex } from "../streamingRegex"
 export async function* split(source: AsyncIterable<string>, separator: string | RegExp): AsyncGenerator<string> {
   const regex = toGlobalRegex(separator)
   let buffer = ""
-  for await (const result of generalRegex(source, regex)) {
+  for await (const result of scan(source, regex)) {
     if ("text" in result) {
       buffer += result.text
-    } else if ("regex" in result) {
+    } else {
       yield buffer
       buffer = ""
     }
@@ -32,6 +34,8 @@ export async function* split(source: AsyncIterable<string>, separator: string | 
 /**
  * Takes incoming chunks, merges them, and then splits them by a string separator,
  * keeping the separator at the beginning of each part (except the first).
+ *
+ * Built on: `scan(source, regex)` with separator prepended to each segment after first
  *
  * @group Splitting
  * @param source The async iterable source of strings.
@@ -46,12 +50,12 @@ export async function* split(source: AsyncIterable<string>, separator: string | 
 export async function* splitBefore(source: AsyncIterable<string>, separator: string | RegExp): AsyncGenerator<string> {
   const regex = toGlobalRegex(separator)
   let buffer = ""
-  for await (const result of generalRegex(source, regex)) {
+  for await (const result of scan(source, regex)) {
     if ("text" in result) {
       buffer += result.text
-    } else if ("regex" in result) {
+    } else {
       yield buffer
-      buffer = result.regex[0]
+      buffer = result.match[0]
     }
   }
 
@@ -61,6 +65,8 @@ export async function* splitBefore(source: AsyncIterable<string>, separator: str
 /**
  * Takes incoming chunks, merges them, and then splits them by a string separator,
  * keeping the separator at the end of each part (except the last).
+ *
+ * Built on: `scan(source, regex)` with separator appended to each segment
  *
  * @group Splitting
  * @param source The async iterable source of strings.
@@ -76,11 +82,11 @@ export async function* splitAfter(source: AsyncIterable<string>, separator: stri
   const regex = toGlobalRegex(separator)
   let buffer = ""
 
-  for await (const result of generalRegex(source, regex)) {
+  for await (const result of scan(source, regex)) {
     if ("text" in result) {
       buffer += result.text
-    } else if ("regex" in result) {
-      yield buffer + result.regex[0]
+    } else {
+      yield buffer + result.match[0]
       buffer = ""
     }
   }

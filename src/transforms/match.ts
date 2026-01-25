@@ -1,6 +1,4 @@
-import { generalRegex } from "../streamingRegex"
-import { filter } from "./filter"
-import { map } from "./map"
+import { scan } from "./scan"
 
 /**
  * Extracts matches of a regex pattern from the input stream.
@@ -8,6 +6,8 @@ import { map } from "./map"
  * Uses earliestPossibleMatchIndex to efficiently skip tokens as soon as we know
  * they don't match the regex, while holding back potential matches until we can
  * determine if they match.
+ *
+ * Built on: `scan(input, regex).filter(x => 'match' in x).map(x => x.match)`
  *
  * @group Regex
  * @param iterator - An asynchronous iterable of strings.
@@ -20,8 +20,9 @@ import { map } from "./map"
  * ```
  */
 export async function* match(input: AsyncIterable<string>, regex: RegExp): AsyncGenerator<RegExpExecArray> {
-  yield* map(
-    filter(generalRegex(input, regex), (result) => "regex" in result) as AsyncIterable<{ regex: RegExpExecArray }>,
-    (x: { regex: RegExpExecArray }) => x.regex,
-  )
+  for await (const result of scan(input, regex)) {
+    if ("match" in result) {
+      yield result.match
+    }
+  }
 }
