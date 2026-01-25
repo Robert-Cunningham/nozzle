@@ -22,6 +22,10 @@
  * ```
  */
 export const buffer = async function* <T>(source: AsyncIterable<T>, n?: number): AsyncGenerator<T> {
+  if (n !== undefined && (n <= 0 || !Number.isInteger(n))) {
+    throw new Error(`buffer size must be a positive integer, got ${n}`)
+  }
+
   /** internal buffer to store pre-fetched items */
   const buf: T[] = []
 
