@@ -33,15 +33,13 @@
     "test": "vitest run",
     "lint": "prettier --check .",
     "lint:fix": "prettier --write .",
-    "docs": "typedoc && pnpm run clean-docs",
-    "docs:modern": "npx tsx scripts/generate-docs.ts",
+    "docs": "npx tsx scripts/generate-docs.ts",
     "prepublishOnly": "pnpm run build && pnpm run docs",
     "prerelease": "pnpm run build && pnpm run docs && pnpm run lint && pnpm run test",
     "release:patch": "pnpm run prerelease && npm version patch && npm publish && git push --follow-tags",
     "release:minor": "pnpm run prerelease && npm version minor && npm publish && git push --follow-tags",
     "release:major": "pnpm run prerelease && npm version major && npm publish && git push --follow-tags",
-    "release:dry": "pnpm run prerelease && npm pack --dry-run",
-    "clean-docs": "find . -name '*.md' -print0 | xargs -0 -I {} perl -i -0777 -pe 's/#### (Type Parameters|Returns)(?:\n((?:(?!^#{2,4} ).)*))?//smg' {}"
+    "release:dry": "pnpm run prerelease && npm pack --dry-run"
   },
   "license": "MIT",
   "devDependencies": {
@@ -53,7 +51,6 @@
     "puppeteer": "^24.2.1",
     "tsup": "8.5.0",
     "typedoc": "^0.28.5",
-    "typedoc-plugin-markdown": "^4.6.4",
     "typescript": "5.8.3",
     "vitest": "3.2.1"
   },
