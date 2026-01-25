@@ -1,7 +1,19 @@
 {
   "name": "nozzle-js",
   "version": "0.10.0",
-  "description": "My awesome typescript library",
+  "description": "Chainable stream processing for async iterators. Transform LLM responses, event streams, and more with a fluent API.",
+  "keywords": [
+    "stream",
+    "async",
+    "iterator",
+    "pipeline",
+    "transform",
+    "llm",
+    "streaming",
+    "async-iterator",
+    "functional",
+    "chainable"
+  ],
   "publishConfig": {
     "access": "public"
   },
