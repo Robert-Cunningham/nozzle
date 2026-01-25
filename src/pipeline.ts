@@ -52,6 +52,13 @@ export class Pipeline<T = string, R = any> implements AsyncIterable<T, R> {
   /**
    * @hidden
    */
+  reduce<A>(reducer: (accumulator: A, current: T, index: number) => A, initial: A) {
+    return new Pipeline<A, R>(tx.reduce(this.src, reducer, initial))
+  }
+
+  /**
+   * @hidden
+   */
   asyncMap<U>(fn: (value: T) => Promise<U>) {
     return new Pipeline<U, R>(tx.asyncMap(this.src, fn))
   }
