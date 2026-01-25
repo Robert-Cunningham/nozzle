@@ -25,8 +25,10 @@ export const asyncMap = async function* <T, U>(
   const errors = new Map<number, Error>()
   let nextIndex = 0
   let inputDone = false
-
   let inputError: Error | null = null
+
+  // Signal for when new promises are added
+  let notifyNewPromise: (() => void) | null = null
 
   async function processInput() {
     try {
@@ -38,11 +40,15 @@ export const asyncMap = async function* <T, U>(
           return null as any // This will never be yielded since we throw the error first
         })
         promises.push(promise)
+        // Signal that a new promise is available
+        notifyNewPromise?.()
       }
     } catch (err) {
       inputError = err instanceof Error ? err : new Error(String(err))
     } finally {
       inputDone = true
+      // Signal completion so the consumer can exit
+      notifyNewPromise?.()
     }
   }
 
@@ -50,7 +56,11 @@ export const asyncMap = async function* <T, U>(
 
   while (!inputDone || nextIndex < promises.length) {
     if (nextIndex >= promises.length) {
-      await new Promise((resolve) => setTimeout(resolve, 1))
+      // Wait for a new promise to be added using Promise.race
+      await new Promise<void>((resolve) => {
+        notifyNewPromise = resolve
+      })
+      notifyNewPromise = null
       continue
     }
 
