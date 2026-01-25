@@ -81,9 +81,9 @@ async function main() {
     })
     .join("\n\n---\n\n")
 
-  // Combine with template
+  // Combine with template (use function to avoid $ being interpreted as replacement pattern)
   const template = fs.readFileSync("README.template.md", "utf-8")
-  const readme = template.replace("{{reference}}", docs)
+  const readme = template.replace("{{reference}}", () => docs)
   fs.writeFileSync("README.md", readme)
 
   console.log(`Generated docs for ${functions.length} functions in ${sortedGroups.length} groups`)
