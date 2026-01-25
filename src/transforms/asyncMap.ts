@@ -17,12 +17,13 @@
  * nz(["api/users", "api/posts"]).asyncMap(async url => fetch(url).then(r => r.json())) // => [userData], [postsData]
  * ```
  */
+type Result<U> = { ok: true; value: U } | { ok: false; error: Error }
+
 export const asyncMap = async function* <T, U>(
   iterator: AsyncIterable<T>,
   fn: (value: T) => Promise<U>,
 ): AsyncGenerator<U> {
-  const promises: Promise<U>[] = []
-  const errors = new Map<number, Error>()
+  const promises: Promise<Result<U>>[] = []
   let nextIndex = 0
   let inputDone = false
   let inputError: Error | null = null
@@ -32,13 +33,15 @@ export const asyncMap = async function* <T, U>(
 
   async function processInput() {
     try {
-      let promiseIndex = 0
       for await (const text of iterator) {
-        const currentIndex = promiseIndex++
-        const promise = fn(text).catch((err) => {
-          errors.set(currentIndex, err instanceof Error ? err : new Error(String(err)))
-          return null as any // This will never be yielded since we throw the error first
-        })
+        const promise = fn(text)
+          .then((value): Result<U> => ({ ok: true, value }))
+          .catch(
+            (err): Result<U> => ({
+              ok: false,
+              error: err instanceof Error ? err : new Error(String(err)),
+            }),
+          )
         promises.push(promise)
         // Signal that a new promise is available
         notifyNewPromise?.()
@@ -64,14 +67,14 @@ export const asyncMap = async function* <T, U>(
       continue
     }
 
-    // Check if this index had an error before awaiting the promise
-    if (errors.has(nextIndex)) {
-      throw errors.get(nextIndex)!
-    }
-
     const result = await promises[nextIndex]
     nextIndex++
-    yield result
+
+    if (!result.ok) {
+      throw result.error
+    }
+
+    yield result.value
   }
 
   // Check for input iterator errors after processing all items
