@@ -119,6 +119,16 @@ export class Pipeline<T = string, R = any> implements AsyncIterable<T, R> {
     return new Pipeline<T, any>(tx.unwrap(this.src))
   }
 
+  /**
+   * @hidden
+   */
+  window<K>(
+    fn: (ctx: { past: T[]; current: T; upcoming: T[]; index: number; done: boolean }) => { value: K; advance?: number },
+    options?: { maxPast?: number },
+  ) {
+    return new Pipeline<K, R>(tx.window(this.src, fn, options))
+  }
+
   // ---- String-specific methods ----
   /**
    * @hidden
