@@ -532,15 +532,17 @@ describe("replace", () => {
     expect((await consume(result)).string()).toBe("[json]")
   })
 
-  test("should handle double json blocks", async () => {
+  test("should handle double json blocks with non-greedy match", async () => {
     const input = fromList(["```json", "1", "```", "```json", "2", "```"])
-    const result = (await consume(replace(input, /```json.*?```/gms, "[json]"))).string()
+    // Using 's' (dotall) flag instead of 'm' (multiline) since multiline is not supported
+    const result = (await consume(replace(input, /```json.*?```/gs, "[json]"))).string()
     expect(result).toBe("[json][json]")
   })
 
-  test("should handle double json blocks", async () => {
+  test("should handle double json blocks with greedy match", async () => {
     const input = fromList(["```json", "1", "```", "```json", "2", "```"])
-    const result = (await consume(replace(input, /```json.*```/gms, "[json]"))).string()
+    // Using 's' (dotall) flag instead of 'm' (multiline) since multiline is not supported
+    const result = (await consume(replace(input, /```json.*```/gs, "[json]"))).string()
     expect(result).toBe("[json]")
   })
 })
