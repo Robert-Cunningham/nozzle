@@ -4,9 +4,6 @@
  * - Subsequent chunks are batched and yielded together after the interval
  * - If no chunks arrive during an interval, the next chunk is yielded immediately when it arrives
  *
- * Error handling follows the pattern described in {@link file://./../../ASYNC_ERROR_HANDLING.md}
- * to ensure errors are thrown during await ticks for proper try/catch handling.
- *
  * @group Timing
  * @param source The async iterable source of values.
  * @param intervalMs The throttling interval in milliseconds.
