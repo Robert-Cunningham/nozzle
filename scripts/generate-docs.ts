@@ -1,9 +1,8 @@
 /**
- * Simpler documentation generator using TypeDoc's programmatic API.
- * Alternative to the theme-based approach in typedoc-theme-example-first.mjs
+ * Documentation generator using TypeDoc's programmatic API.
  *
  * Usage: npx tsx scripts/generate-docs.ts
- * Output: README.modern.md
+ * Output: README.md
  */
 
 import {
@@ -42,7 +41,7 @@ async function main() {
 
   // Combine with preamble
   const preamble = fs.readFileSync("Preamble.md", "utf-8")
-  fs.writeFileSync("README.modern.md", `${preamble}\n${docs}\n`)
+  fs.writeFileSync("README.md", `${preamble}\n${docs}\n`)
 
   console.log(`Generated docs for ${functions.length} functions`)
 }
