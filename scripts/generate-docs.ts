@@ -15,6 +15,25 @@ import {
 } from "typedoc"
 import * as fs from "fs"
 
+/** Group ordering (descriptions come from @groupDescription in source) */
+const GROUP_ORDER: Record<string, number> = {
+  Elements: 1,
+  Indexing: 2,
+  Filtering: 3,
+  Splitting: 4,
+  Accumulation: 5,
+  Transformation: 6,
+  Regex: 7,
+  Timing: 8,
+  Buffering: 9,
+  "Side Effects": 10,
+  "Error Handling": 11,
+  "Return Values": 12,
+  Conversion: 13,
+  Functions: 14,
+  Other: 99,
+}
+
 async function main() {
   // Use bootstrap (not bootstrapWithPlugins) to avoid loading plugins
   // Pass options: null to prevent reading typedoc.json
@@ -34,16 +53,39 @@ async function main() {
 
   // Get all exported functions/declarations that have signatures
   const functions = collectFunctions(project.children ?? [])
-  functions.sort((a, b) => a.name.localeCompare(b.name))
 
-  // Render each function
-  const docs = functions.map(renderFunction).join("\n\n---\n\n")
+  // Collect @groupDescription tags from all declarations
+  const groupDescriptions = collectGroupDescriptions(project.children ?? [])
+
+  // Group functions by their @group tag
+  const grouped = groupByTag(functions)
+
+  // Sort groups by order, then render each group
+  const sortedGroups = Object.entries(grouped).sort((a, b) => {
+    const orderA = GROUP_ORDER[a[0]] ?? 99
+    const orderB = GROUP_ORDER[b[0]] ?? 99
+    return orderA - orderB
+  })
+
+  const docs = sortedGroups
+    .map(([groupName, funcs]) => {
+      // Sort functions within group alphabetically
+      funcs.sort((a, b) => a.name.localeCompare(b.name))
+
+      const groupHeader = `# ${groupName}`
+      const groupDesc = groupDescriptions[groupName]
+      const descSection = groupDesc ? `\n\n${groupDesc}` : ""
+      const funcDocs = funcs.map(renderFunction).join("\n\n---\n\n")
+
+      return `${groupHeader}${descSection}\n\n${funcDocs}`
+    })
+    .join("\n\n---\n\n")
 
   // Combine with preamble
   const preamble = fs.readFileSync("Preamble.md", "utf-8")
   fs.writeFileSync("README.md", `${preamble}\n${docs}\n`)
 
-  console.log(`Generated docs for ${functions.length} functions`)
+  console.log(`Generated docs for ${functions.length} functions in ${sortedGroups.length} groups`)
 }
 
 /**
@@ -69,6 +111,80 @@ function collectFunctions(children: DeclarationReflection[]): DeclarationReflect
   }
 
   return result
+}
+
+/**
+ * Collect @groupDescription tags from all declarations in the project
+ */
+function collectGroupDescriptions(children: DeclarationReflection[]): Record<string, string> {
+  const descriptions: Record<string, string> = {}
+
+  function processComment(comment: Comment | undefined) {
+    if (!comment?.blockTags) return
+    for (const tag of comment.blockTags) {
+      if (tag.tag === "@groupDescription") {
+        // First word is the group name, rest is description
+        const content = Comment.combineDisplayParts(tag.content).trim()
+        const firstSpace = content.indexOf("\n")
+        if (firstSpace > 0) {
+          const groupName = content.slice(0, firstSpace).trim()
+          const description = content.slice(firstSpace + 1).trim()
+          descriptions[groupName] = description
+        }
+      }
+    }
+  }
+
+  function recurse(children: DeclarationReflection[]) {
+    for (const child of children) {
+      // Check the declaration's own comment
+      processComment(child.comment)
+
+      // Check signature comments
+      if (child.signatures) {
+        for (const sig of child.signatures) {
+          processComment(sig.comment)
+        }
+      }
+
+      // Recurse into children
+      if (child.children?.length) {
+        recurse(child.children)
+      }
+    }
+  }
+
+  recurse(children)
+  return descriptions
+}
+
+/**
+ * Group functions by their @group tag
+ */
+function groupByTag(functions: DeclarationReflection[]): Record<string, DeclarationReflection[]> {
+  const groups: Record<string, DeclarationReflection[]> = {}
+
+  for (const func of functions) {
+    const groupName = getGroup(func)
+    if (!groups[groupName]) {
+      groups[groupName] = []
+    }
+    groups[groupName].push(func)
+  }
+
+  return groups
+}
+
+/**
+ * Get the @group tag value from a declaration
+ */
+function getGroup(r: DeclarationReflection): string {
+  const comment = getComment(r)
+  const groupTag = comment?.blockTags?.find((t) => t.tag === "@group")
+  if (groupTag) {
+    return Comment.combineDisplayParts(groupTag.content).trim()
+  }
+  return "Other"
 }
 
 /**
@@ -109,7 +225,7 @@ function renderFunction(r: DeclarationReflection): string {
   // Build output
   const parts: string[] = []
 
-  // Heading
+  // Heading (## since groups are #)
   parts.push(`## \`${r.name}\``)
   parts.push("")
 
