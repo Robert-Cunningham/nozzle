@@ -31,79 +31,35 @@ nozzle is written in TypeScript and has both cjs and esm builds.
 ## Usage
 
 ```ts
+// map inline image ids into objects with attached urls (from the db) using .parse and .asyncMap
 const stream = await openai.chat.completions.create({ ...args, stream: true })
+return nz(stream).match()
+```
 
-/*
-# Reasoning:
-3x3 is equal to 9.
+```ts
+// use nozzle to run actions as soon as they come back from chatGPT; tap for logging; tee for capturing the stream when it's done.
+```
 
-# Answer:
-The product is 9.
+````ts
+// use before and after to streaming-extract the content between ```ts and ```, then evaluate the response
+const code = nz(stream)
+  .after("```ts")
+  .before("```")
+  .tap((x) => websocketSend(x))
+  .accumulate()
+  .last()
 
-# Check:
-9 / 3 = 3, so I think this answer is correct.
+return eval(code)
+````
 
-=> 
-The product is 9.
-*/
-// extract the section between # Answer and # Reasoning; return the individual sentences at least 100ms apart.
+```ts
+// re-time an LLM response to be more reasonable. Use buffer() etc.
 return nz(stream)
-  .after("# Answer")
-  .before("# Check")
   .split(/ .;,/g)
   .trim() // trim the overall response of whitespace.
   .minInterval(100)
   .value()
 ```
-
-// wait, does regex work with ^? probably not, since we truncate all the time, right?
-// because really, .trim() should just be .replace(^\s+, '').replace(\s+$, '').
-// it could also be
-
-````ts
-import { parse, STR, OBJ } from "nozzle-json";
-
-const input = `
-Sure, the object that answers your question is:
-\`\`\`json
-{"product": 9}
-\`\`\`
-`
-
-// should have .throwifnotfound or something, as well as .throwiffound, .censor, etc?
-return nz(stream)
-  .after("```json")
-  .before("```")
-  .trim()
-  .accumulate()
-  .map((prefix) => parse(prefix))
-  .pairs()
-  .filter(x => ) // only allow json values which have xyz
-  .value()
-```
-````
-
-## Testing
-
-Install the library:
-
-```bash
-git clone https://github.com/Robert-Cunningham/nozzle
-cd nozzle
-npm i
-```
-
-Then run the tests:
-
-```bash
-npm run test
-```
-
-## License
-
-This library is licensed under the MIT license.
-
-## API Reference
 
 # Elements
 
@@ -679,7 +635,70 @@ These features throw an error because they cannot work reliably with streaming:
 | Lookaheads | `(?=...)`, `(?!...)` | Content to look ahead may not have arrived yet |
 | Lookbehinds | `(?<=...)`, `(?<!...)` | Content to look behind may have already been yielded |
 | Backreferences | `\1`, `\k<name>` | Referenced group may span chunks or be partially buffered |
-| Multiline mode | `/pattern/m` | `^`/`$` would behave inconsistently at arbitrary chunk boundaries |
+| Multiline mode | `/pattern/m` | `^`/`<div align="center">
+  <img src="assets/nozzle%20small.png" alt="Nozzle Logo" width="40%" />
+  <br />
+  <a href="https://www.npmjs.com/package/nozzle-js"><img src="https://badgen.net/npm/v/nozzle-js" /></a>
+  <a href="https://github.com/robert-cunningham/nozzle/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue" /></a>
+  <a href="https://bundlephobia.com/result?p=nozzle-js"><img src="https://badgen.net/bundlephobia/minzip/nozzle-js"></a>
+  <br />
+  <br />
+  <a href="#Quickstart">Quickstart</a>
+  <span>&nbsp;&nbsp;•&nbsp;&nbsp;</span>
+  <a href="#Reference">Reference</a>
+  <br />
+  <hr />
+</div>
+
+<!-- [![npm version][npm-src]][npm-href]
+[![Bundle size][bundlephobia-src]][bundlephobia-href]
+[![License][license-src]][license-href]
+-->
+
+Nozzle is a utility library for manipulating streams of text, and in particular streamed responses from LLMs.
+
+## Installation
+
+```bash
+npm i nozzle-js # or pnpm / bun / yarn
+```
+
+nozzle is written in TypeScript and has both cjs and esm builds.
+
+## Usage
+
+```ts
+// map inline image ids into objects with attached urls (from the db) using .parse and .asyncMap
+const stream = await openai.chat.completions.create({ ...args, stream: true })
+return nz(stream).match()
+```
+
+```ts
+// use nozzle to run actions as soon as they come back from chatGPT; tap for logging; tee for capturing the stream when it's done.
+```
+
+````ts
+// use before and after to streaming-extract the content between ```ts and ```, then evaluate the response
+const code = nz(stream)
+  .after("```ts")
+  .before("```")
+  .tap((x) => websocketSend(x))
+  .accumulate()
+  .last()
+
+return eval(code)
+````
+
+```ts
+// re-time an LLM response to be more reasonable. Use buffer() etc.
+return nz(stream)
+  .split(/ .;,/g)
+  .trim() // trim the overall response of whitespace.
+  .minInterval(100)
+  .value()
+```
+
+ would behave inconsistently at arbitrary chunk boundaries |
 
 ### Patterns That Delay Output
 
@@ -1155,3 +1174,23 @@ function window<T, U, R = any>(source: Iterable<T, R>, fn: (ctx: { current: T; d
 | `fn` | (ctx: { current: T; done: boolean; index: number; past: T[]; upcoming: T[] }) =\> { advance?: number; value: U } | Callback receiving context and returning value and advance amount |
 | `options` | { maxPast?: number } | Optional configuration |
 </details>
+
+## Testing
+
+Install the library:
+
+```bash
+git clone https://github.com/Robert-Cunningham/nozzle
+cd nozzle
+npm i
+```
+
+Then run the tests:
+
+```bash
+npm run test
+```
+
+## License
+
+This library is licensed under the MIT license.

@@ -61,6 +61,8 @@ return nz(stream)
   .value()
 ```
 
+{{reference}}
+
 ## Testing
 
 Install the library:
@@ -80,5 +82,3 @@ npm run test
 ## License
 
 This library is licensed under the MIT license.
-
-## API Reference
