@@ -54,11 +54,7 @@ return eval(code)
 
 ```ts
 // re-time an LLM response to be more reasonable. Use buffer() etc.
-return nz(stream)
-  .split(/ .;,/g)
-  .trim() // trim the overall response of whitespace.
-  .minInterval(100)
-  .value()
+return nz(stream).split(/ .;,/g).minInterval(100).value()
 ```
 
 {{reference}}
