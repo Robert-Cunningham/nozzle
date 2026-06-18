@@ -220,6 +220,15 @@ describe("Pipeline with nz()", () => {
       expect(result).toEqual(["a", "b", "c"])
       expect(sideEffects).toEqual(["A", "B", "C"])
     })
+
+    test("should split a pipeline with tee", async () => {
+      const [displayStream, storageStream] = nz(["a", "b", "c"]).tee(2)
+
+      const [display, storage] = await Promise.all([displayStream.consume(), storageStream.consume()])
+
+      expect(display.list()).toEqual(["a", "b", "c"])
+      expect(storage.string()).toBe("abc")
+    })
   })
 
   describe("String-Specific Operations", () => {
