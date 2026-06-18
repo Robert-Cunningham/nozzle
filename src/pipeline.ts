@@ -68,6 +68,13 @@ export class Pipeline<T = string, R = any> implements AsyncIterable<T, R> {
   /**
    * @hidden
    */
+  batch(size: number) {
+    return new Pipeline<T[], R>(tx.batch(this.src, size))
+  }
+
+  /**
+   * @hidden
+   */
   buffer(n?: number) {
     return new Pipeline<T, R>(tx.buffer(this.src, n))
   }
