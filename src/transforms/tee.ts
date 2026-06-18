@@ -1,3 +1,5 @@
+import { Channel, ChannelClosedError } from "../primitives"
+
 /**
  * Splits a single iterator into N independent iterables.
  *
@@ -11,85 +13,63 @@
  * const [stream1, stream2] = nz(["a", "b", "c"]).tee(2) // => Two independent streams of "a", "b", "c"
  * ```
  */
-export function tee<T>(iterator: AsyncIterator<T>, n: number): AsyncGenerator<T>[] {
-  const queues: T[][] = Array.from({ length: n }, () => [])
-  const resolvers: Array<
-    {
-      resolve: (value: IteratorResult<T>) => void
-      reject: (error: any) => void
-    }[]
-  > = Array.from({ length: n }, () => [])
-  let finished = false
-  let error: any = null
-
-  const advance = async () => {
-    if (finished) return
-
-    try {
-      const result = await iterator.next()
-
-      if (result.done) {
-        finished = true
-        for (let i = 0; i < n; i++) {
-          const queueResolvers = resolvers[i]
-          while (queueResolvers.length > 0) {
-            const { resolve } = queueResolvers.shift()!
-            resolve({ done: true, value: undefined })
-          }
-        }
-      } else {
-        for (let i = 0; i < n; i++) {
-          queues[i].push(result.value)
-          if (resolvers[i].length > 0) {
-            const { resolve } = resolvers[i].shift()!
-            resolve({ done: false, value: queues[i].shift()! })
-          }
-        }
-      }
-    } catch (err) {
-      error = err
-      finished = true
-      for (let i = 0; i < n; i++) {
-        const queueResolvers = resolvers[i]
-        while (queueResolvers.length > 0) {
-          const { reject } = queueResolvers.shift()!
-          reject(err)
-        }
-      }
-    }
+export function tee<T, R = any>(iterator: AsyncIterator<T, R>, n: number): AsyncGenerator<T, R>[] {
+  if (n < 0 || !Number.isInteger(n)) {
+    throw new Error(`tee count must be a non-negative integer, got ${n}`)
   }
 
-  const createGenerator = async function* (index: number): AsyncGenerator<T> {
-    while (true) {
-      if (error) {
-        throw error
-      }
+  let activeBranches = n
+  const channels = Array.from(
+    { length: n },
+    () =>
+      new Channel<T, R>({
+        onCancel: async () => {
+          activeBranches--
+          if (activeBranches === 0) {
+            await iterator.return?.()
+          }
+        },
+      }),
+  )
 
-      if (queues[index].length > 0) {
-        yield queues[index].shift()!
-        continue
-      }
+  let started = false
+  const start = () => {
+    if (started || n === 0) return
+    started = true
 
-      if (finished) {
-        return
-      }
+    void (async () => {
+      try {
+        while (channels.some((channel) => channel.isOpen)) {
+          const result = await iterator.next()
 
-      await new Promise<void>((resolve, reject) => {
-        resolvers[index].push({
-          resolve: (result) => {
-            if (result.done) {
-              resolve()
-            } else {
-              queues[index].push(result.value)
-              resolve()
-            }
-          },
-          reject,
-        })
-        advance()
-      })
-    }
+          if (result.done) {
+            for (const channel of channels) channel.close(result.value as R)
+            return
+          }
+
+          await Promise.all(
+            channels.map(async (channel) => {
+              if (!channel.isOpen) return
+
+              try {
+                await channel.push(result.value)
+              } catch (error) {
+                if (!(error instanceof ChannelClosedError)) throw error
+              }
+            }),
+          )
+        }
+      } catch (error) {
+        if (channels.every((channel) => channel.isCanceled)) return
+        for (const channel of channels) channel.fail(error)
+      }
+    })()
   }
 
-  return Array.from({ length: n }, (_, i) => createGenerator(i))
+  return channels.map((channel) =>
+    (async function* (): AsyncGenerator<T, R> {
+      start()
+      return yield* channel
+    })(),
+  )
 }

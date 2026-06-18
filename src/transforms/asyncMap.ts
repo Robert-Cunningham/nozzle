@@ -1,4 +1,6 @@
-type Result<U> = { ok: true; value: U } | { ok: false; error: Error }
+import { Channel, ChannelClosedError } from "../primitives"
+
+type Result<U> = { ok: true; value: U } | { ok: false; error: unknown }
 
 /**
  * Transforms each value from the input stream using the provided async function.
@@ -16,68 +18,71 @@ type Result<U> = { ok: true; value: U } | { ok: false; error: Error }
  * nz(["api/users", "api/posts"]).asyncMap(async url => fetch(url).then(r => r.json())) // => [userData], [postsData]
  * ```
  */
-export const asyncMap = async function* <T, U>(
-  iterator: AsyncIterable<T>,
+export const asyncMap = async function* <T, U, R = any>(
+  iterator: AsyncIterable<T, R>,
   fn: (value: T) => Promise<U>,
-): AsyncGenerator<U> {
-  const promises: Promise<Result<U>>[] = []
-  let nextIndex = 0
-  let inputDone = false
-  let inputError: Error | null = null
+): AsyncGenerator<U, R> {
+  const source = iterator[Symbol.asyncIterator]()
+  const promises = new Channel<Promise<Result<U>>, R>({
+    onCancel: async () => {
+      await source.return?.()
+    },
+  })
 
-  // Signal for when new promises are added
-  let notifyNewPromise: (() => void) | null = null
-
-  async function processInput() {
+  void (async () => {
     try {
-      for await (const text of iterator) {
-        const promise = fn(text)
-          .then((value): Result<U> => ({ ok: true, value }))
-          .catch(
-            (err): Result<U> => ({
-              ok: false,
-              error: err instanceof Error ? err : new Error(String(err)),
-            }),
-          )
-        promises.push(promise)
-        // Signal that a new promise is available
-        notifyNewPromise?.()
+      while (promises.isOpen) {
+        const next = await source.next()
+
+        if (next.done) {
+          promises.close(next.value as R)
+          return
+        }
+
+        let promise: Promise<Result<U>>
+        try {
+          promise = Promise.resolve(fn(next.value))
+            .then((value): Result<U> => ({ ok: true, value }))
+            .catch(
+              (err): Result<U> => ({
+                ok: false,
+                error: err,
+              }),
+            )
+        } catch (err) {
+          promise = Promise.resolve({
+            ok: false,
+            error: err,
+          })
+        }
+
+        await promises.push(promise)
       }
-    } catch (err) {
-      inputError = err instanceof Error ? err : new Error(String(err))
-    } finally {
-      inputDone = true
-      // Signal completion so the consumer can exit
-      notifyNewPromise?.()
+    } catch (error) {
+      if (promises.isCanceled && error instanceof ChannelClosedError) return
+      if (promises.isCanceled) return
+      promises.fail(error)
     }
-  }
+  })()
 
-  const inputPromise = processInput()
+  const iter = promises[Symbol.asyncIterator]()
 
-  while (!inputDone || nextIndex < promises.length) {
-    if (nextIndex >= promises.length) {
-      // Wait for a new promise to be added using Promise.race
-      await new Promise<void>((resolve) => {
-        notifyNewPromise = resolve
-      })
-      notifyNewPromise = null
-      continue
+  try {
+    while (true) {
+      const next = await iter.next()
+
+      if (next.done) {
+        return next.value as R
+      }
+
+      const result = await next.value
+      if (!result.ok) {
+        throw result.error
+      }
+
+      yield result.value
     }
-
-    const result = await promises[nextIndex]
-    nextIndex++
-
-    if (!result.ok) {
-      throw result.error
-    }
-
-    yield result.value
+  } finally {
+    await iter.return?.()
   }
-
-  // Check for input iterator errors after processing all items
-  if (inputError) {
-    throw inputError
-  }
-
-  await inputPromise
 }

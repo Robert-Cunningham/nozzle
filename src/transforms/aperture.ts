@@ -1,3 +1,4 @@
+import { Cursor } from "../primitives"
 import { Iterable } from "../types"
 
 /**
@@ -13,19 +14,26 @@ import { Iterable } from "../types"
  * nz([1, 2, 3, 4, 5]).aperture(3) // => [1, 2, 3], [2, 3, 4], [3, 4, 5]
  * ```
  */
-export async function* aperture<T>(source: Iterable<T>, n: number): AsyncGenerator<T[]> {
-  if (n <= 0) {
-    return
+export async function* aperture<T, R = any>(source: Iterable<T, R>, n: number): AsyncGenerator<T[], R> {
+  if (n <= 0 || !Number.isInteger(n)) {
+    return undefined as R
   }
 
-  const buffer: T[] = []
+  const cursor = new Cursor(source)
+  if (!(await cursor.init())) return cursor.returnValue as R
 
-  for await (const item of source) {
-    buffer.push(item)
+  while (cursor.hasCurrent) {
+    const upcoming = await cursor.peek(n - 1)
 
-    if (buffer.length === n) {
-      yield [...buffer]
-      buffer.shift()
+    if (upcoming.length < n - 1) {
+      return cursor.returnValue as R
     }
+
+    yield [cursor.current, ...upcoming]
+
+    const hasCurrent = await cursor.advance(1)
+    if (!hasCurrent) return cursor.returnValue as R
   }
+
+  return cursor.returnValue as R
 }
