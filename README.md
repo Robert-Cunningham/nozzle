@@ -640,6 +640,31 @@ function reduce<T, A>(source: AsyncIterable<T>, reducer: (accumulator: A, curren
 
 ## Transformation
 
+### `flatMap`
+
+```ts
+nz(["hi", "ok"]).flatMap(word => word.split("")) // => "h", "i", "o", "k"
+nz([1, 2, 3]).flatMap(n => Array(n).fill(n)) // => 1, 2, 2, 3, 3, 3
+```
+
+Transforms each value from the input stream into zero or more output values.
+
+<details><summary>Details</summary>
+
+```ts
+function flatMap<T, U, R = any>(source: AsyncIterable<T, R>, fn: (value: T) => Iterable<U, any, any> | AsyncIterable<U, any, any>): AsyncGenerator<U, R, undefined>;
+```
+
+#### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `source` | AsyncIterable\<T, R\> | An asynchronous iterable of values. |
+| `fn` | (value: T) =\> Iterable\<U, any, any\> \| AsyncIterable\<U, any, any\> | A function that returns sync or async iterable values for each input. |
+</details>
+
+---
+
 ### `flatten`
 
 ```ts
