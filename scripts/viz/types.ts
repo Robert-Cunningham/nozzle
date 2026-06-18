@@ -8,6 +8,14 @@ export interface TimestampedText {
 }
 
 /**
+ * A labeled row of timestamped text tokens.
+ */
+export interface TimelineRow {
+  label: string
+  tokens: TimestampedText[]
+}
+
+/**
  * Options for generating the WebM video.
  */
 export interface GenerateWebmOptions {
@@ -36,6 +44,14 @@ export interface TokenWithColor extends TimestampedText {
 }
 
 /**
+ * A labeled row of colored tokens ready to render.
+ */
+export interface TokenRow {
+  label: string
+  tokens: TokenWithColor[]
+}
+
+/**
  * Resolved options with all defaults applied.
  */
 export interface ResolvedOptions {
@@ -51,6 +67,7 @@ export interface ResolvedOptions {
  * Timeline data for rendering.
  */
 export interface Timeline {
+  rows: TokenRow[]
   inputTokens: TokenWithColor[]
   outputTokens: TokenWithColor[]
   totalDurationMs: number

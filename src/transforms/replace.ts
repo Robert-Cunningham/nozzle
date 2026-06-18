@@ -11,7 +11,7 @@ import { scan } from "./scan"
  * Built on: `scan(input, regex).map(x => 'text' in x ? x.text : x.match[0].replace(regex, replacement))`
  *
  * @group Regex
- * @param iterator - An asynchronous iterable of strings.
+ * @param input - An asynchronous iterable of strings.
  * @param regex - The regular expression pattern to match.
  * @param replacement - The string to replace matches with.
  * @returns An asynchronous generator that yields strings with replacements applied.

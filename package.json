@@ -33,7 +33,8 @@
     "test": "vitest run",
     "lint": "prettier --check .",
     "lint:fix": "prettier --write .",
-    "docs": "npx tsx scripts/generate-docs.ts",
+    "docs": "tsx scripts/generate-docs.ts",
+    "demos": "tsx scripts/viz/demos/generate-readme-demos.ts",
     "prepublishOnly": "pnpm run build && pnpm run docs",
     "prerelease": "pnpm run build && pnpm run docs && pnpm run lint && pnpm run test",
     "release:patch": "pnpm run prerelease && npm version patch && npm publish && git push --follow-tags",
@@ -50,6 +51,7 @@
     "prettier": "3.5.3",
     "puppeteer": "^24.2.1",
     "tsup": "8.5.0",
+    "tsx": "^4.22.4",
     "typedoc": "^0.28.5",
     "typescript": "5.8.3",
     "vitest": "3.2.1"

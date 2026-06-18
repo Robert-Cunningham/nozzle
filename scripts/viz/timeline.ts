@@ -1,4 +1,4 @@
-import type { TimestampedText, TokenWithColor, Timeline } from "./types.js"
+import type { TimelineRow, TimestampedText, TokenRow, TokenWithColor, Timeline } from "./types.js"
 import { getTokenColor } from "./colorPalette.js"
 
 /**
@@ -13,23 +13,37 @@ function assignColors(tokens: TimestampedText[]): TokenWithColor[] {
 }
 
 /**
+ * Build a timeline from any number of labeled rows.
+ */
+export function buildRowsTimeline(rows: TimelineRow[], holdDuration: number): Timeline {
+  const renderedRows: TokenRow[] = rows.map((row) => ({
+    label: row.label,
+    tokens: assignColors(row.tokens),
+  }))
+
+  const timestamps = rows.flatMap((row) => row.tokens.map((token) => token.ts))
+  const totalDurationMs = (timestamps.length > 0 ? Math.max(...timestamps) : 0) + holdDuration
+
+  return {
+    rows: renderedRows,
+    inputTokens: renderedRows[0]?.tokens ?? [],
+    outputTokens: renderedRows[1]?.tokens ?? [],
+    totalDurationMs,
+  }
+}
+
+/**
  * Build a timeline from input and output token arrays.
  * Computes total duration and assigns colors to each token.
  */
 export function buildTimeline(input: TimestampedText[], output: TimestampedText[], holdDuration: number): Timeline {
-  const inputTokens = assignColors(input)
-  const outputTokens = assignColors(output)
-
-  // Find the maximum timestamp across both rows
-  const maxInputTs = input.length > 0 ? Math.max(...input.map((t) => t.ts)) : 0
-  const maxOutputTs = output.length > 0 ? Math.max(...output.map((t) => t.ts)) : 0
-  const totalDurationMs = Math.max(maxInputTs, maxOutputTs) + holdDuration
-
-  return {
-    inputTokens,
-    outputTokens,
-    totalDurationMs,
-  }
+  return buildRowsTimeline(
+    [
+      { label: "INPUT", tokens: input },
+      { label: "OUTPUT", tokens: output },
+    ],
+    holdDuration,
+  )
 }
 
 /**
