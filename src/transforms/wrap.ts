@@ -1,6 +1,15 @@
 /**
+ * A wrapped iterator result.
+ */
+export type WrappedResult<T, R = any> =
+  | { type: "value"; value: T }
+  | { type: "return"; value: R }
+  | { type: "error"; error: unknown }
+
+/**
  * Wraps an iterator to catch any errors and return them in a result object format.
- * Instead of throwing, errors are yielded as `{error}` and successful values as `{value}`.
+ * Instead of throwing, errors are yielded as `{type: "error", error}` and successful values as
+ * `{type: "value", value}`.
  *
  * @group Error Handling
  * @param iterator - An asynchronous iterable.
@@ -8,12 +17,11 @@
  *
  * @example
  * ```ts
- * nz(["hello", "world"]).wrap() // => {value: "hello"}, {value: "world"}, {return: undefined}
+ * nz(["hello", "world"]).wrap()
+ * // => {type: "value", value: "hello"}, {type: "value", value: "world"}, {type: "return", value: undefined}
  * ```
  */
-export const wrap = async function* <T>(
-  iterator: AsyncIterable<T>,
-): AsyncGenerator<{ value?: T; return?: any; error?: unknown }> {
+export const wrap = async function* <T, R = any>(iterator: AsyncIterable<T, R>): AsyncGenerator<WrappedResult<T, R>> {
   try {
     const iter = iterator[Symbol.asyncIterator]()
 
@@ -21,15 +29,13 @@ export const wrap = async function* <T>(
       const result = await iter.next()
 
       if (result.done) {
-        if (result.value !== undefined) {
-          yield { return: result.value }
-        }
+        yield { type: "return", value: result.value as R }
         break
       } else {
-        yield { value: result.value }
+        yield { type: "value", value: result.value }
       }
     }
   } catch (error) {
-    yield { error }
+    yield { type: "error", error }
   }
 }

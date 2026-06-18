@@ -1105,20 +1105,20 @@ nz(["hello", "world"]).wrap().unwrap() // => "hello", "world"
 ```
 
 Unwraps results from wrap() back into a normal iterator that throws/returns/yields.
-The opposite of wrap() - takes {value, return, error} objects and converts them back
-to normal iterator behavior.
+The opposite of wrap() - takes wrapped result objects and converts them back to normal
+iterator behavior.
 
 <details><summary>Details</summary>
 
 ```ts
-function unwrap<T, R = any>(iterator: AsyncIterable<{ error?: any; return?: R; value?: T }>): AsyncGenerator<T, R, any>;
+function unwrap<T, R = any>(iterator: AsyncIterable<WrappedResult<T, R>>): AsyncGenerator<T, R, undefined>;
 ```
 
 #### Parameters
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
-| `iterator` | AsyncIterable\<{ error?: any; return?: R; value?: T }\> | An asynchronous iterable of wrapped result objects. |
+| `iterator` | AsyncIterable\<WrappedResult\<T, R\>\> | An asynchronous iterable of wrapped result objects. |
 </details>
 
 ---
@@ -1126,23 +1126,25 @@ function unwrap<T, R = any>(iterator: AsyncIterable<{ error?: any; return?: R; v
 ### `wrap`
 
 ```ts
-nz(["hello", "world"]).wrap() // => {value: "hello"}, {value: "world"}, {return: undefined}
+nz(["hello", "world"]).wrap()
+// => {type: "value", value: "hello"}, {type: "value", value: "world"}, {type: "return", value: undefined}
 ```
 
 Wraps an iterator to catch any errors and return them in a result object format.
-Instead of throwing, errors are yielded as `{error}` and successful values as `{value}`.
+Instead of throwing, errors are yielded as `{type: "error", error}` and successful values as
+`{type: "value", value}`.
 
 <details><summary>Details</summary>
 
 ```ts
-function wrap<T>(iterator: AsyncIterable<T>): AsyncGenerator<{ error?: unknown; return?: any; value?: T }>;
+function wrap<T, R = any>(iterator: AsyncIterable<T, R>): AsyncGenerator<WrappedResult<T, R>>;
 ```
 
 #### Parameters
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
-| `iterator` | AsyncIterable\<T\> | An asynchronous iterable. |
+| `iterator` | AsyncIterable\<T, R\> | An asynchronous iterable. |
 </details>
 
 ---
