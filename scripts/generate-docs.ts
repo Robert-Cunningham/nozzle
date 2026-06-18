@@ -52,7 +52,7 @@ async function main() {
   if (!project) throw new Error("Failed to convert project")
 
   // Get all exported functions/declarations that have signatures
-  const functions = collectFunctions(project.children ?? [])
+  const functions = collectFunctions(project.children ?? []).filter(hasGroup)
 
   // Collect @groupDescription tags from all declarations
   const groupDescriptions = collectGroupDescriptions(project.children ?? [])
@@ -72,7 +72,7 @@ async function main() {
       // Sort functions within group alphabetically
       funcs.sort((a, b) => a.name.localeCompare(b.name))
 
-      const groupHeader = `# ${groupName}`
+      const groupHeader = `## ${groupName}`
       const groupDesc = groupDescriptions[groupName]
       const descSection = groupDesc ? `\n\n${groupDesc}` : ""
       const funcDocs = funcs.map(renderFunction).join("\n\n---\n\n")
@@ -188,6 +188,11 @@ function getGroup(r: DeclarationReflection): string {
   return "Other"
 }
 
+function hasGroup(r: DeclarationReflection): boolean {
+  const comment = getComment(r)
+  return comment?.blockTags?.some((t) => t.tag === "@group") ?? false
+}
+
 /**
  * Get the primary signature for a declaration
  */
@@ -226,8 +231,8 @@ function renderFunction(r: DeclarationReflection): string {
   // Build output
   const parts: string[] = []
 
-  // Heading (## since groups are #)
-  parts.push(`## \`${r.name}\``)
+  // Heading (### since groups are ##)
+  parts.push(`### \`${r.name}\``)
   parts.push("")
 
   // Examples first (just the code, no heading)
@@ -254,7 +259,7 @@ function renderFunction(r: DeclarationReflection): string {
   parts.push("")
 
   if (paramsTable) {
-    parts.push("### Parameters")
+    parts.push("#### Parameters")
     parts.push("")
     parts.push(paramsTable)
   }

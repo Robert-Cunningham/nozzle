@@ -4,12 +4,12 @@ import { tmpdir } from "node:os"
 import { randomBytes } from "node:crypto"
 import ffmpeg from "fluent-ffmpeg"
 import ffmpegPath from "ffmpeg-static"
-import type { TimestampedText, GenerateWebmOptions, ResolvedOptions } from "./types.js"
-import { buildTimeline, getVisibleTokens } from "./timeline.js"
-import { renderFrame, createRenderer, closeRenderer } from "./renderFrame.js"
+import type { TimelineRow, TimestampedText, GenerateWebmOptions, ResolvedOptions } from "./types.js"
+import { buildRowsTimeline, getVisibleTokens } from "./timeline.js"
+import { renderRowsFrame, createRenderer, closeRenderer } from "./renderFrame.js"
 
 // Re-export types for external use
-export type { TimestampedText, GenerateWebmOptions }
+export type { TimelineRow, TimestampedText, GenerateWebmOptions }
 
 // Set ffmpeg path
 if (ffmpegPath) {
@@ -51,13 +51,8 @@ function createTempDir(): string {
 /**
  * Generate all frames as PNG files in a temporary directory.
  */
-async function generateFrames(
-  input: TimestampedText[],
-  output: TimestampedText[],
-  options: ResolvedOptions,
-  tempDir: string,
-): Promise<number> {
-  const timeline = buildTimeline(input, output, options.holdDuration)
+async function generateFrames(rows: TimelineRow[], options: ResolvedOptions, tempDir: string): Promise<number> {
+  const timeline = buildRowsTimeline(rows, options.holdDuration)
   const frameDurationMs = 1000 / options.fps
   const totalFrames = Math.ceil(timeline.totalDurationMs / frameDurationMs)
 
@@ -68,10 +63,12 @@ async function generateFrames(
     for (let frame = 0; frame < totalFrames; frame++) {
       const currentTimeMs = frame * frameDurationMs
 
-      const visibleInput = getVisibleTokens(timeline.inputTokens, currentTimeMs)
-      const visibleOutput = getVisibleTokens(timeline.outputTokens, currentTimeMs)
+      const visibleRows = timeline.rows.map((row) => ({
+        label: row.label,
+        tokens: getVisibleTokens(row.tokens, currentTimeMs),
+      }))
 
-      const buffer = await renderFrame(page, visibleInput, visibleOutput, options)
+      const buffer = await renderRowsFrame(page, visibleRows, options)
 
       // Write frame with zero-padded filename for correct ordering
       const framePath = join(tempDir, `frame-${String(frame).padStart(6, "0")}.png`)
@@ -115,9 +112,8 @@ async function encodeToGif(tempDir: string, outputPath: string, options: Resolve
  * @param outputPath - Path where the video file will be written
  * @param options - Optional configuration for video generation
  */
-export async function generateWebm(
-  input: TimestampedText[],
-  output: TimestampedText[],
+export async function generateRowsGif(
+  rows: TimelineRow[],
   outputPath: string,
   options?: GenerateWebmOptions,
 ): Promise<void> {
@@ -126,7 +122,7 @@ export async function generateWebm(
 
   try {
     // Generate all frames
-    await generateFrames(input, output, resolvedOptions, tempDir)
+    await generateFrames(rows, resolvedOptions, tempDir)
 
     // Encode to GIF
     await encodeToGif(tempDir, outputPath, resolvedOptions)
@@ -134,4 +130,20 @@ export async function generateWebm(
     // Clean up temp directory
     rmSync(tempDir, { recursive: true, force: true })
   }
+}
+
+export async function generateWebm(
+  input: TimestampedText[],
+  output: TimestampedText[],
+  outputPath: string,
+  options?: GenerateWebmOptions,
+): Promise<void> {
+  return generateRowsGif(
+    [
+      { label: "INPUT", tokens: input },
+      { label: "OUTPUT", tokens: output },
+    ],
+    outputPath,
+    options,
+  )
 }

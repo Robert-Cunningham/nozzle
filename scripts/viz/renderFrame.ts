@@ -1,5 +1,5 @@
 import type { Browser, Page } from "puppeteer"
-import type { TokenWithColor, ResolvedOptions } from "./types.js"
+import type { TokenRow, TokenWithColor, ResolvedOptions } from "./types.js"
 
 /**
  * Generate HTML for a row of tokens.
@@ -43,9 +43,19 @@ function escapeHtml(text: string): string {
 /**
  * Generate the full HTML page for rendering.
  */
-function generateHtml(inputTokens: TokenWithColor[], outputTokens: TokenWithColor[], options: ResolvedOptions): string {
-  const inputHtml = generateTokensHtml(inputTokens)
-  const outputHtml = generateTokensHtml(outputTokens)
+function generateRowsHtml(rows: TokenRow[]): string {
+  return rows
+    .map(
+      (row) => `<div class="row">
+    <span class="label">${escapeHtml(row.label)}</span>
+    <span class="tokens">${generateTokensHtml(row.tokens)}</span>
+  </div>`,
+    )
+    .join("")
+}
+
+function generateHtml(rows: TokenRow[], options: ResolvedOptions): string {
+  const rowsHtml = generateRowsHtml(rows)
 
   return `<!DOCTYPE html>
 <html>
@@ -70,18 +80,21 @@ function generateHtml(inputTokens: TokenWithColor[], outputTokens: TokenWithColo
       display: flex;
       align-items: center;
       padding: 0 20px;
+      min-height: 0;
     }
-    .row:first-child {
+    .row:not(:last-child) {
       border-bottom: 1px solid #dddddd;
     }
     .label {
       color: #666666;
       font-weight: bold;
-      width: 110px;
+      width: 130px;
       flex-shrink: 0;
     }
     .tokens {
-      white-space: pre;
+      white-space: pre-wrap;
+      overflow: hidden;
+      line-height: 1.45;
     }
     .tokens span {
       padding: 4px 0;
@@ -89,16 +102,20 @@ function generateHtml(inputTokens: TokenWithColor[], outputTokens: TokenWithColo
   </style>
 </head>
 <body>
-  <div class="row">
-    <span class="label">INPUT</span>
-    <span class="tokens">${inputHtml}</span>
-  </div>
-  <div class="row">
-    <span class="label">OUTPUT</span>
-    <span class="tokens">${outputHtml}</span>
-  </div>
+  ${rowsHtml}
 </body>
 </html>`
+}
+
+/**
+ * Render a single frame with labeled rows using Puppeteer.
+ * Returns a PNG buffer.
+ */
+export async function renderRowsFrame(page: Page, rows: TokenRow[], options: ResolvedOptions): Promise<Buffer> {
+  const html = generateHtml(rows, options)
+  await page.setContent(html, { waitUntil: "domcontentloaded" })
+  const screenshot = await page.screenshot({ type: "png" })
+  return Buffer.from(screenshot)
 }
 
 /**
@@ -111,10 +128,14 @@ export async function renderFrame(
   outputTokens: TokenWithColor[],
   options: ResolvedOptions,
 ): Promise<Buffer> {
-  const html = generateHtml(inputTokens, outputTokens, options)
-  await page.setContent(html, { waitUntil: "domcontentloaded" })
-  const screenshot = await page.screenshot({ type: "png" })
-  return Buffer.from(screenshot)
+  return renderRowsFrame(
+    page,
+    [
+      { label: "INPUT", tokens: inputTokens },
+      { label: "OUTPUT", tokens: outputTokens },
+    ],
+    options,
+  )
 }
 
 /**

@@ -6,9 +6,11 @@
   <a href="https://bundlephobia.com/result?p=nozzle-js"><img src="https://badgen.net/bundlephobia/minzip/nozzle-js"></a>
   <br />
   <br />
-  <a href="#Quickstart">Quickstart</a>
+  <a href="#quickstart">Quickstart</a>
   <span>&nbsp;&nbsp;•&nbsp;&nbsp;</span>
-  <a href="#Reference">Reference</a>
+  <a href="#recipes">Recipes</a>
+  <span>&nbsp;&nbsp;•&nbsp;&nbsp;</span>
+  <a href="#reference">Reference</a>
   <br />
   <hr />
 </div>
@@ -18,62 +20,91 @@
 [![License][license-src]][license-href]
 -->
 
-Nozzle is a utility library for manipulating streams of text, and in particular streamed responses from LLMs.
+Nozzle is a small TypeScript library for transforming async iterables, especially streamed text from LLMs.
 
-## Installation
+It helps when provider chunks are not the chunks your app wants: parse structured markers, split text into useful pieces, fan out one stream to multiple consumers, extract generated sections, or smooth token timing without waiting for the whole response.
+
+## Quickstart
 
 ```bash
 npm i nozzle-js # or pnpm / bun / yarn
 ```
 
-nozzle is written in TypeScript and has both cjs and esm builds.
+Nozzle has ESM and CJS builds and works with any sync or async iterable.
 
-## Usage
+<!-- prettier-ignore -->
+```ts
+import { nz } from "nozzle-js"
+
+const pacedWords = nz(llmTextStream)
+  .splitAfter(" ")
+  .compact()
+  .minInterval(40)
+
+for await (const word of pacedWords) {
+  process.stdout.write(word)
+}
+```
+
+## Recipes
+
+### Parse structured markers as they stream
 
 ```ts
-// Parse image references into structured objects
 const stream = await openai.chat.completions.create({ ...args, stream: true })
 
-return nz(stream).parse(/img-(\w+)/g, (match) => ({ type: "image", id: match[1] }))
+const parts = nz(stream)
+  .map((chunk) => chunk.choices[0]?.delta?.content ?? "")
+  .parse(/img-(\w+)/g, (match) => ({ type: "image", id: match[1] }))
+
 // yields: "Here is ", { type: "image", id: "abc123" }, " for you"
 ```
 
 ![Parse Demo](assets/demo-parse.gif)
 
+### Branch one stream for UI and storage
+
 ```ts
-// Use tee to split the stream: one for display, one for storage
 const [displayStream, storageStream] = nz(stream).tee(2)
 
-// Stream to user in real-time
 const displayPromise = (async () => {
   for await (const chunk of displayStream) process.stdout.write(chunk)
 })()
 
-// Capture full response for storage while display consumes concurrently
 const [, consumed] = await Promise.all([displayPromise, storageStream.consume()])
-const content = consumed.string()
-conversation.push({ role: "assistant", content })
+conversation.push({ role: "assistant", content: consumed.string() })
 ```
 
+![Tee Demo](assets/demo-tee.gif)
+
+### Extract a generated section
+
+<!-- prettier-ignore -->
 ````ts
-// Extract TypeScript code between markdown fences and evaluate it
-return eval(
-  await nz(stream)
-    .after(/```ts\s*/g)
-    .before(/\s*```/g)
-    .tap(websocketSend)
-    .accumulate()
-    .last(),
-)
+const code = await nz(stream)
+  .after("```ts\n")
+  .before("```")
+  .tap(sendToPreview)
+  .consume()
+
+await saveSnippet(code.string())
 ````
 
+![Extract Demo](assets/demo-extract.gif)
+
+### Smooth chunky provider output
+
+<!-- prettier-ignore -->
 ```ts
-// Re-time an LLM response for smoother streaming
-return nz(stream)
-  .split(/[ .;,]/g)
+const smoothStream = nz(stream)
+  .splitAfter(" ")
   .compact()
-  .minInterval(100)
+  .minInterval(40)
 ```
+
+![Timing Demo](assets/demo-timing.gif)
+
+## Reference
 
 {{reference}}
 

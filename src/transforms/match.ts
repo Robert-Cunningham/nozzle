@@ -47,7 +47,7 @@ import { scan } from "./scan"
  * - **Global (`/pattern/g`)**: Finds all matches throughout the stream
  * - **Non-global (`/pattern/`)**: Finds only the first match, then passes remaining text through unchanged
  *
- * @param iterator - An asynchronous iterable of strings.
+ * @param input - An asynchronous iterable of strings.
  * @param regex - The regular expression pattern to match.
  * @returns An asynchronous generator that yields RegExpExecArray results for each match.
  *
