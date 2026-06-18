@@ -187,6 +187,22 @@ describe("Pipeline with nz()", () => {
       expect(result).toBe("last")
     })
 
+    test("should get value at index", async () => {
+      const items = ["a", "b", "c", "d", "e"]
+
+      expect(await nz(fromList(items)).at(2)).toBe("c")
+      expect(await nz(fromList(items)).at(-1)).toBe("e")
+      expect(await nz(fromList(items)).at(10)).toBeUndefined()
+    })
+
+    test("should use indexing transforms", async () => {
+      const items = ["a", "b", "c", "d"]
+
+      expect((await nz(fromList(items)).head().consume()).list()).toEqual(["a"])
+      expect((await nz(fromList(items)).initial().consume()).list()).toEqual(["a", "b", "c"])
+      expect((await nz(fromList(items)).tail().consume()).list()).toEqual(["b", "c", "d"])
+    })
+
     test("should flatten nested arrays", async () => {
       const nested = [[1, 2], [3, 4], [5]]
       const pipeline = nz(fromList(nested)).flatten()

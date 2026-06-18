@@ -48,6 +48,13 @@ export class Pipeline<T = string, R = any> implements AsyncIterable<T, R> {
   /**
    * @hidden
    */
+  at(index: number): Promise<T | undefined> {
+    return tx.at(this.src, index)
+  }
+
+  /**
+   * @hidden
+   */
   map<U>(fn: (value: T) => U) {
     return new Pipeline<U, R>(tx.map(this.src, fn))
   }
@@ -106,6 +113,27 @@ export class Pipeline<T = string, R = any> implements AsyncIterable<T, R> {
    */
   slice(start: number, end?: number) {
     return new Pipeline<T, R>(tx.slice(this.src, start, end))
+  }
+
+  /**
+   * @hidden
+   */
+  head() {
+    return new Pipeline<T, R>(tx.head(this.src))
+  }
+
+  /**
+   * @hidden
+   */
+  initial() {
+    return new Pipeline<T, R>(tx.initial(this.src))
+  }
+
+  /**
+   * @hidden
+   */
+  tail() {
+    return new Pipeline<T, R>(tx.tail(this.src))
   }
 
   /**
