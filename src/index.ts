@@ -83,5 +83,4 @@ export const nz: {
 
 // re-export everything else for tree-shaking users
 export * from "./transforms"
-export * from "./primitives"
 export { Pipeline }
