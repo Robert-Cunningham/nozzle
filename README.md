@@ -406,6 +406,54 @@ function compact(iterator: AsyncIterable<string>): AsyncGenerator<string>;
 
 ---
 
+### `takeUntil`
+
+```ts
+nz([1, 2, 3, 4]).takeUntil(n => n === 3) // => 1, 2
+```
+
+Yields values until the predicate matches, excluding the matching value.
+
+<details><summary>Details</summary>
+
+```ts
+function takeUntil<T, R = any>(source: AsyncIterable<T, R>, predicate: (value: T) => boolean): AsyncGenerator<T, R, undefined>;
+```
+
+#### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `source` | AsyncIterable\<T, R\> | An asynchronous iterable of values. |
+| `predicate` | (value: T) =\> boolean | A function that returns true for the value that should stop the stream. |
+</details>
+
+---
+
+### `takeWhile`
+
+```ts
+nz([1, 2, 3, 1]).takeWhile(n => n < 3) // => 1, 2
+```
+
+Yields values while the predicate matches, excluding the first non-matching value.
+
+<details><summary>Details</summary>
+
+```ts
+function takeWhile<T, R = any>(source: AsyncIterable<T, R>, predicate: (value: T) => boolean): AsyncGenerator<T, R, undefined>;
+```
+
+#### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `source` | AsyncIterable\<T, R\> | An asynchronous iterable of values. |
+| `predicate` | (value: T) =\> boolean | A function that returns true for values to keep. |
+</details>
+
+---
+
 ## Splitting
 
 ### `after`

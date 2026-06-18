@@ -109,6 +109,20 @@ export class Pipeline<T = string, R = any> implements AsyncIterable<T, R> {
   /**
    * @hidden
    */
+  takeUntil(predicate: (value: T) => boolean) {
+    return new Pipeline<T, R>(tx.takeUntil(this.src, predicate))
+  }
+
+  /**
+   * @hidden
+   */
+  takeWhile(predicate: (value: T) => boolean) {
+    return new Pipeline<T, R>(tx.takeWhile(this.src, predicate))
+  }
+
+  /**
+   * @hidden
+   */
   tee(n: number): Pipeline<T, R>[] {
     return tx.tee(this.src[Symbol.asyncIterator](), n).map((iter) => new Pipeline<T, R>(iter))
   }
