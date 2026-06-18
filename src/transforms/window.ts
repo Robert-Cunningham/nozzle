@@ -1,3 +1,4 @@
+import { Cursor } from "../primitives"
 import { Iterable } from "../types"
 
 /**
@@ -26,83 +27,31 @@ export async function* window<T, U, R = any>(
   fn: (ctx: { past: T[]; current: T; upcoming: T[]; index: number; done: boolean }) => { value: U; advance?: number },
   options?: { maxPast?: number },
 ): AsyncGenerator<U, R> {
-  const iter = (source as AsyncIterable<T, R>)[Symbol.asyncIterator]()
-  const past: T[] = []
-  const upcoming: T[] = []
-  const maxPast = options?.maxPast
-  let done = false
-  let returnValue: R | undefined
+  const cursor = new Cursor(source, options)
+  if (!(await cursor.init())) return cursor.returnValue as R
 
-  // Helper to add to past with maxPast limit
-  const addToPast = (item: T) => {
-    past.push(item)
-    if (maxPast !== undefined && past.length > maxPast) {
-      past.shift()
-    }
-  }
-
-  // Get first item
-  const first = await iter.next()
-  if (first.done) return first.value as R
-
-  let current: T = first.value
-  let index = 0
-
-  while (true) {
+  while (cursor.hasCurrent) {
     const { value, advance = 1 } = fn({
-      past: [...past],
-      current,
-      upcoming: [...upcoming],
-      index,
-      done,
+      ...cursor.snapshot(),
     })
     yield value
 
-    // Validate advance
-    const maxAdvance = upcoming.length + 1
+    if (advance < 0 || !Number.isInteger(advance)) {
+      throw new Error(`advance must be a non-negative integer, got ${advance}`)
+    }
+
+    const maxAdvance = cursor.upcomingLength + 1
     if (advance > maxAdvance) {
       throw new Error(`advance (${advance}) cannot exceed upcoming.length + 1 (${maxAdvance})`)
     }
 
     if (advance === 0) {
-      // Stay in place, fetch one more into upcoming (if possible)
-      if (!done) {
-        const next = await iter.next()
-        if (next.done) {
-          done = true
-          returnValue = next.value as R
-        } else {
-          upcoming.push(next.value)
-        }
-      }
-      // Loop again with same current, updated upcoming/done
+      await cursor.peek(cursor.upcomingLength + 1)
     } else {
-      // Move forward by `advance` positions
-      // Move current to past
-      addToPast(current)
-
-      // Consume (advance - 1) more items from upcoming into past
-      for (let i = 1; i < advance; i++) {
-        addToPast(upcoming.shift()!)
-      }
-
-      // Get next current from upcoming, or fetch from stream
-      if (upcoming.length > 0) {
-        current = upcoming.shift()!
-      } else if (!done) {
-        const next = await iter.next()
-        if (next.done) {
-          done = true
-          returnValue = next.value as R
-          return returnValue
-        }
-        current = next.value
-      } else {
-        // No more items (done was already true, upcoming empty)
-        return returnValue as R
-      }
-
-      index += advance
+      const hasCurrent = await cursor.advance(advance)
+      if (!hasCurrent) return cursor.returnValue as R
     }
   }
+
+  return cursor.returnValue as R
 }

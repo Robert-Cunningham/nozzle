@@ -108,6 +108,24 @@ describe("buffer", () => {
     expect(result).toEqual([1, 2])
   })
 
+  it("should preserve non-Error source throws", async () => {
+    async function* errorSource() {
+      yield 1
+      throw "string error"
+    }
+
+    let caught: unknown
+    try {
+      for await (const _item of buffer(errorSource())) {
+        // consume
+      }
+    } catch (err) {
+      caught = err
+    }
+
+    expect(caught).toBe("string error")
+  })
+
   it("should demonstrate buffering behavior with timing", async () => {
     // Create a slow source that takes 100ms between items
     const source = delayedStream([1, 2, 3, 4], 100)

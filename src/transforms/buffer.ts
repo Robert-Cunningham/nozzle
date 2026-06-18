@@ -1,3 +1,5 @@
+import { Channel } from "../primitives"
+
 /**
  * Buffers up to N items from the source iterator, consuming them eagerly
  * and yielding them on demand. If n is undefined, buffers unlimited items.
@@ -17,84 +19,10 @@
  * nz(["a", "b", "c"]).tap(x => console.log(`consumed: ${x}`)).buffer(2).tap(x => console.log(`yielded: ${x}`)) // => consumed: a, consumed: b, yielded: a, consumed: c, yielded: b, yielded: c
  * ```
  */
-export const buffer = async function* <T>(source: AsyncIterable<T>, n?: number): AsyncGenerator<T> {
+export const buffer = async function* <T, R = any>(source: AsyncIterable<T, R>, n?: number): AsyncGenerator<T, R> {
   if (n !== undefined && (n <= 0 || !Number.isInteger(n))) {
     throw new Error(`buffer size must be a positive integer, got ${n}`)
   }
 
-  /** internal buffer to store pre-fetched items */
-  const buf: T[] = []
-
-  /** signals for coordinating between consumer and generator */
-  const signals: {
-    wakeGenerator: null | (() => void)
-    wakeConsumer: null | (() => void)
-  } = {
-    wakeGenerator: null,
-    wakeConsumer: null,
-  }
-
-  /** indicates if the source has finished */
-  let finished = false
-
-  /** indicates if there was an error consuming the source */
-  let error: Error | null = null
-
-  /** the background consumer that eagerly fetches from source */
-  const consumerPromise = (async () => {
-    try {
-      for await (const item of source) {
-        // If we have a size limit and we've reached it, wait for space
-        while (n !== undefined && buf.length >= n) {
-          await new Promise<void>((resolve) => {
-            signals.wakeConsumer = resolve
-          })
-        }
-
-        buf.push(item)
-
-        // Wake up the generator if it's waiting for items
-        signals.wakeGenerator?.()
-        signals.wakeGenerator = null
-      }
-    } catch (err) {
-      error = err instanceof Error ? err : new Error(String(err))
-    } finally {
-      finished = true
-      signals.wakeGenerator?.()
-      signals.wakeGenerator = null
-    }
-  })()
-
-  // Start consuming immediately (don't await - let it run in background)
-  // This allows the consumer to start filling the buffer right away
-
-  // Yield items from buffer
-  while (true) {
-    // If we have items in buffer, yield them
-    if (buf.length > 0) {
-      const item = buf.shift()!
-
-      // Wake up the consumer if it was waiting for space
-      signals.wakeConsumer?.()
-      signals.wakeConsumer = null
-
-      yield item
-      continue
-    }
-
-    // No items in buffer - check if we're done
-    if (finished) {
-      if (error) throw error
-      break
-    }
-
-    // Wait for more items
-    await new Promise<void>((resolve) => {
-      signals.wakeGenerator = resolve
-    })
-  }
-
-  // Ensure consumer completes and propagate any errors
-  await consumerPromise
+  return yield* Channel.from(source, { capacity: n })
 }
