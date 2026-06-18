@@ -1,5 +1,6 @@
 import { ConsumedPipeline } from "./consumedPipeline"
 import * as tx from "./transforms"
+import { RecoverResult } from "./transforms/recover"
 import { ScanResult } from "./transforms/scan"
 import { Iterable } from "./types"
 
@@ -160,6 +161,13 @@ export class Pipeline<T = string, R = any> implements AsyncIterable<T, R> {
    */
   unwrap(this: Pipeline<{ value?: T; return?: R; error?: unknown }, R>) {
     return new Pipeline<T, any>(tx.unwrap(this.src))
+  }
+
+  /**
+   * @hidden
+   */
+  recover(handler: (error: unknown) => RecoverResult<T>) {
+    return new Pipeline<T, R | undefined>(tx.recover(this.src, handler))
   }
 
   /**
