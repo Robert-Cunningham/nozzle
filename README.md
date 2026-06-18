@@ -1046,6 +1046,31 @@ function tee<T, R = any>(iterator: AsyncIterator<T, R>, n: number): AsyncGenerat
 
 ## Error Handling
 
+### `recover`
+
+```ts
+nz(stream).recover(() => ["[stream failed]"])
+nz(stream).recover(() => []) // swallow the error and end
+```
+
+Catches an upstream error and optionally yields replacement values.
+
+<details><summary>Details</summary>
+
+```ts
+function recover<T, R = any>(source: AsyncIterable<T, R>, handler: (error: unknown) => RecoverResult<T>): AsyncGenerator<T, R, undefined>;
+```
+
+#### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `source` | AsyncIterable\<T, R\> | An asynchronous iterable of values. |
+| `handler` | (error: unknown) =\> RecoverResult\<T\> | A function that returns replacement values, or nothing to end the stream. |
+</details>
+
+---
+
 ### `unwrap`
 
 ```ts
