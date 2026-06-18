@@ -14,7 +14,11 @@ describe("wrap", () => {
       results.push(result)
     }
 
-    expect(results).toEqual([{ value: "hello" }, { value: "world" }])
+    expect(results).toEqual([
+      { type: "value", value: "hello" },
+      { type: "value", value: "world" },
+      { type: "return", value: undefined },
+    ])
   })
 
   test("yields error result for immediate error", async () => {
@@ -36,7 +40,7 @@ describe("wrap", () => {
     }
 
     expect(results).toHaveLength(2)
-    expect(results[0]).toEqual({ value: "item1" })
+    expect(results[0]).toEqual({ type: "value", value: "item1" })
     expect(results[1]).toHaveProperty("error")
     expect((results[1].error as Error).message).toBe("error after one")
   })
@@ -48,9 +52,9 @@ describe("wrap", () => {
     }
 
     expect(results).toHaveLength(4)
-    expect(results[0]).toEqual({ value: "item1" })
-    expect(results[1]).toEqual({ value: "item2" })
-    expect(results[2]).toEqual({ value: "item3" })
+    expect(results[0]).toEqual({ type: "value", value: "item1" })
+    expect(results[1]).toEqual({ type: "value", value: "item2" })
+    expect(results[2]).toEqual({ type: "value", value: "item3" })
     expect(results[3]).toHaveProperty("error")
     expect((results[3].error as Error).message).toBe("error after multiple")
   })
@@ -62,7 +66,7 @@ describe("wrap", () => {
     }
 
     expect(results).toHaveLength(2)
-    expect(results[0]).toEqual({ value: "item1" })
+    expect(results[0]).toEqual({ type: "value", value: "item1" })
     expect(results[1]).toHaveProperty("error")
     expect(results[1].error).toBeInstanceOf(TypeError)
     expect((results[1].error as TypeError).message).toBe("custom type error")
@@ -75,7 +79,7 @@ describe("wrap", () => {
     }
 
     expect(results).toHaveLength(2)
-    expect(results[0]).toEqual({ value: "item1" })
+    expect(results[0]).toEqual({ type: "value", value: "item1" })
     expect(results[1]).toHaveProperty("error")
     expect((results[1].error as Error).message).toBe("error after delay")
   })
@@ -92,8 +96,8 @@ describe("wrap", () => {
     }
 
     expect(results).toHaveLength(2)
-    expect(results[0]).toEqual({ value: "item1" })
-    expect(results[1]).toEqual({ error: "string error" })
+    expect(results[0]).toEqual({ type: "value", value: "item1" })
+    expect(results[1]).toEqual({ type: "error", error: "string error" })
   })
 
   test("handles thrown objects", async () => {
@@ -109,8 +113,8 @@ describe("wrap", () => {
     }
 
     expect(results).toHaveLength(2)
-    expect(results[0]).toEqual({ value: "item1" })
-    expect(results[1]).toEqual({ error: thrownObject })
+    expect(results[0]).toEqual({ type: "value", value: "item1" })
+    expect(results[1]).toEqual({ type: "error", error: thrownObject })
   })
 
   test("handles thrown null/undefined", async () => {
@@ -132,11 +136,11 @@ describe("wrap", () => {
       results2.push(result)
     }
 
-    expect(results1).toEqual([{ error: null }])
-    expect(results2).toEqual([{ error: undefined }])
+    expect(results1).toEqual([{ type: "error", error: null }])
+    expect(results2).toEqual([{ type: "error", error: undefined }])
   })
 
-  test("empty iterator yields no results", async () => {
+  test("empty iterator yields undefined return result", async () => {
     const source = async function* () {
       // yields nothing
     }
@@ -146,7 +150,7 @@ describe("wrap", () => {
       results.push(result)
     }
 
-    expect(results).toHaveLength(0)
+    expect(results).toEqual([{ type: "return", value: undefined }])
   })
 
   test("iterator with return value yields return result", async () => {
@@ -162,9 +166,26 @@ describe("wrap", () => {
     }
 
     expect(results).toHaveLength(3)
-    expect(results[0]).toEqual({ value: "item1" })
-    expect(results[1]).toEqual({ value: "item2" })
-    expect(results[2]).toEqual({ return: "final value" })
+    expect(results[0]).toEqual({ type: "value", value: "item1" })
+    expect(results[1]).toEqual({ type: "value", value: "item2" })
+    expect(results[2]).toEqual({ type: "return", value: "final value" })
+  })
+
+  test("preserves undefined values and return values", async () => {
+    const source = async function* () {
+      yield undefined
+      return undefined
+    }
+
+    const results = []
+    for await (const result of wrap(source())) {
+      results.push(result)
+    }
+
+    expect(results).toEqual([
+      { type: "value", value: undefined },
+      { type: "return", value: undefined },
+    ])
   })
 
   test("result objects have correct shape", async () => {
@@ -180,14 +201,16 @@ describe("wrap", () => {
 
     expect(results).toHaveLength(2)
 
-    // Success result should have value property, no error property
+    // Success result should have type and value properties, no error property
+    expect(results[0]).toHaveProperty("type", "value")
     expect(results[0]).toHaveProperty("value")
     expect(results[0]).not.toHaveProperty("error")
-    expect(Object.keys(results[0])).toEqual(["value"])
+    expect(Object.keys(results[0])).toEqual(["type", "value"])
 
-    // Error result should have error property, no value property
+    // Error result should have type and error properties, no value property
+    expect(results[1]).toHaveProperty("type", "error")
     expect(results[1]).toHaveProperty("error")
     expect(results[1]).not.toHaveProperty("value")
-    expect(Object.keys(results[1])).toEqual(["error"])
+    expect(Object.keys(results[1])).toEqual(["type", "error"])
   })
 })

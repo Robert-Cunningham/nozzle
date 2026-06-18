@@ -3,6 +3,7 @@ import * as tx from "./transforms"
 import { AsyncMapOptions } from "./transforms/asyncMap"
 import { RecoverResult } from "./transforms/recover"
 import { ScanResult } from "./transforms/scan"
+import { type WrappedResult } from "./transforms/wrap"
 import { Iterable } from "./types"
 
 /**
@@ -189,14 +190,14 @@ export class Pipeline<T = string, R = any> implements AsyncIterable<T, R> {
    * @hidden
    */
   wrap() {
-    return new Pipeline<{ value?: T; return?: R; error?: unknown }, undefined>(tx.wrap(this.src))
+    return new Pipeline<WrappedResult<T, R>, undefined>(tx.wrap(this.src))
   }
 
   /**
    * @hidden
    */
-  unwrap(this: Pipeline<{ value?: T; return?: R; error?: unknown }, R>) {
-    return new Pipeline<T, any>(tx.unwrap(this.src))
+  unwrap(this: Pipeline<WrappedResult<T, R>, R>) {
+    return new Pipeline<T, R>(tx.unwrap(this.src))
   }
 
   /**

@@ -1,7 +1,9 @@
+import { type WrappedResult } from "./wrap"
+
 /**
  * Unwraps results from wrap() back into a normal iterator that throws/returns/yields.
- * The opposite of wrap() - takes {value, return, error} objects and converts them back
- * to normal iterator behavior.
+ * The opposite of wrap() - takes wrapped result objects and converts them back to normal
+ * iterator behavior.
  *
  * @group Error Handling
  * @param iterator - An asynchronous iterable of wrapped result objects.
@@ -13,15 +15,19 @@
  * ```
  */
 export const unwrap = async function* <T, R = any>(
-  iterator: AsyncIterable<{ value?: T; return?: R; error?: any }>,
-): AsyncGenerator<T, R | undefined, any> {
+  iterator: AsyncIterable<WrappedResult<T, R>>,
+): AsyncGenerator<T, R, undefined> {
   for await (const result of iterator) {
-    if (result.error !== undefined) {
-      throw result.error
-    } else if (result.return !== undefined) {
-      return result.return
-    } else if (result.value !== undefined) {
-      yield result.value
+    switch (result.type) {
+      case "value":
+        yield result.value
+        break
+      case "return":
+        return result.value
+      case "error":
+        throw result.error
     }
   }
+
+  return undefined as R
 }

@@ -121,6 +121,9 @@ describe("unwrap", () => {
     const nullErrorSource = async function* () {
       throw null
     }
+    const undefinedErrorSource = async function* () {
+      throw undefined
+    }
 
     const wrappedResults = wrap(nullErrorSource())
     const unwrapped = unwrap(wrappedResults)
@@ -130,6 +133,15 @@ describe("unwrap", () => {
         // should not reach here
       }
     }).rejects.toBe(null)
+
+    const wrappedUndefinedResults = wrap(undefinedErrorSource())
+    const unwrappedUndefined = unwrap(wrappedUndefinedResults)
+
+    await expect(async () => {
+      for await (const _value of unwrappedUndefined) {
+        // should not reach here
+      }
+    }).rejects.toBe(undefined)
   })
 
   test("empty iterator yields no results", async () => {
@@ -170,20 +182,41 @@ describe("unwrap", () => {
     expect(roundTripResults).toEqual(originalResults)
   })
 
-  test("ignores results with no properties set", async () => {
+  test("unwraps manually created wrapped results", async () => {
     const manualSafeResults = async function* () {
-      yield { value: "item1" }
-      yield {} // empty result object
-      yield { value: "item2" }
+      yield { type: "value" as const, value: "item1" }
+      yield { type: "value" as const, value: "item2" }
+      yield { type: "return" as const, value: "done" }
     }
 
     const unwrapped = unwrap(manualSafeResults())
 
     const results = []
-    for await (const value of unwrapped) {
-      results.push(value)
+    const iterator = unwrapped[Symbol.asyncIterator]()
+
+    let result = await iterator.next()
+    while (!result.done) {
+      results.push(result.value)
+      result = await iterator.next()
     }
 
     expect(results).toEqual(["item1", "item2"])
+    expect(result.value).toBe("done")
+  })
+
+  test("preserves undefined values and return values", async () => {
+    const source = async function* () {
+      yield undefined
+      return undefined
+    }
+
+    const unwrapped = unwrap(wrap(source()))
+    const iterator = unwrapped[Symbol.asyncIterator]()
+
+    const first = await iterator.next()
+    const done = await iterator.next()
+
+    expect(first).toEqual({ done: false, value: undefined })
+    expect(done).toEqual({ done: true, value: undefined })
   })
 })
