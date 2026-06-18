@@ -1,4 +1,5 @@
 import { describe, expect, test } from "vitest"
+import { nz } from "../src"
 import { asyncMap } from "../src/transforms/asyncMap"
 import { fromList } from "../src/transforms/fromList"
 import { consume } from "../src/transforms/consume"
@@ -142,5 +143,95 @@ describe("asyncMap", () => {
 
     expect(results).toEqual(["result-1", "result-2", "result-3", "result-4"])
     expect(totalTime).toBeLessThan(100)
+  })
+
+  test("should limit the number of concurrent async functions", async () => {
+    let active = 0
+    let maxActive = 0
+
+    const asyncMapIterable = asyncMap(
+      fromList([1, 2, 3, 4, 5]),
+      async (value) => {
+        active++
+        maxActive = Math.max(maxActive, active)
+        await new Promise((resolve) => setTimeout(resolve, 10))
+        active--
+        return value * 2
+      },
+      { concurrency: 2 },
+    )
+
+    const result = (await consume(asyncMapIterable)).list()
+
+    expect(result).toEqual([2, 4, 6, 8, 10])
+    expect(maxActive).toBe(2)
+  })
+
+  test("should run sequentially with concurrency of 1", async () => {
+    let active = 0
+    let maxActive = 0
+    const starts: number[] = []
+
+    const asyncMapIterable = asyncMap(
+      fromList([1, 2, 3]),
+      async (value) => {
+        active++
+        maxActive = Math.max(maxActive, active)
+        starts.push(value)
+        await new Promise((resolve) => setTimeout(resolve, 5))
+        active--
+        return value
+      },
+      { concurrency: 1 },
+    )
+
+    const result = (await consume(asyncMapIterable)).list()
+
+    expect(result).toEqual([1, 2, 3])
+    expect(starts).toEqual([1, 2, 3])
+    expect(maxActive).toBe(1)
+  })
+
+  test("should reject invalid concurrency values", async () => {
+    await expect(consume(asyncMap(fromList([1]), async (value) => value, { concurrency: 0 }))).rejects.toThrow(
+      "asyncMap concurrency must be a positive integer",
+    )
+    await expect(consume(asyncMap(fromList([1]), async (value) => value, { concurrency: 1.5 }))).rejects.toThrow(
+      "asyncMap concurrency must be a positive integer",
+    )
+  })
+
+  test("should preserve return values from source iterator", async () => {
+    const source = async function* () {
+      yield "a"
+      yield "b"
+      return "done"
+    }
+
+    const consumed = await consume(asyncMap(source(), async (value) => value.toUpperCase(), { concurrency: 1 }))
+
+    expect(consumed.list()).toEqual(["A", "B"])
+    expect(consumed.return()).toBe("done")
+  })
+
+  test("should accept concurrency options through the pipeline API", async () => {
+    let active = 0
+    let maxActive = 0
+
+    const consumed = await nz([1, 2, 3, 4])
+      .asyncMap(
+        async (value) => {
+          active++
+          maxActive = Math.max(maxActive, active)
+          await new Promise((resolve) => setTimeout(resolve, 5))
+          active--
+          return value * 3
+        },
+        { concurrency: 2 },
+      )
+      .consume()
+
+    expect(consumed.list()).toEqual([3, 6, 9, 12])
+    expect(maxActive).toBe(2)
   })
 })

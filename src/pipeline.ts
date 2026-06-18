@@ -1,5 +1,6 @@
 import { ConsumedPipeline } from "./consumedPipeline"
 import * as tx from "./transforms"
+import { AsyncMapOptions } from "./transforms/asyncMap"
 import { RecoverResult } from "./transforms/recover"
 import { ScanResult } from "./transforms/scan"
 import { Iterable } from "./types"
@@ -61,8 +62,8 @@ export class Pipeline<T = string, R = any> implements AsyncIterable<T, R> {
   /**
    * @hidden
    */
-  asyncMap<U>(fn: (value: T) => Promise<U>) {
-    return new Pipeline<U, R>(tx.asyncMap(this.src, fn))
+  asyncMap<U>(fn: (value: T) => Promise<U>, options?: AsyncMapOptions) {
+    return new Pipeline<U, R>(tx.asyncMap(this.src, fn, options))
   }
 
   /**

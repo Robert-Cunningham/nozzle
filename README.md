@@ -113,6 +113,7 @@ const smoothStream = nz(stream)
 ```ts
 nz(["hello", "world"]).asyncMap(async x => x.toUpperCase()) // => "HELLO", "WORLD"
 nz(["api/users", "api/posts"]).asyncMap(async url => fetch(url).then(r => r.json())) // => [userData], [postsData]
+nz(urls).asyncMap(fetchJson, { concurrency: 4 })
 ```
 
 Transforms each value from the input stream using the provided async function.
@@ -122,7 +123,7 @@ and yields results as they complete, allowing multiple function calls to run con
 <details><summary>Details</summary>
 
 ```ts
-function asyncMap<T, U, R = any>(iterator: AsyncIterable<T, R>, fn: (value: T) => Promise<U>): AsyncGenerator<U, R>;
+function asyncMap<T, U, R = any>(iterator: AsyncIterable<T, R>, fn: (value: T) => Promise<U>, options?: AsyncMapOptions): AsyncGenerator<U, R>;
 ```
 
 #### Parameters
@@ -131,6 +132,7 @@ function asyncMap<T, U, R = any>(iterator: AsyncIterable<T, R>, fn: (value: T) =
 | ------ | ------ | ------ |
 | `iterator` | AsyncIterable\<T, R\> | An asynchronous iterable of strings. |
 | `fn` | (value: T) =\> Promise\<U\> | An async function that transforms each string value. |
+| `options` | AsyncMapOptions | Optional configuration. |
 </details>
 
 ---
