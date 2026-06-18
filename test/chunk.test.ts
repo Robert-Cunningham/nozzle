@@ -59,4 +59,18 @@ describe("chunk", () => {
     const expected = ["shortverylongtoken", "mid"]
     expect(result).toEqual(expected)
   })
+
+  test("should preserve return values from source iterator", async () => {
+    const source = async function* () {
+      yield "a"
+      yield "b"
+      yield "c"
+      return "done"
+    }
+
+    const consumed = await consume(chunk(source(), 2))
+
+    expect(consumed.list()).toEqual(["ab", "c"])
+    expect(consumed.return()).toBe("done")
+  })
 })

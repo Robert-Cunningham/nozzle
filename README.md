@@ -520,14 +520,14 @@ Takes N input items and yields N/size output items, where each output is the con
 <details><summary>Details</summary>
 
 ```ts
-function chunk(source: AsyncIterable<string>, size: number): AsyncGenerator<string>;
+function chunk<R = any>(source: AsyncIterable<string, R>, size: number): AsyncGenerator<string, R, undefined>;
 ```
 
 #### Parameters
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
-| `source` | AsyncIterable\<string\> | The async iterable source of strings (tokens). |
+| `source` | AsyncIterable\<string, R\> | The async iterable source of strings (tokens). |
 | `size` | number | The number of input tokens to group together in each output chunk. |
 </details>
 
@@ -963,6 +963,31 @@ function throttle<T, R = any>(source: AsyncIterable<T, R>, intervalMs: number, m
 ---
 
 ## Buffering
+
+### `batch`
+
+```ts
+nz([1, 2, 3, 4, 5]).batch(2) // => [1, 2], [3, 4], [5]
+nz(["a", "b", "c"]).batch(2).map(xs => xs.join("")) // => "ab", "c"
+```
+
+Groups input values into arrays of the specified size.
+
+<details><summary>Details</summary>
+
+```ts
+function batch<T, R = any>(source: AsyncIterable<T, R>, size: number): AsyncGenerator<T[], R, undefined>;
+```
+
+#### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `source` | AsyncIterable\<T, R\> | The async iterable source of values. |
+| `size` | number | The number of input values to include in each batch. |
+</details>
+
+---
 
 ### `buffer`
 

@@ -1,3 +1,10 @@
+import { batch } from "./batch"
+import { map } from "./map"
+
+async function* invalidChunk<R>(message: string): AsyncGenerator<string, R, undefined> {
+  throw new Error(message)
+}
+
 /**
  * Groups input tokens into chunks of the specified size and yields the joined result.
  * Takes N input items and yields N/size output items, where each output is the concatenation of size input items.
@@ -12,24 +19,10 @@
  * nz(["a", "b", "c", "d", "e", "f"]).chunk(3) // => "abc", "def"
  * ```
  */
-export async function* chunk(source: AsyncIterable<string>, size: number): AsyncGenerator<string> {
+export function chunk<R = any>(source: AsyncIterable<string, R>, size: number): AsyncGenerator<string, R, undefined> {
   if (size <= 0 || !Number.isInteger(size)) {
-    throw new Error(`chunk size must be a positive integer, got ${size}`)
+    return invalidChunk(`chunk size must be a positive integer, got ${size}`)
   }
 
-  let buffer: string[] = []
-
-  for await (const token of source) {
-    buffer.push(token)
-
-    if (buffer.length >= size) {
-      yield buffer.join("")
-      buffer = []
-    }
-  }
-
-  // Yield any remaining tokens in the buffer
-  if (buffer.length > 0) {
-    yield buffer.join("")
-  }
+  return map(batch(source, size), (tokens) => tokens.join(""))
 }
