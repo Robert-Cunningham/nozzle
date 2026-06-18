@@ -88,6 +88,13 @@ export class Pipeline<T = string, R = any> implements AsyncIterable<T, R> {
   /**
    * @hidden
    */
+  flatMap<U>(fn: (value: T) => Iterable<U> | AsyncIterable<U>) {
+    return new Pipeline<U, R>(tx.flatMap(this.src, fn))
+  }
+
+  /**
+   * @hidden
+   */
   slice(start: number, end?: number) {
     return new Pipeline<T, R>(tx.slice(this.src, start, end))
   }
