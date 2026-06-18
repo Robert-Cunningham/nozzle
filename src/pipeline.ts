@@ -102,6 +102,13 @@ export class Pipeline<T = string, R = any> implements AsyncIterable<T, R> {
   /**
    * @hidden
    */
+  tee(n: number): Pipeline<T, R>[] {
+    return tx.tee(this.src[Symbol.asyncIterator](), n).map((iter) => new Pipeline<T, R>(iter))
+  }
+
+  /**
+   * @hidden
+   */
   throttle(intervalMs: number, merge: (values: T[]) => T) {
     return new Pipeline<T, R>(tx.throttle(this.src, intervalMs, merge))
   }

@@ -31,30 +31,48 @@ nozzle is written in TypeScript and has both cjs and esm builds.
 ## Usage
 
 ```ts
-// map inline image ids into objects with attached urls (from the db) using .parse and .asyncMap
+// Parse image references into structured objects
 const stream = await openai.chat.completions.create({ ...args, stream: true })
-return nz(stream).match()
+
+return nz(stream).parse(/img-(\w+)/g, (match) => ({ type: "image", id: match[1] }))
+// yields: "Here is ", { type: "image", id: "abc123" }, " for you"
 ```
 
+![Parse Demo](assets/demo-parse.gif)
+
 ```ts
-// use nozzle to run actions as soon as they come back from chatGPT; tap for logging; tee for capturing the stream when it's done.
+// Use tee to split the stream: one for display, one for storage
+const [displayStream, storageStream] = nz(stream).tee(2)
+
+// Stream to user in real-time
+const displayPromise = (async () => {
+  for await (const chunk of displayStream) process.stdout.write(chunk)
+})()
+
+// Capture full response for storage while display consumes concurrently
+const [, consumed] = await Promise.all([displayPromise, storageStream.consume()])
+const content = consumed.string()
+conversation.push({ role: "assistant", content })
 ```
 
 ````ts
-// use before and after to streaming-extract the content between ```ts and ```, then evaluate the response
-const code = nz(stream)
-  .after("```ts")
-  .before("```")
-  .tap((x) => websocketSend(x))
-  .accumulate()
-  .last()
-
-return eval(code)
+// Extract TypeScript code between markdown fences and evaluate it
+return eval(
+  await nz(stream)
+    .after(/```ts\s*/g)
+    .before(/\s*```/g)
+    .tap(websocketSend)
+    .accumulate()
+    .last(),
+)
 ````
 
 ```ts
-// re-time an LLM response to be more reasonable. Use buffer() etc.
-return nz(stream).split(/ .;,/g).minInterval(100).value()
+// Re-time an LLM response for smoother streaming
+return nz(stream)
+  .split(/[ .;,]/g)
+  .compact()
+  .minInterval(100)
 ```
 
 # Elements

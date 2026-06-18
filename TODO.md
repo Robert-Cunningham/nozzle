@@ -25,8 +25,20 @@
 [x] write .at() that selects out just a single element. This is also a slice derivative.
 [x] rename the conversion methods, (asList / toString etc)
 [x] shorter examples
+[x] write the simplest version of reduce, which has some internal state and takes an update on every call?
+[x] check for multiline-regexes and assert that we can't processes these.
+[x] should we explicitly state that yielding the empty string must be a no-op?
+[x] explain that before and after() specifically make no claims about when they emit empty strings, etc.
 
 ## Before Release
+
+- add demos/gifs for tee, extract, and timing
+- modernize return passthrough
+- write head of readme
+- some kind of claude-automated testing...?
+- [x] group docs by type
+- [x] maybe write a custom doc generator function
+- ask claude to check the overall project again
 
 Broadly:
 
@@ -46,8 +58,13 @@ Broadly:
 [ ] manually check readme examples
 [ ] explain that streams are pull-based, a la https://chatgpt.com/c/685aecc4-7828-8012-831e-294dbb7dcf03.
 [ ] document the consumedpipeline?
+[ ] should we add a .catch function? await nz(finalRichStream!) .map((chunk) => { if ("output" in chunk) { fullOutput = chunk.output } }) .asList() => I want to be able to catch issues with this easily and ignore them, basically.
 
 [ ] allow delay to choose its length with a function indicating how many elements remain / what the upcoming token is / etc? In particular, it's possible that buffer should expose an option to yield {value, bufferedCount}, which we can then use in the next iterator to determine e.g. what delay to apply? And buffer can pass {value, bufferedCount, done? (is the buffered iterator done?), futureBuffered}. So ideally we would be able to write something like stream().buffer().map({value, count} => if (count < 5) {await sleep(100); yield value;} else {yield value;}).value(). That actually seems like a super useful function. Right, buffer is actually a very core piece of infrastructure here. Potentially the most general form actually passes (soFar: T[], position: number) or even (past: T[], position: number, upcoming: T[], done: boolean). Then you also need some way to indicate when to yield (e.g. when a timer expires, or when something becomes true of `upcoming`). Then .at(-3) is basically saying "whenever upcoming > 3, advance position; if done, return past.at(0)". chunk is basically saying "whenever a new token gets passed, if upcoming.join("").length > 5, yield upcoming.join(""), otherwise if done yield upcoming.join(""), otherwise continue". Somehow the core primitives here look a lot like "see into the future" and "see into the past".
+
+The best implementation of this I can think of is basically .window(win: {before: T[], after: T[], current: T, index: number} => {
+return {advance?: 0, value: K}
+})
 
 Then you can implement e.g. slice() as
 [ ] add a tapNth(-1) function? I guess this can be trivially implemented with buffer or something.
@@ -55,17 +72,17 @@ Then you can implement e.g. slice() as
 [ ] unify stuff around buffers?
 
 [ ] write a reduce() equivalent that takes the same parameters as the delay function? / generally decide what the full group of parameters that gets passed to the iterating function is.
-[ ] write the simplest version of reduce, which has some internal state and takes an update on every call?
 
 [ ] document regex no backreferences, lookaheads, or lookbehinds.
 [ ] generally explain how regexes work
-[ ] check for multiline-regexes and assert that we can't processes these.
-[ ] should we explicitly state that yielding the empty string must be a no-op?
-[ ] explain that before and after() specifically make no claims about when they emit empty strings, etc.
 
 [ ] fuzzing-based testing
 [ ] try to write the JSON thing and see if there's any way to make it easier.
 [ ] make all the functions (e.g. diffs, accumulate) pass through the return type.
+
+## Examples
+
+Now I'm taking uuid-asdf-flkj and adding it to uuid-fslkj-alkjlsf. => Now I'm taking {id: asdf} and adding it to {id: fslkj}.
 
 ## After Release
 
