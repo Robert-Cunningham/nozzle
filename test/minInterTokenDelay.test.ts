@@ -1,10 +1,47 @@
-import { describe, expect, test } from "vitest"
+import { describe, expect, test, vi } from "vitest"
 import { fromList } from "../src/transforms/fromList"
 import { minInterval } from "../src/transforms/minInterval"
 import { consume } from "../src/transforms/consume"
 import { assertResultsEqualsWithTiming, collectWithTimings, delayedSource } from "./timing-helpers"
 
 describe("minInterval", () => {
+  test("counts consumer work toward the interval after every emission", async () => {
+    vi.useFakeTimers()
+    try {
+      const iter = minInterval(fromList(["a", "b", "c"]), 100)
+      await expect(iter.next()).resolves.toMatchObject({ value: "a" })
+      const second = iter.next()
+      await vi.advanceTimersByTimeAsync(100)
+      await expect(second).resolves.toMatchObject({ value: "b" })
+      await vi.advanceTimersByTimeAsync(60)
+      let emitted = false
+      const third = iter.next().then((value) => {
+        emitted = true
+        return value
+      })
+      await vi.advanceTimersByTimeAsync(39)
+      expect(emitted).toBe(false)
+      await vi.advanceTimersByTimeAsync(1)
+      expect(emitted).toBe(true)
+      await expect(third).resolves.toMatchObject({ value: "c" })
+      await iter.return(undefined)
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+
+  test.each([-1, NaN, Infinity])("rejects invalid delay %s", async (delay) => {
+    await expect(consume(minInterval(fromList([1]), delay))).rejects.toThrow(/finite non-negative/)
+  })
+
+  test("preserves the identity of thrown source values", async () => {
+    const error = { reason: "stopped" }
+    async function* source(): AsyncGenerator<string> {
+      throw error
+    }
+    await expect(consume(minInterval(source(), 1))).rejects.toBe(error)
+  })
+
   test("enforces minimum delay between tokens", async () => {
     // Tokens arrive rapidly: 0ms, 5ms, 10ms, 15ms
     const source = delayedSource([
