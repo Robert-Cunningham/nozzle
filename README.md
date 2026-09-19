@@ -197,7 +197,7 @@ Finds the first value from the input stream that matches the predicate.
 <details><summary>Details</summary>
 
 ```ts
-function find<T>(iterator: AsyncIterable<T>, predicate: (chunk: T) => boolean): Promise<T>;
+function find<T>(iterator: AsyncIterable<T>, predicate: (chunk: T) => boolean): Promise<undefined | T>;
 ```
 
 #### Parameters
@@ -249,7 +249,7 @@ Supports negative indices to count from the end.
 <details><summary>Details</summary>
 
 ```ts
-function at<T>(iterator: AsyncIterable<T>, index: number): Promise<T>;
+function at<T>(iterator: AsyncIterable<T>, index: number): Promise<undefined | T>;
 ```
 
 #### Parameters
@@ -273,7 +273,7 @@ Returns the first value from the input stream.
 <details><summary>Details</summary>
 
 ```ts
-function first<T>(iterator: AsyncIterable<T>): Promise<T>;
+function first<T>(iterator: AsyncIterable<T>): Promise<undefined | T>;
 ```
 
 #### Parameters
@@ -346,7 +346,7 @@ Returns the last value from the input stream.
 <details><summary>Details</summary>
 
 ```ts
-function last<T>(iterator: AsyncIterable<T>): Promise<T>;
+function last<T>(iterator: AsyncIterable<T>): Promise<undefined | T>;
 ```
 
 #### Parameters
@@ -1114,7 +1114,7 @@ Catches an upstream error and optionally yields replacement values.
 <details><summary>Details</summary>
 
 ```ts
-function recover<T, R = any>(source: AsyncIterable<T, R>, handler: (error: unknown) => RecoverResult<T>): AsyncGenerator<T, R, undefined>;
+function recover<T, R = any>(source: AsyncIterable<T, R>, handler: (error: unknown) => RecoverResult<T>): AsyncGenerator<T, undefined | R, undefined>;
 ```
 
 #### Parameters

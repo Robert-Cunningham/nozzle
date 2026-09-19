@@ -29,6 +29,7 @@ describe("wrap", () => {
 
     expect(results).toHaveLength(1)
     expect(results[0]).toHaveProperty("error")
+    if (results[0].type !== "error") throw new Error("Expected an error result")
     expect(results[0].error).toBeInstanceOf(Error)
     expect((results[0].error as Error).message).toBe("immediate error")
   })
@@ -42,6 +43,7 @@ describe("wrap", () => {
     expect(results).toHaveLength(2)
     expect(results[0]).toEqual({ type: "value", value: "item1" })
     expect(results[1]).toHaveProperty("error")
+    if (results[1].type !== "error") throw new Error("Expected an error result")
     expect((results[1].error as Error).message).toBe("error after one")
   })
 
@@ -56,6 +58,7 @@ describe("wrap", () => {
     expect(results[1]).toEqual({ type: "value", value: "item2" })
     expect(results[2]).toEqual({ type: "value", value: "item3" })
     expect(results[3]).toHaveProperty("error")
+    if (results[3].type !== "error") throw new Error("Expected an error result")
     expect((results[3].error as Error).message).toBe("error after multiple")
   })
 
@@ -68,6 +71,7 @@ describe("wrap", () => {
     expect(results).toHaveLength(2)
     expect(results[0]).toEqual({ type: "value", value: "item1" })
     expect(results[1]).toHaveProperty("error")
+    if (results[1].type !== "error") throw new Error("Expected an error result")
     expect(results[1].error).toBeInstanceOf(TypeError)
     expect((results[1].error as TypeError).message).toBe("custom type error")
   })
@@ -81,6 +85,7 @@ describe("wrap", () => {
     expect(results).toHaveLength(2)
     expect(results[0]).toEqual({ type: "value", value: "item1" })
     expect(results[1]).toHaveProperty("error")
+    if (results[1].type !== "error") throw new Error("Expected an error result")
     expect((results[1].error as Error).message).toBe("error after delay")
   })
 
@@ -210,6 +215,7 @@ describe("wrap", () => {
     // Error result should have type and error properties, no value property
     expect(results[1]).toHaveProperty("type", "error")
     expect(results[1]).toHaveProperty("error")
+    if (results[1].type !== "error") throw new Error("Expected an error result")
     expect(results[1]).not.toHaveProperty("value")
     expect(Object.keys(results[1])).toEqual(["type", "error"])
   })

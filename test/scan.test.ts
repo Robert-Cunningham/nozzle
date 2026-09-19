@@ -1,7 +1,6 @@
 import { describe, expect, test } from "vitest"
 import { fromList } from "../src/transforms/fromList"
 import { scan, ScanResult } from "../src/transforms/scan"
-import { consume } from "../src/transforms/consume"
 
 describe("scan", () => {
   async function collectResults(asyncIterable: AsyncIterable<ScanResult>) {

@@ -12,6 +12,7 @@ import {
   SignatureReflection,
   ParameterReflection,
   TypeParameterReflection,
+  TSConfigReader,
 } from "typedoc"
 import * as fs from "fs"
 
@@ -35,17 +36,14 @@ const GROUP_ORDER: Record<string, number> = {
 }
 
 async function main() {
-  // Use bootstrap (not bootstrapWithPlugins) to avoid loading plugins
-  // Pass options: null to prevent reading typedoc.json
+  // Read the same compiler settings as typecheck, without loading plugins.
   const app = await Application.bootstrap(
     {
       entryPoints: ["src/index.ts"],
       tsconfig: "tsconfig.json",
-      skipErrorChecking: true, // Skip TS errors in tests
+      readme: "none",
     },
-    [
-      // Empty array means no config file readers
-    ],
+    [new TSConfigReader()],
   )
 
   const project = await app.convert()
