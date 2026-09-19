@@ -185,6 +185,7 @@ export const toRegex = (pattern: RegExp | string) => {
  * - Backreferences (\1, \2, \k<name>)
  * - Lookaheads ((?=...), (?!...))
  * - Lookbehinds ((?<=...), (?<!...))
+ * - Unicode escapes (\uXXXX, \u{...})
  * - Multiline mode (m flag)
  *
  * @param regex - The regular expression to validate.
@@ -206,12 +207,15 @@ export function assertSupportedRegex(regex: RegExp): void {
     throw new Error("Unsupported regex feature: sticky (y) and Unicode sets (v) flags")
   }
 
-  // Inspect syntax outside character classes, skipping escaped literals.
+  // Inspect escape syntax and track character classes, skipping escaped literals.
   let inClass = false
   for (let i = 0; i < source.length; i++) {
     const c = source[i]
     if (c === "\\") {
       const escaped = source[++i]
+      if (escaped === "u") {
+        throw new Error("Unsupported regex feature: Unicode escapes; use literal Unicode characters instead")
+      }
       if (!inClass && (escaped === "b" || escaped === "B")) {
         throw new Error("Unsupported regex feature: word boundaries (\\b, \\B)")
       }

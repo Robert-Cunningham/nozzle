@@ -182,10 +182,7 @@ describe("match", () => {
 
   test("should handle Unicode and special characters", async () => {
     const result = await asList(
-      match(
-        fromList(["Hello", " ", "🌍", " ", "café", " ", "naïve"]),
-        /[\u{1F300}-\u{1F6FF}]|[àáâãäåæçèéêëìíîïðñòóôõöøùúûüýþÿ]/gu,
-      ),
+      match(fromList(["Hello", " ", "🌍", " ", "café", " ", "naïve"]), /[🌀-🛿]|[àáâãäåæçèéêëìíîïðñòóôõöøùúûüýþÿ]/gu),
     )
     expect(result).toHaveLength(3)
     expect(result[0][0]).toBe("🌍")
@@ -711,7 +708,7 @@ describe("match", () => {
   })
 
   test("should handle multi-byte Unicode characters", async () => {
-    const result = await asList(match(fromList(["🎉", "👍", "🚀", "text", "🎯"]), /[\u{1F300}-\u{1F6FF}]/gu))
+    const result = await asList(match(fromList(["🎉", "👍", "🚀", "text", "🎯"]), /[🌀-🛿]/gu))
     expect(result).toHaveLength(4)
     expect(result[0][0]).toBe("🎉")
     expect(result[1][0]).toBe("👍")

@@ -111,7 +111,7 @@ const smoothStream = nz(stream)
 - Early exit closes upstream iterators. Pending I/O needs cancellation from the source/provider.
 - `buffer()`, `tee`, and `asyncMap` can buffer without a limit; concurrency is not a queue limit.
 - Regexes match across chunks. Anchors, word boundaries, lookarounds, backreferences,
-  `m`/`y`/`v`, and nullable patterns are rejected. The explicit empty separator splits
+  Unicode escapes (`\uXXXX`, `\u{…}`), `m`/`y`/`v`, and nullable patterns are rejected. The explicit empty separator splits
   UTF-16 code units. Unfinished matches buffer input; match indices are buffer-local.
 
 ## Reference

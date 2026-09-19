@@ -1,4 +1,5 @@
 import { describe, expect, test } from "vitest"
+import { nz } from "../src"
 import { assertSupportedRegex } from "../src/regex"
 import { fromList } from "../src/transforms/fromList"
 import { scan } from "../src/transforms/scan"
@@ -139,5 +140,28 @@ describe("scan validation integration", () => {
         // Should not reach here
       }
     }).rejects.toThrow(/multiline/)
+  })
+})
+
+describe("Unicode escapes", () => {
+  test.each([/\u0061/, /\u0061/u, /\u{61}/u, /\uD83D\uDE00/u, /[\u0061]/, /[\u{1F600}]/u])(
+    "rejects %s before pulling the source",
+    async (regex) => {
+      let pulled = false
+      async function* source() {
+        pulled = true
+        yield "xa😀y"
+      }
+      await expect(nz(source()).split(regex).consume()).rejects.toThrow(/Unsupported regex feature: Unicode escapes/)
+      expect(pulled).toBe(false)
+    },
+  )
+
+  test.each([/a/u, /😀/u, /[😀]/u, /\\u0061/, /\\u\{61\}/u])("allows literal characters in %s", (regex) => {
+    expect(() => assertSupportedRegex(regex)).not.toThrow()
+  })
+
+  test("allows backslash-u text as a literal string separator", async () => {
+    expect((await nz(["x\\u", "0061y"]).split("\\u0061").consume()).list()).toEqual(["x", "y"])
   })
 })
