@@ -1,5 +1,6 @@
 import { expect, test, vi } from "vitest"
 import { nz } from "../src"
+import { window } from "../src/transforms/window"
 
 test("asyncMap does not start a mapper for a read that finishes after cancellation", async () => {
   let release!: (result: IteratorResult<number, undefined>) => void
@@ -48,7 +49,7 @@ test.each(["wrap", "window", "aperture"] as const)("%s closes upstream on consum
     name === "wrap"
       ? pipeline.wrap()
       : name === "window"
-        ? pipeline.window(({ current }) => ({ value: current }))
+        ? window(pipeline, ({ current }) => ({ value: current }))
         : pipeline.aperture(2)
   for await (const _value of transformed) break
   expect(closed).toBe(true)
@@ -65,11 +66,11 @@ test("window closes upstream if its callback fails", async () => {
     }
   }
   await expect(
-    nz(source())
-      .window(() => {
+    nz(
+      window(source(), () => {
         throw new Error("callback")
-      })
-      .consume(),
+      }),
+    ).consume(),
   ).rejects.toThrow("callback")
   expect(closed).toBe(true)
 })
