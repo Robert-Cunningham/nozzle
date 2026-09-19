@@ -36,7 +36,7 @@ describe("takeUntil", () => {
       return "done"
     }
 
-    const consumed = await consume(takeUntil(source(), (value) => value === "missing"))
+    const consumed = await consume(takeUntil(source(), (value: string) => value === "missing"))
 
     expect(consumed.list()).toEqual(["a", "b"])
     expect(consumed.return()).toBe("done")

@@ -9,7 +9,7 @@ describe("unwrap", () => {
     const wrappedResults = wrap(source)
     const unwrapped = unwrap(wrappedResults)
 
-    const results = []
+    const results: unknown[] = []
     for await (const value of unwrapped) {
       results.push(value)
     }
@@ -46,7 +46,7 @@ describe("unwrap", () => {
     const wrappedResults = wrap(sourceWithReturn())
     const unwrapped = unwrap(wrappedResults)
 
-    const results = []
+    const results: unknown[] = []
     const iterator = unwrapped[Symbol.asyncIterator]()
 
     let result = await iterator.next()
@@ -152,7 +152,7 @@ describe("unwrap", () => {
     const wrappedResults = wrap(emptySource())
     const unwrapped = unwrap(wrappedResults)
 
-    const results = []
+    const results: unknown[] = []
     for await (const value of unwrapped) {
       results.push(value)
     }
@@ -191,7 +191,7 @@ describe("unwrap", () => {
 
     const unwrapped = unwrap(manualSafeResults())
 
-    const results = []
+    const results: unknown[] = []
     const iterator = unwrapped[Symbol.asyncIterator]()
 
     let result = await iterator.next()

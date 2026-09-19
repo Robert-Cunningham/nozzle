@@ -12,7 +12,7 @@ describe("throttle", () => {
   test("waits one interval for the first and final batch and preserves the return", async () => {
     vi.useFakeTimers()
     try {
-      async function* source() {
+      async function* source(): AsyncGenerator<string, string> {
         yield "a"
         yield "b"
         return "done"

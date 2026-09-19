@@ -309,7 +309,7 @@ describe("replace", () => {
     })
 
     test("should handle IPv4 addresses fragmented across tokens", async () => {
-      const ipRegex = /\b(?:\d{1,3}\.){3}\d{1,3}\b/g
+      const ipRegex = /(?:\d{1,3}\.){3}\d{1,3}/g
       const result = (
         await consume(
           replace(

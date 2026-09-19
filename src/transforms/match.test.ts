@@ -117,11 +117,10 @@ describe("match", () => {
     expect(result[0][0]).toBe("hello")
   })
 
-  test("should handle word boundaries", async () => {
-    const result = await asList(match(fromList(["the", " ", "cat", " in ", "cat", "astrophe"]), /\bcat\b/g))
-    expect(result).toHaveLength(1)
-    expect(result[0][0]).toBe("cat")
-    // expect(result[0].index).toBe(4)
+  test("rejects word boundaries instead of treating chunk edges as boundaries", async () => {
+    await expect(asList(match(fromList(["the", " ", "cat", " in ", "cat", "astrophe"]), /\bcat\b/g))).rejects.toThrow(
+      /word boundaries/,
+    )
   })
 
   /*
@@ -426,7 +425,7 @@ describe("match", () => {
     })
 
     test("should extract IPv4 addresses fragmented across tokens", async () => {
-      const ipRegex = /\b((?:\d{1,3}\.){3}\d{1,3})\b/g
+      const ipRegex = /((?:\d{1,3}\.){3}\d{1,3})/g
       const result = await asList(
         match(
           fromList([
