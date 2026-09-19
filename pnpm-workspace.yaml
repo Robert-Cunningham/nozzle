@@ -1,1 +1,4 @@
-pnpmOnlyBuiltDependencies: ffmpeg-static
+allowBuilds:
+  esbuild: true
+  ffmpeg-static: true
+  puppeteer: false
