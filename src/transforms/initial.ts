@@ -1,5 +1,3 @@
-import { slice } from "./slice"
-
 /**
  * Yields all values except the last from the input stream.
  *
@@ -12,5 +10,23 @@ import { slice } from "./slice"
  * nz(["Hello", "World", "!"]).initial() // => "Hello", "World"
  * ```
  */
-export const initial = <T, R = any>(iterator: AsyncIterable<T, R>): AsyncGenerator<T, R, undefined> =>
-  slice(iterator, 0, -1)
+export async function* initial<T, R = any>(iterator: AsyncIterable<T, R>): AsyncGenerator<T, R, undefined> {
+  const iter = iterator[Symbol.asyncIterator]()
+  let completed = false
+  try {
+    let previous = await iter.next()
+    while (!previous.done) {
+      const next = await iter.next()
+      if (next.done) {
+        completed = true
+        return next.value
+      }
+      yield previous.value
+      previous = next
+    }
+    completed = true
+    return previous.value
+  } finally {
+    if (!completed) await iter.return?.()
+  }
+}

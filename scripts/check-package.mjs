@@ -76,7 +76,10 @@ function* sync(): Generator<string, { count: number }> { yield "a"; return { cou
 const syncPipeline: Pipeline<string, { count: number }> = nz(sync())
 // @ts-expect-error Return types must not silently become any.
 const wrong: Pipeline<string, boolean> = nz(source())
-void [iter, chars, syncPipeline, wrong]
+const stopped: Pipeline<string, number | undefined> = nz(source()).takeWhile(() => false)
+// @ts-expect-error An early-stopped source may not have a final return value.
+stopped.mapReturn(value => value.toFixed())
+void [iter, chars, syncPipeline, wrong, stopped]
 `
   for (const extension of ["mts", "cts"]) {
     writeFileSync(join(temporary, `consumer.${extension}`), types)

@@ -92,7 +92,7 @@ export class Pipeline<T = string, R = any> implements AsyncIterable<T, R> {
    * @hidden
    */
   aperture(n: number) {
-    return new Pipeline<T[], R>(tx.aperture(this.src, n))
+    return new Pipeline<T[], R | undefined>(tx.aperture(this.src, n))
   }
 
   /**
@@ -112,15 +112,17 @@ export class Pipeline<T = string, R = any> implements AsyncIterable<T, R> {
   /**
    * @hidden
    */
-  slice(start: number, end?: number) {
-    return new Pipeline<T, R>(tx.slice(this.src, start, end))
+  slice(start: number, end?: undefined): Pipeline<T, R>
+  slice(start: number, end: number | undefined): Pipeline<T, R | undefined>
+  slice(start: number, end?: number): Pipeline<T, R | undefined> {
+    return new Pipeline(tx.slice(this.src, start, end))
   }
 
   /**
    * @hidden
    */
   head() {
-    return new Pipeline<T, R>(tx.head(this.src))
+    return new Pipeline<T, R | undefined>(tx.head(this.src))
   }
 
   /**
@@ -148,14 +150,14 @@ export class Pipeline<T = string, R = any> implements AsyncIterable<T, R> {
    * @hidden
    */
   takeUntil(predicate: (value: T) => boolean) {
-    return new Pipeline<T, R>(tx.takeUntil(this.src, predicate))
+    return new Pipeline<T, R | undefined>(tx.takeUntil(this.src, predicate))
   }
 
   /**
    * @hidden
    */
   takeWhile(predicate: (value: T) => boolean) {
-    return new Pipeline<T, R>(tx.takeWhile(this.src, predicate))
+    return new Pipeline<T, R | undefined>(tx.takeWhile(this.src, predicate))
   }
 
   /**
@@ -235,8 +237,8 @@ export class Pipeline<T = string, R = any> implements AsyncIterable<T, R> {
   /**
    * @hidden
    */
-  before(this: Pipeline<string, R>, pattern: RegExp | string): Pipeline<string, R> {
-    return new Pipeline<string, R>(tx.before(this.src as Iterable<string, R>, pattern))
+  before(this: Pipeline<string, R>, pattern: RegExp | string): Pipeline<string, R | undefined> {
+    return new Pipeline<string, R | undefined>(tx.before(this.src as Iterable<string, R>, pattern))
   }
 
   /**

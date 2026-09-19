@@ -1,6 +1,8 @@
 /**
  * Yields values while the predicate matches, excluding the first non-matching value.
  *
+ * Early termination may return undefined instead of the source's final value.
+ *
  * @group Filtering
  * @param source - An asynchronous iterable of values.
  * @param predicate - A function that returns true for values to keep.
@@ -14,7 +16,7 @@
 export async function* takeWhile<T, R = any>(
   source: AsyncIterable<T, R>,
   predicate: (value: T) => boolean,
-): AsyncGenerator<T, R, undefined> {
+): AsyncGenerator<T, R | undefined, undefined> {
   const iter = source[Symbol.asyncIterator]()
   let completed = false
 
@@ -30,7 +32,7 @@ export async function* takeWhile<T, R = any>(
       if (!predicate(result.value)) {
         completed = true
         const returned = await iter.return?.()
-        return returned?.value as R
+        return returned?.done ? returned.value : undefined
       }
 
       yield result.value
