@@ -1,39 +1,48 @@
-import { describe, expect, test } from "vitest"
+import { describe, expect, test, vi } from "vitest"
 import { nz } from "../src/index"
 import { assertResultsEqualsWithTiming, collectWithTimings, delayedStream } from "./timing-helpers"
 
 describe("Integrated Pipeline Tests", () => {
-  test.skip("preamble example: extract section between headers, split sentences, and throttle at 100ms", async () => {
-    // Simulated LLM stream response that matches the preamble example
-    const mockStreamResponse = [
-      "# Introduction\n",
-      "This is some intro text.\n\n",
-      "# Answer\n",
-      "The first sentence is here.",
-      " This is the second sentence.",
-      " And here's the third one.",
-      " Final sentence in answer.",
-      "# Reasoning\n",
-      "This reasoning section should be excluded.",
-      " More reasoning text here.",
-    ]
+  test("extracts answer sentences and emits them at least 100ms apart", async () => {
+    vi.useFakeTimers()
+    try {
+      const stream = delayedStream(
+        [
+          "# Introduction\n",
+          "This is some intro text.\n\n",
+          "# Answer\n",
+          "The first sentence is here.",
+          " This is the second sentence.",
+          " And here's the third one.",
+          " Final sentence in answer.",
+          "# Reasoning\n",
+          "This reasoning section should be excluded.",
+        ],
+        10,
+      )
 
-    // Create a delayed stream to simulate real streaming (10ms between chunks)
-    const stream = delayedStream(mockStreamResponse, 100)
+      const collected = collectWithTimings(
+        nz(stream)
+          .after("# Answer")
+          .before("# Reasoning")
+          .split(/[.!?]/)
+          .map((sentence) => sentence.trim())
+          .filter((sentence) => sentence.length > 0)
+          .minInterval(100)
+          .value(),
+      )
+      await vi.runAllTimersAsync()
 
-    // Apply the exact pipeline from the preamble example
-    const results = await collectWithTimings(
-      nz(stream).after("# Answer").before("# Reasoning").splitBefore(/[.;,]/g).minInterval(100).value(),
-    )
-
-    // Verify timing: first item immediate, subsequent items 100ms apart
-    assertResultsEqualsWithTiming(results, [
-      { item: "The first sentence is here", timestamp: 40 + 0 },
-      { item: " This is the second sentence", timestamp: 40 + 100 },
-      { item: " And here's the third one", timestamp: 40 + 200 },
-      { item: " Final sentence in answer", timestamp: 40 + 300 },
-      { item: "", timestamp: 40 + 400 },
-    ])
+      // The splitter confirms punctuation at a chunk boundary on the next chunk (50ms).
+      expect(await collected).toEqual([
+        { item: "The first sentence is here", timestamp: 50 },
+        { item: "This is the second sentence", timestamp: 150 },
+        { item: "And here's the third one", timestamp: 250 },
+        { item: "Final sentence in answer", timestamp: 350 },
+      ])
+    } finally {
+      vi.useRealTimers()
+    }
   })
 
   test("pipeline with non-string T", async () => {
