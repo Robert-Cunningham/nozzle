@@ -104,48 +104,30 @@ const smoothStream = nz(stream)
 
 ![Timing Demo](assets/demo-timing.gif)
 
-## Streaming regex support
+## Behavior
 
-Regex transforms match across input chunks. Use `g` to find all matches; without it,
-only the first match is selected. Supported patterns include literals, character
-classes, capture groups, alternation, and quantifiers, with `i`, `s`, and `u` flags.
-The caller's `lastIndex` is ignored and left unchanged.
-
-Unsupported patterns throw when iteration starts: anchors (`^`, `$`), word
-boundaries (`\b`, `\B`), lookarounds, backreferences, `m`, `y`, and `v` flags,
-and patterns that can match an empty string (such as `/a*/`). These require context
-or matching rules the streaming engine does not support. Escaped anchors and
-anchors inside character classes remain literals.
-
-The explicit empty separator (`""` or `/(?:)/`) retains its special behavior:
-it separates UTF-16 code units, with matches only between them. It is not native
-JavaScript's general zero-width matching behavior.
-
-Potential matches are buffered until their boundary is known. For example,
-`/\w+/g` must wait for a non-word character or the end of the source. A long
-unfinished match may therefore retain a large amount of text. Match arrays contain
-captures, but their `index` and `input` refer to the local matching buffer, not the
-entire stream. Adjacent text emissions can vary with input chunking.
+- Pipelines are consumed with `for await` or `.consume()`. Generator sources are single-use.
+- `.consume()` retains all values; use `.list()`, `.string()`, or `.return()` on its result.
+- Early exit closes upstream iterators. Pending I/O needs cancellation from the source/provider.
+- `buffer()`, `tee`, and `asyncMap` can buffer without a limit; concurrency is not a queue limit.
+- Regexes match across chunks. Anchors, word boundaries, lookarounds, backreferences,
+  `m`/`y`/`v`, and nullable patterns are rejected. The explicit empty separator splits
+  UTF-16 code units. Unfinished matches buffer input; match indices are buffer-local.
 
 ## Reference
 
 {{reference}}
 
-## Testing
+## Development
 
-Install the library:
-
-```bash
-git clone https://github.com/Robert-Cunningham/nozzle
-cd nozzle
-npm i
+```sh
+pnpm install --frozen-lockfile
+pnpm run check
 ```
 
-Then run the tests:
-
-```bash
-npm run test
-```
+Run `pnpm run docs` after editing API comments or this README's template.
+Run `pnpm run release:dry` to validate package contents without publishing.
+The `release:patch`, `release:minor`, and `release:major` scripts publish and push tags.
 
 ## License
 

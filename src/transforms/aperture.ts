@@ -19,21 +19,25 @@ export async function* aperture<T, R = any>(source: Iterable<T, R>, n: number): 
     return undefined as R
   }
 
-  const cursor = new Cursor(source)
-  if (!(await cursor.init())) return cursor.returnValue as R
+  const cursor = new Cursor(source, { maxPast: 0 })
+  try {
+    if (!(await cursor.init())) return cursor.returnValue as R
 
-  while (cursor.hasCurrent) {
-    const upcoming = await cursor.peek(n - 1)
+    while (cursor.hasCurrent) {
+      const upcoming = await cursor.peek(n - 1)
 
-    if (upcoming.length < n - 1) {
-      return cursor.returnValue as R
+      if (upcoming.length < n - 1) {
+        return cursor.returnValue as R
+      }
+
+      yield [cursor.current, ...upcoming]
+
+      const hasCurrent = await cursor.advance(1)
+      if (!hasCurrent) return cursor.returnValue as R
     }
 
-    yield [cursor.current, ...upcoming]
-
-    const hasCurrent = await cursor.advance(1)
-    if (!hasCurrent) return cursor.returnValue as R
+    return cursor.returnValue as R
+  } finally {
+    await cursor.cancel()
   }
-
-  return cursor.returnValue as R
 }

@@ -2,6 +2,8 @@ import { Channel, ChannelClosedError } from "../primitives"
 
 /**
  * Splits a single iterator into N independent iterables.
+ * Starts reading eagerly on the first branch read. Branch queues are unbounded;
+ * consume every branch or close unused branches with iterator.return().
  *
  * @group Side Effects
  * @param iterator - The source async iterator to split.

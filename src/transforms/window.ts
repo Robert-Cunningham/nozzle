@@ -28,30 +28,34 @@ export async function* window<T, U, R = any>(
   options?: { maxPast?: number },
 ): AsyncGenerator<U, R> {
   const cursor = new Cursor(source, options)
-  if (!(await cursor.init())) return cursor.returnValue as R
+  try {
+    if (!(await cursor.init())) return cursor.returnValue as R
 
-  while (cursor.hasCurrent) {
-    const { value, advance = 1 } = fn({
-      ...cursor.snapshot(),
-    })
-    yield value
+    while (cursor.hasCurrent) {
+      const { value, advance = 1 } = fn({
+        ...cursor.snapshot(),
+      })
+      yield value
 
-    if (advance < 0 || !Number.isInteger(advance)) {
-      throw new Error(`advance must be a non-negative integer, got ${advance}`)
+      if (advance < 0 || !Number.isInteger(advance)) {
+        throw new Error(`advance must be a non-negative integer, got ${advance}`)
+      }
+
+      const maxAdvance = cursor.upcomingLength + 1
+      if (advance > maxAdvance) {
+        throw new Error(`advance (${advance}) cannot exceed upcoming.length + 1 (${maxAdvance})`)
+      }
+
+      if (advance === 0) {
+        await cursor.peek(cursor.upcomingLength + 1)
+      } else {
+        const hasCurrent = await cursor.advance(advance)
+        if (!hasCurrent) return cursor.returnValue as R
+      }
     }
 
-    const maxAdvance = cursor.upcomingLength + 1
-    if (advance > maxAdvance) {
-      throw new Error(`advance (${advance}) cannot exceed upcoming.length + 1 (${maxAdvance})`)
-    }
-
-    if (advance === 0) {
-      await cursor.peek(cursor.upcomingLength + 1)
-    } else {
-      const hasCurrent = await cursor.advance(advance)
-      if (!hasCurrent) return cursor.returnValue as R
-    }
+    return cursor.returnValue as R
+  } finally {
+    await cursor.cancel()
   }
-
-  return cursor.returnValue as R
 }

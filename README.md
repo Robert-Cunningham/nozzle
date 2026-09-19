@@ -104,28 +104,15 @@ const smoothStream = nz(stream)
 
 ![Timing Demo](assets/demo-timing.gif)
 
-## Streaming regex support
+## Behavior
 
-Regex transforms match across input chunks. Use `g` to find all matches; without it,
-only the first match is selected. Supported patterns include literals, character
-classes, capture groups, alternation, and quantifiers, with `i`, `s`, and `u` flags.
-The caller's `lastIndex` is ignored and left unchanged.
-
-Unsupported patterns throw when iteration starts: anchors (`^`, `$`), word
-boundaries (`\b`, `\B`), lookarounds, backreferences, `m`, `y`, and `v` flags,
-and patterns that can match an empty string (such as `/a*/`). These require context
-or matching rules the streaming engine does not support. Escaped anchors and
-anchors inside character classes remain literals.
-
-The explicit empty separator (`""` or `/(?:)/`) retains its special behavior:
-it separates UTF-16 code units, with matches only between them. It is not native
-JavaScript's general zero-width matching behavior.
-
-Potential matches are buffered until their boundary is known. For example,
-`/\w+/g` must wait for a non-word character or the end of the source. A long
-unfinished match may therefore retain a large amount of text. Match arrays contain
-captures, but their `index` and `input` refer to the local matching buffer, not the
-entire stream. Adjacent text emissions can vary with input chunking.
+- Pipelines are consumed with `for await` or `.consume()`. Generator sources are single-use.
+- `.consume()` retains all values; use `.list()`, `.string()`, or `.return()` on its result.
+- Early exit closes upstream iterators. Pending I/O needs cancellation from the source/provider.
+- `buffer()`, `tee`, and `asyncMap` can buffer without a limit; concurrency is not a queue limit.
+- Regexes match across chunks. Anchors, word boundaries, lookarounds, backreferences,
+  `m`/`y`/`v`, and nullable patterns are rejected. The explicit empty separator splits
+  UTF-16 code units. Unfinished matches buffer input; match indices are buffer-local.
 
 ## Reference
 
@@ -144,6 +131,8 @@ Starts the async function for each item as soon as it comes off the source itera
 up to the configured concurrency limit. Results are yielded in source order, not
 completion order, so a later item can finish first but will not be yielded or thrown
 until all earlier items have settled.
+Concurrency limits active calls, not queued results. Slow consumers can cause
+unbounded buffering. Cancellation does not abort already-started mapper calls.
 
 <details><summary>Details</summary>
 
@@ -165,7 +154,7 @@ function asyncMap<T, U, R = any>(iterator: AsyncIterable<T, R>, fn: (value: T) =
 ### `filter`
 
 ```ts
-nz(["Hello", "Hi", "World"]).filter(chunk => chunk.length > 5) // => "Hello", "World"
+nz(["Hello", "Hi", "World"]).filter(chunk => chunk.length > 4) // => "Hello", "World"
 ```
 
 Filters the input stream based on a predicate function.
@@ -1083,6 +1072,8 @@ const [stream1, stream2] = nz(["a", "b", "c"]).tee(2) // => Two independent stre
 ```
 
 Splits a single iterator into N independent iterables.
+Starts reading eagerly on the first branch read. Branch queues are unbounded;
+consume every branch or close unused branches with iterator.return().
 
 <details><summary>Details</summary>
 
@@ -1218,7 +1209,8 @@ Consumes an async iterator completely, collecting both yielded values and the re
 
 Returns a ConsumedPipeline which provides access to both yielded values and return values:
 - `.list()` - Returns all yielded values as an array (`T[]`)
-- `.return()` - Returns the iterator's return value (`R`)
+- `.return()` - Returns the iterator's return value (`R | undefined`)
+- `.string()` - Concatenates string values
 
 <details><summary>Details</summary>
 
@@ -1313,21 +1305,16 @@ function window<T, U, R = any>(source: Iterable<T, R>, fn: (ctx: { current: T; d
 | `options` | { maxPast?: number } | Optional configuration |
 </details>
 
-## Testing
+## Development
 
-Install the library:
-
-```bash
-git clone https://github.com/Robert-Cunningham/nozzle
-cd nozzle
-npm i
+```sh
+pnpm install --frozen-lockfile
+pnpm run check
 ```
 
-Then run the tests:
-
-```bash
-npm run test
-```
+Run `pnpm run docs` after editing API comments or this README's template.
+Run `pnpm run release:dry` to validate package contents without publishing.
+The `release:patch`, `release:minor`, and `release:major` scripts publish and push tags.
 
 ## License
 

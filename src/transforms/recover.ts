@@ -28,8 +28,9 @@ export async function* recover<T, R = any>(
       try {
         result = await iter.next()
       } catch (error) {
-        const replacement = handler(error)
         completed = true
+        await iter.return?.()
+        const replacement = handler(error)
 
         if (replacement === undefined) {
           return undefined

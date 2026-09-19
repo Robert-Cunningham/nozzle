@@ -22,13 +22,15 @@ export type WrappedResult<T, R = any> =
  * ```
  */
 export const wrap = async function* <T, R = any>(iterator: AsyncIterable<T, R>): AsyncGenerator<WrappedResult<T, R>> {
+  let iter: AsyncIterator<T, R> | undefined
+  let completed = false
   try {
-    const iter = iterator[Symbol.asyncIterator]()
-
+    iter = iterator[Symbol.asyncIterator]()
     while (true) {
       const result = await iter.next()
 
       if (result.done) {
+        completed = true
         yield { type: "return", value: result.value as R }
         break
       } else {
@@ -37,5 +39,7 @@ export const wrap = async function* <T, R = any>(iterator: AsyncIterable<T, R>):
     }
   } catch (error) {
     yield { type: "error", error }
+  } finally {
+    if (!completed) await iter?.return?.()
   }
 }

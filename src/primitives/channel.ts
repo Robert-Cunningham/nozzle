@@ -166,18 +166,7 @@ export class Channel<T, R = undefined> implements AsyncIterable<T, R>, AsyncIter
   async cancel(value?: R): Promise<void> {
     if (this.state === "canceled") return
 
-    if (this.state !== "open") {
-      this.state = "canceled"
-      this.returnValue = value
-      this.values.length = 0
-      this.rejectWriters(new ChannelClosedError("Channel was canceled"))
-
-      while (this.readers.length > 0) {
-        this.readers.shift()!.resolve({ done: true, value: value as R })
-      }
-
-      return
-    }
+    const needsCleanup = this.state === "open" || this.state === "failed"
 
     this.state = "canceled"
     this.returnValue = value
@@ -188,7 +177,7 @@ export class Channel<T, R = undefined> implements AsyncIterable<T, R>, AsyncIter
       this.readers.shift()!.resolve({ done: true, value: value as R })
     }
 
-    if (this.onCancel && !this.cancelStarted) {
+    if (needsCleanup && this.onCancel && !this.cancelStarted) {
       this.cancelStarted = true
       await this.onCancel()
     }
