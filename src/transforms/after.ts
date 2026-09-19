@@ -16,25 +16,45 @@ import { scan } from "./scan"
  * nz(["a", "b", "c", "d", "e"]).after(/bc/) // => "d", "e"
  * ```
  */
-export async function* after(source: StringIterable, pattern: RegExp | string): AsyncGenerator<string> {
+export async function* after<R = any>(
+  source: StringIterable<R>,
+  pattern: RegExp | string,
+): AsyncGenerator<string, R, undefined> {
   let found = false
   const regex = toNonGlobalRegex(pattern)
 
   if (isPatternEmpty(pattern)) {
-    yield* source
-    return
+    return yield* source
   }
 
   // must not be a global regex; once it matches once, everything else should pass through.
-  for await (const result of scan(source, regex)) {
-    if ("match" in result) {
-      if (found) {
-        yield result.match[0]
-      } else {
-        found = true
+  const iter = scan(source, regex)[Symbol.asyncIterator]()
+  let completed = false
+
+  try {
+    while (true) {
+      const next = await iter.next()
+
+      if (next.done) {
+        completed = true
+        return next.value as R
       }
-    } else if (found) {
-      yield result.text
+
+      const result = next.value
+
+      if ("match" in result) {
+        if (found) {
+          yield result.match[0]
+        } else {
+          found = true
+        }
+      } else if (found) {
+        yield result.text
+      }
+    }
+  } finally {
+    if (!completed) {
+      await iter.return?.(undefined as R)
     }
   }
 }

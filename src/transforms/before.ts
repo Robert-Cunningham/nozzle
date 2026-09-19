@@ -16,16 +16,39 @@ import { scan } from "./scan"
  * nz(["a", "b", "c", "d", "e"]).before("cd") // => "a", "b"
  * ```
  */
-export async function* before(source: StringIterable, separator: string | RegExp): AsyncGenerator<string> {
+export async function* before<R = any>(
+  source: StringIterable<R>,
+  separator: string | RegExp,
+): AsyncGenerator<string, R, undefined> {
   const regex = toNonGlobalRegex(separator)
 
   if (isPatternEmpty(separator)) return yield* source
 
-  for await (const result of scan(source, regex)) {
-    if ("text" in result) {
-      yield result.text
-    } else {
-      break
+  const iter = scan(source, regex)[Symbol.asyncIterator]()
+  let completed = false
+
+  try {
+    while (true) {
+      const next = await iter.next()
+
+      if (next.done) {
+        completed = true
+        return next.value as R
+      }
+
+      const result = next.value
+
+      if ("text" in result) {
+        yield result.text
+      } else {
+        completed = true
+        const returned = await iter.return?.(undefined as R)
+        return returned?.value as R
+      }
+    }
+  } finally {
+    if (!completed) {
+      await iter.return?.(undefined as R)
     }
   }
 }

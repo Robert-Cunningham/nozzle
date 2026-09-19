@@ -12,18 +12,36 @@ import { Iterable } from "../types"
  * nz([["a", "b"], ["c", "d"], ["e"]]).flatten() // => "a", "b", "c", "d", "e"
  * ```
  */
-export const flatten = async function* <T>(src: Iterable<T[] | Iterable<T>>): AsyncGenerator<T> {
-  for await (const item of src) {
-    if (Array.isArray(item)) {
-      for (const subItem of item) {
-        yield subItem
+export const flatten = async function* <T, R = any>(
+  src: Iterable<T[] | Iterable<T>, R>,
+): AsyncGenerator<T, R, undefined> {
+  const iter = src[Symbol.asyncIterator]()
+  let completed = false
+
+  try {
+    while (true) {
+      const next = await iter.next()
+
+      if (next.done) {
+        completed = true
+        return next.value as R
       }
-    } else if (item && typeof item === "object" && Symbol.asyncIterator in item) {
-      for await (const subItem of item as AsyncIterable<T>) {
-        yield subItem
+
+      const item = next.value
+
+      if (Array.isArray(item)) {
+        for (const subItem of item) {
+          yield subItem
+        }
+      } else if (item && typeof item === "object" && Symbol.asyncIterator in item) {
+        yield* item as AsyncIterable<T>
+      } else {
+        yield item as T
       }
-    } else {
-      yield item as T
+    }
+  } finally {
+    if (!completed) {
+      await iter.return?.()
     }
   }
 }

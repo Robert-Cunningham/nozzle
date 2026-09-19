@@ -16,12 +16,21 @@ export const tap = async function* <T, R = any>(
   fn: (value: T) => void,
 ): AsyncGenerator<T, R, undefined> {
   const iter = iterator[Symbol.asyncIterator]()
-  while (true) {
-    const result = await iter.next()
-    if (result.done) {
-      return result.value as R
+  let completed = false
+
+  try {
+    while (true) {
+      const result = await iter.next()
+      if (result.done) {
+        completed = true
+        return result.value as R
+      }
+      fn(result.value)
+      yield result.value
     }
-    fn(result.value)
-    yield result.value
+  } finally {
+    if (!completed) {
+      await iter.return?.()
+    }
   }
 }

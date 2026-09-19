@@ -21,7 +21,11 @@ import { scan } from "./scan"
  * nz(["a", "b", "b", "a"]).replace(/a[ab]*a/g, "X") // => "X"
  * ```
  */
-export function replace(input: AsyncIterable<string>, regex: RegExp, replacement: string): AsyncGenerator<string> {
+export function replace<R = any>(
+  input: AsyncIterable<string, R>,
+  regex: RegExp,
+  replacement: string,
+): AsyncGenerator<string, R, undefined> {
   return map(scan(input, regex), (result) => {
     if ("text" in result) {
       return result.text

@@ -9,10 +9,28 @@
  * nz(["This ", "This is ", "This is a ", "This is a test!"]).diff().value() // => "This ", "is ", "a ", "test!"
  * ```
  */
-export const diff = async function* (iterator: AsyncIterable<string>): AsyncGenerator<string> {
+export const diff = async function* <R = any>(
+  iterator: AsyncIterable<string, R>,
+): AsyncGenerator<string, R, undefined> {
+  const iter = iterator[Symbol.asyncIterator]()
   let last = ""
-  for await (const text of iterator) {
-    yield text.replace(last, "")
-    last = text
+  let completed = false
+
+  try {
+    while (true) {
+      const next = await iter.next()
+
+      if (next.done) {
+        completed = true
+        return next.value as R
+      }
+
+      yield next.value.replace(last, "")
+      last = next.value
+    }
+  } finally {
+    if (!completed) {
+      await iter.return?.()
+    }
   }
 }

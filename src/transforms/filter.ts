@@ -16,16 +16,24 @@ export const filter = async function* <T, R = any>(
   predicate: (chunk: T) => boolean,
 ): AsyncGenerator<T, R, undefined> {
   const iter = iterator[Symbol.asyncIterator]()
+  let completed = false
 
-  while (true) {
-    const result = await iter.next()
+  try {
+    while (true) {
+      const result = await iter.next()
 
-    if (result.done) {
-      return result.value as R
+      if (result.done) {
+        completed = true
+        return result.value as R
+      }
+
+      if (predicate(result.value)) {
+        yield result.value
+      }
     }
-
-    if (predicate(result.value)) {
-      yield result.value
+  } finally {
+    if (!completed) {
+      await iter.return?.()
     }
   }
 }

@@ -56,10 +56,29 @@ import { scan } from "./scan"
  * nz(["a", "b", "b", "a"]).match(/a([ab]*)a/g) // => ["abba", "bb"] (match arrays with capture groups)
  * ```
  */
-export async function* match(input: AsyncIterable<string>, regex: RegExp): AsyncGenerator<RegExpExecArray> {
-  for await (const result of scan(input, regex)) {
-    if ("match" in result) {
-      yield result.match
+export async function* match<R = any>(
+  input: AsyncIterable<string, R>,
+  regex: RegExp,
+): AsyncGenerator<RegExpExecArray, R, undefined> {
+  const iter = scan(input, regex)[Symbol.asyncIterator]()
+  let completed = false
+
+  try {
+    while (true) {
+      const next = await iter.next()
+
+      if (next.done) {
+        completed = true
+        return next.value as R
+      }
+
+      if ("match" in next.value) {
+        yield next.value.match
+      }
+    }
+  } finally {
+    if (!completed) {
+      await iter.return?.(undefined as R)
     }
   }
 }
