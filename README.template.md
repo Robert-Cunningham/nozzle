@@ -104,6 +104,29 @@ const smoothStream = nz(stream)
 
 ![Timing Demo](assets/demo-timing.gif)
 
+## Streaming regex support
+
+Regex transforms match across input chunks. Use `g` to find all matches; without it,
+only the first match is selected. Supported patterns include literals, character
+classes, capture groups, alternation, and quantifiers, with `i`, `s`, and `u` flags.
+The caller's `lastIndex` is ignored and left unchanged.
+
+Unsupported patterns throw when iteration starts: anchors (`^`, `$`), word
+boundaries (`\b`, `\B`), lookarounds, backreferences, `m`, `y`, and `v` flags,
+and patterns that can match an empty string (such as `/a*/`). These require context
+or matching rules the streaming engine does not support. Escaped anchors and
+anchors inside character classes remain literals.
+
+The explicit empty separator (`""` or `/(?:)/`) retains its special behavior:
+it separates UTF-16 code units, with matches only between them. It is not native
+JavaScript's general zero-width matching behavior.
+
+Potential matches are buffered until their boundary is known. For example,
+`/\w+/g` must wait for a non-word character or the end of the source. A long
+unfinished match may therefore retain a large amount of text. Match arrays contain
+captures, but their `index` and `input` refer to the local matching buffer, not the
+entire stream. Adjacent text emissions can vary with input chunking.
+
 ## Reference
 
 {{reference}}

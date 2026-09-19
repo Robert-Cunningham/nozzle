@@ -138,7 +138,7 @@ export function toPartialMatchRegex(regex: RegExp): RegExp {
           return result
 
         default:
-          appendOptional(1)
+          appendOptional(re.unicode && source.codePointAt(i)! > 0xffff ? 2 : 1)
           break
       }
     }
@@ -171,7 +171,7 @@ export const toNonGlobalRegex = (separator: RegExp | string) => {
 }
 
 export const isPatternEmpty = (pattern: RegExp | string) => {
-  return typeof pattern === "string" ? pattern.length === 0 : pattern.source.length === 0
+  return typeof pattern === "string" ? pattern.length === 0 : pattern.source === "(?:)"
 }
 
 export const toRegex = (pattern: RegExp | string) => {
@@ -200,6 +200,32 @@ export function assertSupportedRegex(regex: RegExp): void {
         `Streaming regex matching does not support multiline patterns because buffer boundaries ` +
         `would cause inconsistent behavior with ^ and $ anchors.`,
     )
+  }
+
+  if (regex.sticky || regex.flags.includes("v")) {
+    throw new Error("Unsupported regex feature: sticky (y) and Unicode sets (v) flags")
+  }
+
+  // Inspect syntax outside character classes, skipping escaped literals.
+  let inClass = false
+  for (let i = 0; i < source.length; i++) {
+    const c = source[i]
+    if (c === "\\") {
+      const escaped = source[++i]
+      if (!inClass && (escaped === "b" || escaped === "B")) {
+        throw new Error("Unsupported regex feature: word boundaries (\\b, \\B)")
+      }
+      continue
+    }
+    if (c === "[") inClass = true
+    if (c === "]") inClass = false
+    if (!inClass && (c === "^" || c === "$")) {
+      throw new Error("Unsupported regex feature: anchors (^, $); use before/after with literal delimiters")
+    }
+  }
+
+  if (source !== "(?:)" && new RegExp(source, regex.flags.replace(/[gy]/g, "")).test("")) {
+    throw new Error("Unsupported regex feature: patterns that can match an empty string")
   }
 
   // Check for backreferences: \1, \2, etc. or \k<name>

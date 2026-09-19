@@ -89,12 +89,12 @@ describe("assertSupportedRegex", () => {
       expect(() => assertSupportedRegex(/foo|bar/)).not.toThrow()
     })
 
-    test("should allow word boundaries", () => {
-      expect(() => assertSupportedRegex(/\bfoo\b/)).not.toThrow()
+    test("should reject word boundaries", () => {
+      expect(() => assertSupportedRegex(/\bfoo\b/)).toThrow(/word boundaries/)
     })
 
-    test("should allow anchors without multiline", () => {
-      expect(() => assertSupportedRegex(/^foo$/)).not.toThrow()
+    test("should reject anchors without multiline", () => {
+      expect(() => assertSupportedRegex(/^foo$/)).toThrow(/anchors/)
     })
   })
 })
