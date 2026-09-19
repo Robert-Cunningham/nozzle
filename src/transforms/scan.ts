@@ -69,7 +69,7 @@ export async function* scan<R = any>(
 ): AsyncGenerator<ScanResult, R, undefined> {
   assertSupportedRegex(regex)
 
-  if (regex.exec("")) {
+  if (regex.source === "(?:)") {
     return yield* emptyScan(input)
   }
 
@@ -80,6 +80,7 @@ export async function* scan<R = any>(
   const findAtMostOneMatch = !isGlobal
 
   let buffer = ""
+  let pendingSurrogate = ""
   let alreadyFound = false // tracks "done" for non-global mode
 
   /** Flush everything we're *certain* can no longer change */
@@ -148,11 +149,19 @@ export async function* scan<R = any>(
 
       if (next.done) {
         completed = true
+        buffer += pendingSurrogate
         yield* flush(true)
         return next.value as R
       }
 
-      buffer += next.value
+      let text = pendingSurrogate + next.value
+      pendingSurrogate = ""
+      // A Unicode match must not see half a code point at a chunk boundary.
+      if (regex.unicode && /[\uD800-\uDBFF]$/.test(text)) {
+        pendingSurrogate = text.slice(-1)
+        text = text.slice(0, -1)
+      }
+      buffer += text
       yield* flush()
     }
   } finally {

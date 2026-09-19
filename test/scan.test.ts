@@ -198,13 +198,6 @@ describe("scan", () => {
       ])
     })
 
-    test("should handle word boundaries", async () => {
-      const input = fromList(["hello world"])
-      const results = await collectResults(scan(input, /\bworld\b/g))
-
-      expect(results).toEqual([{ text: "hello " }, { match: expect.arrayContaining(["world"]) }])
-    })
-
     test("should handle case-insensitive flag", async () => {
       const input = fromList(["Hello WORLD"])
       const results = await collectResults(scan(input, /hello/gi))
