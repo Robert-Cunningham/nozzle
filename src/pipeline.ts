@@ -105,7 +105,7 @@ export class Pipeline<T = string, R = any> implements AsyncIterable<T, R> {
   /**
    * @hidden
    */
-  flatMap<U>(fn: (value: T) => Iterable<U> | AsyncIterable<U>) {
+  flatMap<U>(fn: (value: T) => globalThis.Iterable<U> | AsyncIterable<U>) {
     return new Pipeline<U, R>(tx.flatMap(this.src, fn))
   }
 
