@@ -196,8 +196,8 @@ export class Pipeline<T = string, R = any> implements AsyncIterable<T, R> {
   /**
    * @hidden
    */
-  unwrap(this: Pipeline<WrappedResult<T, R>, R>) {
-    return new Pipeline<T, R>(tx.unwrap(this.src))
+  unwrap<U, S>(this: Pipeline<WrappedResult<U, S>, R>) {
+    return new Pipeline<U, S>(tx.unwrap(this.src))
   }
 
   /**
@@ -324,11 +324,11 @@ export class Pipeline<T = string, R = any> implements AsyncIterable<T, R> {
   /**
    * @hidden
    */
-  value(): Iterable<T> {
+  value(): Iterable<T, R> {
     return this.src
   }
 
   [Symbol.asyncIterator]() {
-    return (this.src as AsyncIterable<T>)[Symbol.asyncIterator]()
+    return this.src[Symbol.asyncIterator]()
   }
 }
