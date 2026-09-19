@@ -117,8 +117,10 @@ nz(urls).asyncMap(fetchJson, { concurrency: 4 })
 ```
 
 Transforms each value from the input stream using the provided async function.
-Applies the async function to each item as soon as it comes off the iterator
-and yields results as they complete, allowing multiple function calls to run concurrently.
+Starts the async function for each item as soon as it comes off the source iterator,
+up to the configured concurrency limit. Results are yielded in source order, not
+completion order, so a later item can finish first but will not be yielded or thrown
+until all earlier items have settled.
 
 <details><summary>Details</summary>
 
