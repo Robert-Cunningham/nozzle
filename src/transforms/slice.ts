@@ -1,6 +1,8 @@
 /**
  * Yields a slice of the input stream between start and end indices.
  * Supports negative indices by maintaining an internal buffer.
+ * A bounded slice may stop early and return undefined. Without an end, it preserves
+ * the source return value on completion.
  *
  * @group Indexing
  * @param iterator - The async iterable to slice
@@ -14,11 +16,21 @@
  * nz(["a", "b", "c", "d", "e"]).slice(-2) // => "d", "e"
  * ```
  */
+export function slice<T, R = any>(
+  iterator: AsyncIterable<T, R>,
+  start: number,
+  end?: undefined,
+): AsyncGenerator<T, R, undefined>
+export function slice<T, R = any>(
+  iterator: AsyncIterable<T, R>,
+  start: number,
+  end: number | undefined,
+): AsyncGenerator<T, R | undefined, undefined>
 export async function* slice<T, R = any>(
   iterator: AsyncIterable<T, R>,
   start: number,
   end?: number,
-): AsyncGenerator<T, R, undefined> {
+): AsyncGenerator<T, R | undefined, undefined> {
   const iter = iterator[Symbol.asyncIterator]()
   let index = 0
   let completed = false
@@ -44,7 +56,7 @@ export async function* slice<T, R = any>(
         if (index >= normalizedEnd) {
           completed = true
           const returned = await iter.return?.()
-          return returned?.value as R
+          return returned?.done ? returned.value : undefined
         }
       }
     }
@@ -57,7 +69,7 @@ export async function* slice<T, R = any>(
       if (bufferSize === 0) {
         completed = true
         const returned = await iter.return?.()
-        return returned?.value as R
+        return returned?.done ? returned.value : undefined
       }
 
       const buffer: T[] = []

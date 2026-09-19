@@ -7,6 +7,8 @@ import { scan } from "./scan"
  *
  * Built on: `scan(source, regex)` taking text until first match
  *
+ * Early termination may return undefined instead of the source's final value.
+ *
  * @group Splitting
  * @param source     stream or iterable to scan
  * @param separator  string that marks the cut-off
@@ -19,7 +21,7 @@ import { scan } from "./scan"
 export async function* before<R = any>(
   source: StringIterable<R>,
   separator: string | RegExp,
-): AsyncGenerator<string, R, undefined> {
+): AsyncGenerator<string, R | undefined, undefined> {
   const regex = toNonGlobalRegex(separator)
 
   if (isPatternEmpty(separator)) return yield* source
@@ -43,7 +45,7 @@ export async function* before<R = any>(
       } else {
         completed = true
         const returned = await iter.return?.(undefined as R)
-        return returned?.value as R
+        return returned?.done ? returned.value : undefined
       }
     }
   } finally {

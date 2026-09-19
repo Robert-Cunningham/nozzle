@@ -252,8 +252,9 @@ function renderFunction(r: DeclarationReflection): string {
   }
 
   // Details block
-  const signature = buildSignature(r.name, sig)
-  const paramsTable = buildParamsTable(sig?.parameters)
+  const signatures = r.signatures?.length ? r.signatures : [sig]
+  const signature = signatures.map((overload) => buildSignature(r.name, overload)).join("\n")
+  const paramsTable = buildParamsTable(signatures[signatures.length - 1]?.parameters)
 
   parts.push("<details><summary>Details</summary>")
   parts.push("")

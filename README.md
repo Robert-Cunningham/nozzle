@@ -282,10 +282,12 @@ nz(["Hello", "World", "!"]).head() // => "Hello"
 
 Yields only the first value from the input stream.
 
+Early termination may return undefined instead of the source's final value.
+
 <details><summary>Details</summary>
 
 ```ts
-function head<T, R = any>(iterator: AsyncIterable<T, R>): AsyncGenerator<T, R, undefined>;
+function head<T, R = any>(iterator: AsyncIterable<T, R>): AsyncGenerator<T, undefined | R, undefined>;
 ```
 
 #### Parameters
@@ -356,11 +358,14 @@ nz(["a", "b", "c", "d", "e"]).slice(-2) // => "d", "e"
 
 Yields a slice of the input stream between start and end indices.
 Supports negative indices by maintaining an internal buffer.
+A bounded slice may stop early and return undefined. Without an end, it preserves
+the source return value on completion.
 
 <details><summary>Details</summary>
 
 ```ts
-function slice<T, R = any>(iterator: AsyncIterable<T, R>, start: number, end?: number): AsyncGenerator<T, R, undefined>;
+function slice<T, R = any>(iterator: AsyncIterable<T, R>, start: number, end?: undefined): AsyncGenerator<T, R, undefined>;
+function slice<T, R = any>(iterator: AsyncIterable<T, R>, start: number, end: undefined | number): AsyncGenerator<T, undefined | R, undefined>;
 ```
 
 #### Parameters
@@ -369,7 +374,7 @@ function slice<T, R = any>(iterator: AsyncIterable<T, R>, start: number, end?: n
 | ------ | ------ | ------ |
 | `iterator` | AsyncIterable\<T, R\> | The async iterable to slice |
 | `start` | number | Starting index (inclusive). Negative values count from end. |
-| `end` | number | Ending index (exclusive). Negative values count from end. If undefined, slices to end. |
+| `end` | undefined \| number | Ending index (exclusive). Negative values count from end. If undefined, slices to end. |
 </details>
 
 ---
@@ -430,10 +435,12 @@ nz([1, 2, 3, 4]).takeUntil(n => n === 3) // => 1, 2
 
 Yields values until the predicate matches, excluding the matching value.
 
+Early termination may return undefined instead of the source's final value.
+
 <details><summary>Details</summary>
 
 ```ts
-function takeUntil<T, R = any>(source: AsyncIterable<T, R>, predicate: (value: T) => boolean): AsyncGenerator<T, R, undefined>;
+function takeUntil<T, R = any>(source: AsyncIterable<T, R>, predicate: (value: T) => boolean): AsyncGenerator<T, undefined | R, undefined>;
 ```
 
 #### Parameters
@@ -454,10 +461,12 @@ nz([1, 2, 3, 1]).takeWhile(n => n < 3) // => 1, 2
 
 Yields values while the predicate matches, excluding the first non-matching value.
 
+Early termination may return undefined instead of the source's final value.
+
 <details><summary>Details</summary>
 
 ```ts
-function takeWhile<T, R = any>(source: AsyncIterable<T, R>, predicate: (value: T) => boolean): AsyncGenerator<T, R, undefined>;
+function takeWhile<T, R = any>(source: AsyncIterable<T, R>, predicate: (value: T) => boolean): AsyncGenerator<T, undefined | R, undefined>;
 ```
 
 #### Parameters
@@ -508,10 +517,12 @@ Emit everything **before** the accumulated prefix that contains `separator`.
 
 Built on: `scan(source, regex)` taking text until first match
 
+Early termination may return undefined instead of the source's final value.
+
 <details><summary>Details</summary>
 
 ```ts
-function before<R = any>(source: StringIterable<R>, separator: string | RegExp): AsyncGenerator<string, R, undefined>;
+function before<R = any>(source: StringIterable<R>, separator: string | RegExp): AsyncGenerator<string, undefined | R, undefined>;
 ```
 
 #### Parameters
@@ -1263,7 +1274,7 @@ Creates a sliding window of size n over the input stream, yielding arrays of con
 <details><summary>Details</summary>
 
 ```ts
-function aperture<T, R = any>(source: Iterable<T, R>, n: number): AsyncGenerator<T[], R>;
+function aperture<T, R = any>(source: Iterable<T, R>, n: number): AsyncGenerator<T[], undefined | R>;
 ```
 
 #### Parameters
