@@ -8,7 +8,7 @@
  *
  * @example
  * ```ts
- * nz(["Hello", "Hi", "World"]).filter(chunk => chunk.length > 5) // => "Hello", "World"
+ * nz(["Hello", "Hi", "World"]).filter(chunk => chunk.length > 4) // => "Hello", "World"
  * ```
  */
 export const filter = async function* <T, R = any>(

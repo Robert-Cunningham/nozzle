@@ -5,7 +5,8 @@ import { ConsumedPipeline } from "../consumedPipeline"
  *
  * Returns a ConsumedPipeline which provides access to both yielded values and return values:
  * - `.list()` - Returns all yielded values as an array (`T[]`)
- * - `.return()` - Returns the iterator's return value (`R`)
+ * - `.return()` - Returns the iterator's return value (`R | undefined`)
+ * - `.string()` - Concatenates string values
  *
  * @group Conversion
  * @param iterator - An asynchronous iterable to consume
@@ -22,13 +23,19 @@ export const consume = async <T, R>(iterator: AsyncIterable<T, R>): Promise<Cons
   const values: T[] = []
   const iter = iterator[Symbol.asyncIterator]()
 
-  while (true) {
-    const result = await iter.next()
+  let completed = false
+  try {
+    while (true) {
+      const result = await iter.next()
 
-    if (result.done) {
-      return new ConsumedPipeline(values, result.value as R)
+      if (result.done) {
+        completed = true
+        return new ConsumedPipeline(values, result.value as R)
+      }
+
+      values.push(result.value)
     }
-
-    values.push(result.value)
+  } finally {
+    if (!completed) await iter.return?.()
   }
 }

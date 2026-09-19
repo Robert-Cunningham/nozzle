@@ -69,6 +69,7 @@ export const throttle = async function* <T, R = any>(
     try {
       while (output.isOpen) {
         const next = await iterator.next()
+        if (!output.isOpen) return
 
         if (next.done) {
           finished = true
@@ -91,5 +92,10 @@ export const throttle = async function* <T, R = any>(
     }
   })()
 
-  return yield* output
+  try {
+    return yield* output
+  } finally {
+    if (timer) clearTimeout(timer)
+    await output.cancel()
+  }
 }

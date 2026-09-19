@@ -24,5 +24,10 @@ export const buffer = async function* <T, R = any>(source: AsyncIterable<T, R>, 
     throw new Error(`buffer size must be a positive integer, got ${n}`)
   }
 
-  return yield* Channel.from(source, { capacity: n })
+  const channel = Channel.from(source, { capacity: n })
+  try {
+    return yield* channel
+  } finally {
+    await channel.cancel()
+  }
 }

@@ -12,6 +12,8 @@ export type AsyncMapOptions = {
  * up to the configured concurrency limit. Results are yielded in source order, not
  * completion order, so a later item can finish first but will not be yielded or thrown
  * until all earlier items have settled.
+ * Concurrency limits active calls, not queued results. Slow consumers can cause
+ * unbounded buffering. Cancellation does not abort already-started mapper calls.
  *
  * @group Elements
  * @param iterator - An asynchronous iterable of strings.
@@ -90,6 +92,7 @@ export const asyncMap = async function* <T, U, R = any>(
         if (!orderedResults.isOpen) return
 
         const next = await source.next()
+        if (!orderedResults.isOpen) return
 
         if (next.done) {
           orderedResults.close(next.value as R)
