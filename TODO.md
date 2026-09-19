@@ -33,12 +33,12 @@
 ## Before Release
 
 - add demos/gifs for tee, extract, and timing
-- modernize return passthrough
+- [x] modernize return passthrough
 - write head of readme
-- some kind of claude-automated testing...?
+- [x] some kind of claude-automated testing...?
 - [x] group docs by type
 - [x] maybe write a custom doc generator function
-- ask claude to check the overall project again
+- [x] ask claude to check the overall project again
 
 Broadly:
 
