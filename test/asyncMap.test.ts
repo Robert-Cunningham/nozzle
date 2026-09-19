@@ -5,6 +5,38 @@ import { fromList } from "../src/transforms/fromList"
 import { consume } from "../src/transforms/consume"
 import { assertResultsEqualsWithTiming, collectWithTimings, delayedStream } from "./timing-helpers"
 
+function deferred<T>() {
+  let resolve!: (value: T) => void
+  let reject!: (error: unknown) => void
+  const promise = new Promise<T>((res, rej) => {
+    resolve = res
+    reject = rej
+  })
+
+  return { promise, resolve, reject }
+}
+
+const sleep = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms))
+
+async function waitUntil(predicate: () => boolean, message: string) {
+  for (let i = 0; i < 20; i++) {
+    if (predicate()) return
+    await sleep(0)
+  }
+
+  throw new Error(message)
+}
+
+async function promiseState<T>(promise: Promise<T>) {
+  return Promise.race([
+    promise.then(
+      () => "fulfilled" as const,
+      () => "rejected" as const,
+    ),
+    sleep(5).then(() => "pending" as const),
+  ])
+}
+
 describe("asyncMap", () => {
   test("should transform each value using the provided async function", async () => {
     const asyncMapIterable = asyncMap(fromList(["hello", "world"]), async (x) => {
@@ -113,6 +145,55 @@ describe("asyncMap", () => {
     expect(results[0].timestamp).toBeLessThan(30)
     expect(results[1].timestamp).toBeGreaterThanOrEqual(45)
     expect(results[2].timestamp).toBeGreaterThanOrEqual(45)
+  })
+
+  test("starts mapping calls eagerly but yields results in source order", async () => {
+    const deferreds = [deferred<string>(), deferred<string>(), deferred<string>()]
+    const starts: number[] = []
+    const iterator = asyncMap(fromList([0, 1, 2]), async (index) => {
+      starts.push(index)
+      return deferreds[index].promise
+    })[Symbol.asyncIterator]()
+
+    const first = iterator.next()
+
+    await waitUntil(() => starts.length === 3, "expected all mapper calls to start")
+    expect(starts).toEqual([0, 1, 2])
+
+    deferreds[2].resolve("third")
+    deferreds[1].resolve("second")
+    expect(await promiseState(first)).toBe("pending")
+
+    deferreds[0].resolve("first")
+
+    await expect(first).resolves.toEqual({ done: false, value: "first" })
+    await expect(iterator.next()).resolves.toEqual({ done: false, value: "second" })
+    await expect(iterator.next()).resolves.toEqual({ done: false, value: "third" })
+    await expect(iterator.next()).resolves.toEqual({ done: true, value: undefined })
+  })
+
+  test("throws mapper errors in source order", async () => {
+    const deferreds = [deferred<string>(), deferred<string>(), deferred<string>()]
+    const starts: number[] = []
+    const iterator = asyncMap(fromList([0, 1, 2]), async (index) => {
+      starts.push(index)
+      return deferreds[index].promise
+    })[Symbol.asyncIterator]()
+
+    const first = iterator.next()
+
+    await waitUntil(() => starts.length === 3, "expected all mapper calls to start")
+
+    const thirdError = new Error("third failed")
+    deferreds[2].reject(thirdError)
+    deferreds[1].resolve("second")
+    expect(await promiseState(first)).toBe("pending")
+
+    deferreds[0].resolve("first")
+
+    await expect(first).resolves.toEqual({ done: false, value: "first" })
+    await expect(iterator.next()).resolves.toEqual({ done: false, value: "second" })
+    await expect(iterator.next()).rejects.toBe(thirdError)
   })
 
   test("should handle concurrency with delayed input stream", async () => {

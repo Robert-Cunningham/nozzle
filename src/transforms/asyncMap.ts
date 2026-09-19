@@ -8,8 +8,10 @@ export type AsyncMapOptions = {
 
 /**
  * Transforms each value from the input stream using the provided async function.
- * Applies the async function to each item as soon as it comes off the iterator
- * and yields results as they complete, allowing multiple function calls to run concurrently.
+ * Starts the async function for each item as soon as it comes off the source iterator,
+ * up to the configured concurrency limit. Results are yielded in source order, not
+ * completion order, so a later item can finish first but will not be yielded or thrown
+ * until all earlier items have settled.
  *
  * @group Elements
  * @param iterator - An asynchronous iterable of strings.
@@ -36,7 +38,7 @@ export const asyncMap = async function* <T, U, R = any>(
   }
 
   const source = iterator[Symbol.asyncIterator]()
-  const promises = new Channel<Promise<Result<U>>, R>({
+  const orderedResults = new Channel<Promise<Result<U>>, R>({
     onCancel: async () => {
       await source.return?.()
     },
@@ -83,27 +85,29 @@ export const asyncMap = async function* <T, U, R = any>(
 
   void (async () => {
     try {
-      while (promises.isOpen) {
+      while (orderedResults.isOpen) {
         await waitForSlot()
-        if (!promises.isOpen) return
+        if (!orderedResults.isOpen) return
 
         const next = await source.next()
 
         if (next.done) {
-          promises.close(next.value as R)
+          orderedResults.close(next.value as R)
           return
         }
 
-        await promises.push(start(next.value))
+        // Start immediately, but enqueue the promise in source order. The consumer
+        // awaits each queued promise in order below, preserving ordered yields/errors.
+        await orderedResults.push(start(next.value))
       }
     } catch (error) {
-      if (promises.isCanceled && error instanceof ChannelClosedError) return
-      if (promises.isCanceled) return
-      promises.fail(error)
+      if (orderedResults.isCanceled && error instanceof ChannelClosedError) return
+      if (orderedResults.isCanceled) return
+      orderedResults.fail(error)
     }
   })()
 
-  const iter = promises[Symbol.asyncIterator]()
+  const iter = orderedResults[Symbol.asyncIterator]()
 
   try {
     while (true) {
