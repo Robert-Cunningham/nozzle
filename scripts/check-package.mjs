@@ -48,6 +48,12 @@ try {
 
   const runtime = `
 async function main() {
+  assert.equal("window" in nz, false)
+  assert.equal("window" in nz([]), false)
+  assert.deepEqual((await nz([1, 2]).withContext({ after: 1 }).consume()).list(), [
+    { past: [], current: 1, upcoming: [2], index: 0 },
+    { past: [], current: 2, upcoming: [], index: 1 },
+  ])
   assert.equal(Object.hasOwn(RegExp.prototype, "toPartialMatchRegex"), false)
   const result = await nz(["one:", ":two"]).split("::").consume()
   assert.deepEqual(result.list(), ["one", "two"])
@@ -67,8 +73,13 @@ main().catch(error => { console.error(error); process.exitCode = 1 })
   }
 
   const types = `
-import { nz, type Pipeline } from "nozzle-js"
+import { nz, type Pipeline, type ItemContext } from "nozzle-js"
 async function* source(): AsyncGenerator<string, number> { yield "a"; return 42 }
+const context: Pipeline<ItemContext<string>, number> = nz(source()).withContext({ before: 1, after: 2 })
+// @ts-expect-error window is internal.
+nz([]).window(() => ({}))
+// @ts-expect-error window is not a public transform.
+nz.window
 const pipeline: Pipeline<string, number> = nz(source()).split(",").wrap().unwrap()
 const iter: AsyncIterator<string, number> = pipeline[Symbol.asyncIterator]()
 const chars: Pipeline<string, undefined> = nz(["hi"]).flatMap(s => s.split(""))

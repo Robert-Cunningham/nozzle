@@ -313,18 +313,4 @@ describe("window", () => {
 
     expect(pastSnapshots).toEqual([[], [], [], []])
   })
-
-  it("should work with Pipeline chaining", async () => {
-    const { nz } = await import("../src/index")
-
-    const result = await nz([1, 2, 3, 4, 5])
-      .window(({ current, past }) => ({
-        value: current + past.length,
-      }))
-      .consume()
-
-    // past.length is 0, 1, 2, 3, 4 for items 1, 2, 3, 4, 5
-    // So: 1+0=1, 2+1=3, 3+2=5, 4+3=7, 5+4=9
-    expect(result.list()).toEqual([1, 3, 5, 7, 9])
-  })
 })

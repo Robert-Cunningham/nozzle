@@ -1050,6 +1050,37 @@ function buffer<T, R = any>(source: AsyncIterable<T, R>, n?: number): AsyncGener
 
 ---
 
+### `withContext`
+
+```ts
+nz([1, 2, 3]).withContext({ before: 1, after: 1 })
+// { past: [], current: 1, upcoming: [2], index: 0 }
+// { past: [1], current: 2, upcoming: [3], index: 1 }
+// { past: [2], current: 3, upcoming: [], index: 2 }
+```
+
+Yields each item with bounded neighboring context in source order.
+`before` and `after` default to zero and must be nonnegative safe integers.
+Lookahead delays emission until `after` items arrive or the source ends.
+Context is shorter at stream boundaries. Each output has independent arrays;
+the items themselves are shared. The source's return value is preserved.
+
+<details><summary>Details</summary>
+
+```ts
+function withContext<T, R = any>(source: Iterable<T, R>, options: WithContextOptions): AsyncGenerator<ItemContext<T>, R>;
+```
+
+#### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `source` | Iterable\<T, R\> | - |
+| `options` | WithContextOptions | - |
+</details>
+
+---
+
 ## Side Effects
 
 ### `tap`
@@ -1283,37 +1314,6 @@ function aperture<T, R = any>(source: Iterable<T, R>, n: number): AsyncGenerator
 | ------ | ------ | ------ |
 | `source` | Iterable\<T, R\> | An iterable to create windows over. |
 | `n` | number | The size of each window. |
-</details>
-
----
-
-### `window`
-
-```ts
-// Simple passthrough with lookahead
-nz([1, 2, 3, 4]).window(({ current, upcoming, done }) => {
-  if (!done && upcoming.length === 0) {
-    return { value: current, advance: 0 } // peek ahead
-  }
-  return { value: current } // advance by 1 (default)
-})
-```
-
-Provides a windowed view of the stream with lookahead/lookbehind capabilities.
-
-<details><summary>Details</summary>
-
-```ts
-function window<T, U, R = any>(source: Iterable<T, R>, fn: (ctx: { current: T; done: boolean; index: number; past: T[]; upcoming: T[] }) => { advance?: number; value: U }, options?: { maxPast?: number }): AsyncGenerator<U, R>;
-```
-
-#### Parameters
-
-| Parameter | Type | Description |
-| ------ | ------ | ------ |
-| `source` | Iterable\<T, R\> | The async iterable to window over |
-| `fn` | (ctx: { current: T; done: boolean; index: number; past: T[]; upcoming: T[] }) =\> { advance?: number; value: U } | Callback receiving context and returning value and advance amount |
-| `options` | { maxPast?: number } | Optional configuration |
 </details>
 
 ## Development
