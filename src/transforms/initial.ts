@@ -12,4 +12,5 @@ import { slice } from "./slice"
  * nz(["Hello", "World", "!"]).initial() // => "Hello", "World"
  * ```
  */
-export const initial = <T>(iterator: AsyncIterable<T>) => slice(iterator, 0, -1)
+export const initial = <T, R = any>(iterator: AsyncIterable<T, R>): AsyncGenerator<T, R, undefined> =>
+  slice(iterator, 0, -1)

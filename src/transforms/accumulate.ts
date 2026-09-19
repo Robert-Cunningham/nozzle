@@ -13,6 +13,5 @@ import { reduce } from "./reduce"
  * ```
  */
 // accumulate and yield partials: diffsToPrefixes
-export const accumulate = async function* (iterator: AsyncIterable<string>): AsyncGenerator<string> {
-  yield* reduce(iterator, (acc, current) => acc + current, "")
-}
+export const accumulate = <R = any>(iterator: AsyncIterable<string, R>): AsyncGenerator<string, R, undefined> =>
+  reduce(iterator, (acc, current) => acc + current, "")

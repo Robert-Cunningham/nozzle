@@ -16,18 +16,22 @@ export const mapReturn = async function* <T, R, U>(
   fn: (value: R) => U,
 ): AsyncGenerator<T, U, undefined> {
   const iter = iterator[Symbol.asyncIterator]()
+  let completed = false
 
   try {
     while (true) {
       const result = await iter.next()
 
       if (result.done) {
+        completed = true
         return fn(result.value) as U
       } else {
         yield result.value
       }
     }
-  } catch (error) {
-    throw error
+  } finally {
+    if (!completed) {
+      await iter.return?.()
+    }
   }
 }

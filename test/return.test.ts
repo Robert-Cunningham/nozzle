@@ -2,6 +2,14 @@ import { describe, expect, test } from "vitest"
 import { nz } from "../src"
 import { consume } from "../src/transforms/consume"
 
+async function* sourceWithReturn<T, R>(values: T[], returnValue: R): AsyncGenerator<T, R> {
+  for (const value of values) {
+    yield value
+  }
+
+  return returnValue
+}
+
 describe("return", () => {
   test("captures and returns the return value of an async generator", async () => {
     const source = async function* () {
@@ -86,6 +94,139 @@ describe("return", () => {
     ).return()
 
     expect(result).toBe("preserved")
+  })
+
+  test("preserves return value through generic full-consumption transforms", async () => {
+    expect(
+      (
+        await nz(sourceWithReturn([1, 2, 3], "reduced"))
+          .reduce((acc, value) => acc + value, 0)
+          .consume()
+      ).return(),
+    ).toBe("reduced")
+
+    expect(
+      (
+        await nz(sourceWithReturn([[1], [2]], "flattened"))
+          .flatten()
+          .consume()
+      ).return(),
+    ).toBe("flattened")
+    expect(
+      (
+        await nz(sourceWithReturn([1, 2, 3], "sliced"))
+          .slice(1)
+          .consume()
+      ).return(),
+    ).toBe("sliced")
+    expect(
+      (
+        await nz(sourceWithReturn([1, 2, 3], "initial"))
+          .initial()
+          .consume()
+      ).return(),
+    ).toBe("initial")
+    expect(
+      (
+        await nz(sourceWithReturn([1, 2, 3], "tail"))
+          .tail()
+          .consume()
+      ).return(),
+    ).toBe("tail")
+    expect(
+      (
+        await nz(sourceWithReturn([1, 2, 3], "timed"))
+          .minInterval(0)
+          .consume()
+      ).return(),
+    ).toBe("timed")
+  })
+
+  test("preserves return value through string and regex full-consumption transforms", async () => {
+    expect(
+      (
+        await nz(sourceWithReturn(["a", "b"], "accumulated"))
+          .accumulate()
+          .consume()
+      ).return(),
+    ).toBe("accumulated")
+    expect(
+      (
+        await nz(sourceWithReturn(["a", "", "b"], "compacted"))
+          .compact()
+          .consume()
+      ).return(),
+    ).toBe("compacted")
+    expect(
+      (
+        await nz(sourceWithReturn(["a", "ab"], "diffed"))
+          .diff()
+          .consume()
+      ).return(),
+    ).toBe("diffed")
+    expect(
+      (
+        await nz(sourceWithReturn(["a", "b"], "scanned"))
+          .scan(/z/g)
+          .consume()
+      ).return(),
+    ).toBe("scanned")
+    expect(
+      (
+        await nz(sourceWithReturn(["a,b"], "split"))
+          .split(",")
+          .consume()
+      ).return(),
+    ).toBe("split")
+    expect(
+      (
+        await nz(sourceWithReturn(["a,b"], "split-before"))
+          .splitBefore(",")
+          .consume()
+      ).return(),
+    ).toBe("split-before")
+    expect(
+      (
+        await nz(sourceWithReturn(["a,b"], "split-after"))
+          .splitAfter(",")
+          .consume()
+      ).return(),
+    ).toBe("split-after")
+    expect(
+      (
+        await nz(sourceWithReturn(["axb"], "after"))
+          .after("x")
+          .consume()
+      ).return(),
+    ).toBe("after")
+    expect(
+      (
+        await nz(sourceWithReturn(["ab"], "before"))
+          .before("z")
+          .consume()
+      ).return(),
+    ).toBe("before")
+    expect(
+      (
+        await nz(sourceWithReturn(["ab"], "matched"))
+          .match(/a/g)
+          .consume()
+      ).return(),
+    ).toBe("matched")
+    expect(
+      (
+        await nz(sourceWithReturn(["ab"], "parsed"))
+          .parse(/b/g, () => "B")
+          .consume()
+      ).return(),
+    ).toBe("parsed")
+    expect(
+      (
+        await nz(sourceWithReturn(["ab"], "replaced"))
+          .replace(/b/g, "B")
+          .consume()
+      ).return(),
+    ).toBe("replaced")
   })
 
   test("propagates errors from async generator", async () => {

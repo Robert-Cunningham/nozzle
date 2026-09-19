@@ -13,4 +13,5 @@ import { slice } from "./slice"
  * ```
  * @see {@link at}, {@link tail}, {@link initial}, {@link last}
  */
-export const head = <T>(iterator: AsyncIterable<T>) => slice(iterator, 0, 1)
+export const head = <T, R = any>(iterator: AsyncIterable<T, R>): AsyncGenerator<T, R, undefined> =>
+  slice(iterator, 0, 1)

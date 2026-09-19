@@ -16,19 +16,39 @@ import { scan } from "./scan"
  * nz(["hello,world,test"]).split(",") // => "hello", "world", "test"
  * ```
  */
-export async function* split(source: AsyncIterable<string>, separator: string | RegExp): AsyncGenerator<string> {
+export async function* split<R = any>(
+  source: AsyncIterable<string, R>,
+  separator: string | RegExp,
+): AsyncGenerator<string, R, undefined> {
   const regex = toGlobalRegex(separator)
   let buffer = ""
-  for await (const result of scan(source, regex)) {
-    if ("text" in result) {
-      buffer += result.text
-    } else {
-      yield buffer
-      buffer = ""
+  const iter = scan(source, regex)[Symbol.asyncIterator]()
+  let completed = false
+
+  try {
+    while (true) {
+      const next = await iter.next()
+
+      if (next.done) {
+        completed = true
+        yield buffer
+        return next.value as R
+      }
+
+      const result = next.value
+
+      if ("text" in result) {
+        buffer += result.text
+      } else {
+        yield buffer
+        buffer = ""
+      }
+    }
+  } finally {
+    if (!completed) {
+      await iter.return?.(undefined as R)
     }
   }
-
-  yield buffer
 }
 
 /**
@@ -47,19 +67,39 @@ export async function* split(source: AsyncIterable<string>, separator: string | 
  * nz(["hello,world,test"]).splitBefore(",") // => "hello", ",world", ",test"
  * ```
  */
-export async function* splitBefore(source: AsyncIterable<string>, separator: string | RegExp): AsyncGenerator<string> {
+export async function* splitBefore<R = any>(
+  source: AsyncIterable<string, R>,
+  separator: string | RegExp,
+): AsyncGenerator<string, R, undefined> {
   const regex = toGlobalRegex(separator)
   let buffer = ""
-  for await (const result of scan(source, regex)) {
-    if ("text" in result) {
-      buffer += result.text
-    } else {
-      yield buffer
-      buffer = result.match[0]
+  const iter = scan(source, regex)[Symbol.asyncIterator]()
+  let completed = false
+
+  try {
+    while (true) {
+      const next = await iter.next()
+
+      if (next.done) {
+        completed = true
+        yield buffer
+        return next.value as R
+      }
+
+      const result = next.value
+
+      if ("text" in result) {
+        buffer += result.text
+      } else {
+        yield buffer
+        buffer = result.match[0]
+      }
+    }
+  } finally {
+    if (!completed) {
+      await iter.return?.(undefined as R)
     }
   }
-
-  yield buffer
 }
 
 /**
@@ -78,18 +118,38 @@ export async function* splitBefore(source: AsyncIterable<string>, separator: str
  * nz(["hello,world,test"]).splitAfter(",") // => "hello,", "world,", "test"
  * ```
  */
-export async function* splitAfter(source: AsyncIterable<string>, separator: string | RegExp): AsyncGenerator<string> {
+export async function* splitAfter<R = any>(
+  source: AsyncIterable<string, R>,
+  separator: string | RegExp,
+): AsyncGenerator<string, R, undefined> {
   const regex = toGlobalRegex(separator)
   let buffer = ""
 
-  for await (const result of scan(source, regex)) {
-    if ("text" in result) {
-      buffer += result.text
-    } else {
-      yield buffer + result.match[0]
-      buffer = ""
+  const iter = scan(source, regex)[Symbol.asyncIterator]()
+  let completed = false
+
+  try {
+    while (true) {
+      const next = await iter.next()
+
+      if (next.done) {
+        completed = true
+        yield buffer
+        return next.value as R
+      }
+
+      const result = next.value
+
+      if ("text" in result) {
+        buffer += result.text
+      } else {
+        yield buffer + result.match[0]
+        buffer = ""
+      }
+    }
+  } finally {
+    if (!completed) {
+      await iter.return?.(undefined as R)
     }
   }
-
-  yield buffer
 }

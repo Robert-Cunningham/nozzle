@@ -12,6 +12,5 @@ import { filter } from "./filter"
  * nz(["Hello", "", "World", ""]).compact() // => "Hello", "World"
  * ```
  */
-export const compact = async function* (iterator: AsyncIterable<string>): AsyncGenerator<string> {
-  return yield* filter(iterator, (text) => text !== "")
-}
+export const compact = <R = any>(iterator: AsyncIterable<string, R>): AsyncGenerator<string, R, undefined> =>
+  filter(iterator, (text) => text !== "")

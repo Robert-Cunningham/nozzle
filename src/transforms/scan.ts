@@ -13,16 +13,31 @@ function* yieldText(text: string): Generator<ScanResult> {
   }
 }
 
-const emptyScan = async function* (input: AsyncIterable<string>): AsyncGenerator<ScanResult> {
+const emptyScan = async function* <R = any>(input: AsyncIterable<string, R>): AsyncGenerator<ScanResult, R, undefined> {
+  const iter = input[Symbol.asyncIterator]()
   let first = true
-  for await (const chunk of input) {
-    for (const c of chunk.split("")) {
-      if (!first) yield { match: new RegExp("").exec("")! }
-      if (first) first = false
-      yield { text: c }
+  let completed = false
+
+  try {
+    while (true) {
+      const next = await iter.next()
+
+      if (next.done) {
+        completed = true
+        return next.value as R
+      }
+
+      for (const c of next.value.split("")) {
+        if (!first) yield { match: new RegExp("").exec("")! }
+        if (first) first = false
+        yield { text: c }
+      }
+    }
+  } finally {
+    if (!completed) {
+      await iter.return?.()
     }
   }
-  return
 }
 
 /**
@@ -48,7 +63,10 @@ const emptyScan = async function* (input: AsyncIterable<string>): AsyncGenerator
  * // yields: { text: "Now I'm taking " }, { match: [...] }, { text: "..." }
  * ```
  */
-export async function* scan(input: AsyncIterable<string>, regex: RegExp): AsyncGenerator<ScanResult> {
+export async function* scan<R = any>(
+  input: AsyncIterable<string, R>,
+  regex: RegExp,
+): AsyncGenerator<ScanResult, R, undefined> {
   assertSupportedRegex(regex)
 
   if (regex.exec("")) {
@@ -121,10 +139,25 @@ export async function* scan(input: AsyncIterable<string>, regex: RegExp): AsyncG
     }
   }
 
-  // ───────────────────────── Main loop ─────────────────────────
-  for await (const chunk of input) {
-    buffer += chunk
-    yield* flush()
+  const iter = input[Symbol.asyncIterator]()
+  let completed = false
+
+  try {
+    while (true) {
+      const next = await iter.next()
+
+      if (next.done) {
+        completed = true
+        yield* flush(true)
+        return next.value as R
+      }
+
+      buffer += next.value
+      yield* flush()
+    }
+  } finally {
+    if (!completed) {
+      await iter.return?.()
+    }
   }
-  yield* flush(true)
 }

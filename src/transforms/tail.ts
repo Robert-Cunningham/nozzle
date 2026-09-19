@@ -12,4 +12,4 @@ import { slice } from "./slice"
  * nz(["Hello", "World", "!"]).tail() // => "World", "!"
  * ```
  */
-export const tail = <T>(iterator: AsyncIterable<T>) => slice(iterator, 1)
+export const tail = <T, R = any>(iterator: AsyncIterable<T, R>): AsyncGenerator<T, R, undefined> => slice(iterator, 1)

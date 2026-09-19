@@ -26,16 +26,34 @@ import { scan } from "./scan"
  * // yields: "The answer is ", 42, " and also ", 123
  * ```
  */
-export async function* parse<T>(
-  input: AsyncIterable<string>,
+export async function* parse<T, R = any>(
+  input: AsyncIterable<string, R>,
   regex: RegExp,
   transform: (match: RegExpExecArray) => T,
-): AsyncGenerator<string | T> {
-  for await (const result of scan(input, regex)) {
-    if ("text" in result) {
-      yield result.text
-    } else {
-      yield transform(result.match)
+): AsyncGenerator<string | T, R, undefined> {
+  const iter = scan(input, regex)[Symbol.asyncIterator]()
+  let completed = false
+
+  try {
+    while (true) {
+      const next = await iter.next()
+
+      if (next.done) {
+        completed = true
+        return next.value as R
+      }
+
+      const result = next.value
+
+      if ("text" in result) {
+        yield result.text
+      } else {
+        yield transform(result.match)
+      }
+    }
+  } finally {
+    if (!completed) {
+      await iter.return?.(undefined as R)
     }
   }
 }

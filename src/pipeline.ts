@@ -222,56 +222,56 @@ export class Pipeline<T = string, R = any> implements AsyncIterable<T, R> {
    * @hidden
    */
   accumulate(this: Pipeline<string, R>): Pipeline<string, R> {
-    return new Pipeline<string, R>(tx.accumulate(this.src as AsyncIterable<string>))
+    return new Pipeline<string, R>(tx.accumulate(this.src as Iterable<string, R>))
   }
 
   /**
    * @hidden
    */
   after(this: Pipeline<string, R>, pattern: RegExp | string): Pipeline<string, R> {
-    return new Pipeline<string, R>(tx.after(this.src as AsyncIterable<string>, pattern))
+    return new Pipeline<string, R>(tx.after(this.src as Iterable<string, R>, pattern))
   }
 
   /**
    * @hidden
    */
   before(this: Pipeline<string, R>, pattern: RegExp | string): Pipeline<string, R> {
-    return new Pipeline<string, R>(tx.before(this.src as AsyncIterable<string>, pattern))
+    return new Pipeline<string, R>(tx.before(this.src as Iterable<string, R>, pattern))
   }
 
   /**
    * @hidden
    */
   chunk(this: Pipeline<string, R>, size: number): Pipeline<string, R> {
-    return new Pipeline<string, R>(tx.chunk(this.src as AsyncIterable<string>, size))
+    return new Pipeline<string, R>(tx.chunk(this.src as Iterable<string, R>, size))
   }
 
   /**
    * @hidden
    */
   compact(this: Pipeline<string, R>): Pipeline<string, R> {
-    return new Pipeline<string, R>(tx.compact(this.src as AsyncIterable<string>))
+    return new Pipeline<string, R>(tx.compact(this.src as Iterable<string, R>))
   }
 
   /**
    * @hidden
    */
   diff(this: Pipeline<string, R>): Pipeline<string, R> {
-    return new Pipeline<string, R>(tx.diff(this.src as AsyncIterable<string>))
+    return new Pipeline<string, R>(tx.diff(this.src as Iterable<string, R>))
   }
 
   /**
    * @hidden
    */
   replace(this: Pipeline<string, R>, regex: RegExp, replacement: string): Pipeline<string, R> {
-    return new Pipeline<string, R>(tx.replace(this.src as AsyncIterable<string>, regex, replacement))
+    return new Pipeline<string, R>(tx.replace(this.src as Iterable<string, R>, regex, replacement))
   }
 
   /**
    * @hidden
    */
   scan(this: Pipeline<string, R>, regex: RegExp): Pipeline<ScanResult, R> {
-    return new Pipeline<ScanResult, R>(tx.scan(this.src as AsyncIterable<string>, regex))
+    return new Pipeline<ScanResult, R>(tx.scan(this.src as Iterable<string, R>, regex))
   }
 
   /**
@@ -282,35 +282,35 @@ export class Pipeline<T = string, R = any> implements AsyncIterable<T, R> {
     regex: RegExp,
     transform: (match: RegExpExecArray) => T,
   ): Pipeline<string | T, R> {
-    return new Pipeline<string | T, R>(tx.parse(this.src as AsyncIterable<string>, regex, transform))
+    return new Pipeline<string | T, R>(tx.parse(this.src as Iterable<string, R>, regex, transform))
   }
 
   /**
    * @hidden
    */
   match(this: Pipeline<string, R>, regex: RegExp): Pipeline<RegExpExecArray, R> {
-    return new Pipeline<RegExpExecArray, R>(tx.match(this.src as AsyncIterable<string>, regex))
+    return new Pipeline<RegExpExecArray, R>(tx.match(this.src as Iterable<string, R>, regex))
   }
 
   /**
    * @hidden
    */
   split(this: Pipeline<string, R>, pattern: RegExp | string): Pipeline<string, R> {
-    return new Pipeline<string, R>(tx.split(this.src as AsyncIterable<string>, pattern))
+    return new Pipeline<string, R>(tx.split(this.src as Iterable<string, R>, pattern))
   }
 
   /**
    * @hidden
    */
   splitAfter(this: Pipeline<string, R>, pattern: RegExp | string): Pipeline<string, R> {
-    return new Pipeline<string, R>(tx.splitAfter(this.src as AsyncIterable<string>, pattern))
+    return new Pipeline<string, R>(tx.splitAfter(this.src as Iterable<string, R>, pattern))
   }
 
   /**
    * @hidden
    */
   splitBefore(this: Pipeline<string, R>, pattern: RegExp | string): Pipeline<string, R> {
-    return new Pipeline<string, R>(tx.splitBefore(this.src as AsyncIterable<string>, pattern))
+    return new Pipeline<string, R>(tx.splitBefore(this.src as Iterable<string, R>, pattern))
   }
 
   // ---- terminators ----------------------------------------

@@ -14,59 +14,101 @@
  * nz(["a", "b", "c", "d", "e"]).slice(-2) // => "d", "e"
  * ```
  */
-export async function* slice<T>(iterator: AsyncIterable<T>, start: number, end?: number): AsyncGenerator<T> {
+export async function* slice<T, R = any>(
+  iterator: AsyncIterable<T, R>,
+  start: number,
+  end?: number,
+): AsyncGenerator<T, R, undefined> {
+  const iter = iterator[Symbol.asyncIterator]()
   let index = 0
+  let completed = false
 
-  // Case 1: Both positive indices - stream without buffering
-  if (start >= 0 && (end === undefined || end >= 0)) {
-    const normalizedEnd = end === undefined ? Infinity : end
+  try {
+    // Case 1: Both positive indices - stream without buffering
+    if (start >= 0 && (end === undefined || end >= 0)) {
+      const normalizedEnd = end === undefined ? Infinity : end
 
-    for await (const text of iterator) {
-      if (index >= start && index < normalizedEnd) {
-        yield text
-      }
-      index++
-      if (index >= normalizedEnd) {
-        break
-      }
-    }
-    return
-  }
+      while (true) {
+        const next = await iter.next()
 
-  // Case 2: Start positive, end negative - use sliding window buffer
-  if (start >= 0 && end !== undefined && end < 0) {
-    const bufferSize = Math.abs(end)
+        if (next.done) {
+          completed = true
+          return next.value as R
+        }
 
-    // Special case: if end is -0 (which equals 0), slice should be empty
-    if (bufferSize === 0) {
-      return
-    }
+        if (index >= start && index < normalizedEnd) {
+          yield next.value
+        }
 
-    const buffer: T[] = []
-
-    for await (const text of iterator) {
-      if (index >= start) {
-        buffer.push(text)
-        if (buffer.length > bufferSize) {
-          yield buffer.shift()!
+        index++
+        if (index >= normalizedEnd) {
+          completed = true
+          const returned = await iter.return?.()
+          return returned?.value as R
         }
       }
-      index++
     }
-    return
-  }
 
-  // Case 3: Start negative - need to buffer everything to know total length
-  const items: T[] = []
-  for await (const text of iterator) {
-    items.push(text)
-  }
+    // Case 2: Start positive, end negative - use sliding window buffer
+    if (start >= 0 && end !== undefined && end < 0) {
+      const bufferSize = Math.abs(end)
 
-  const length = items.length
-  const normalizedStart = start < 0 ? Math.max(0, length + start) : Math.min(start, length)
-  const normalizedEnd = end === undefined ? length : end < 0 ? Math.max(0, length + end) : Math.min(end, length)
+      // Special case: if end is -0 (which equals 0), slice should be empty
+      if (bufferSize === 0) {
+        completed = true
+        const returned = await iter.return?.()
+        return returned?.value as R
+      }
 
-  for (let i = normalizedStart; i < normalizedEnd; i++) {
-    yield items[i]
+      const buffer: T[] = []
+
+      while (true) {
+        const next = await iter.next()
+
+        if (next.done) {
+          completed = true
+          return next.value as R
+        }
+
+        if (index >= start) {
+          buffer.push(next.value)
+          if (buffer.length > bufferSize) {
+            yield buffer.shift()!
+          }
+        }
+
+        index++
+      }
+    }
+
+    // Case 3: Start negative - need to buffer everything to know total length
+    const items: T[] = []
+    let returnValue: R
+
+    while (true) {
+      const next = await iter.next()
+
+      if (next.done) {
+        completed = true
+        returnValue = next.value as R
+        break
+      }
+
+      items.push(next.value)
+    }
+
+    const length = items.length
+    const normalizedStart = start < 0 ? Math.max(0, length + start) : Math.min(start, length)
+    const normalizedEnd = end === undefined ? length : end < 0 ? Math.max(0, length + end) : Math.min(end, length)
+
+    for (let i = normalizedStart; i < normalizedEnd; i++) {
+      yield items[i]
+    }
+
+    return returnValue
+  } finally {
+    if (!completed) {
+      await iter.return?.()
+    }
   }
 }
