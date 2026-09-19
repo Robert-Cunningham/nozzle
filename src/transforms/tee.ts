@@ -66,10 +66,24 @@ export function tee<T, R = any>(iterator: AsyncIterator<T, R>, n: number): Async
     })()
   }
 
-  return channels.map((channel) =>
-    (async function* (): AsyncGenerator<T, R> {
+  return channels.map((channel) => {
+    const branch = (async function* (): AsyncGenerator<T, R> {
       start()
       return yield* channel
-    })(),
-  )
+    })()
+    const finish = branch.return.bind(branch)
+    const fail = branch.throw.bind(branch)
+
+    // Generator bodies do not run when return/throw is called before next().
+    // Cancel the channel explicitly so even an unused branch releases its share.
+    branch.return = async (value) => {
+      await channel.cancel(await value)
+      return finish(value)
+    }
+    branch.throw = async (error) => {
+      await channel.cancel()
+      return fail(error)
+    }
+    return branch
+  })
 }
