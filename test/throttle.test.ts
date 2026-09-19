@@ -1,11 +1,39 @@
-import { describe, expect, test } from "vitest"
+import { describe, expect, test, vi } from "vitest"
 import { consume } from "../src/transforms/consume"
 import { fromList } from "../src/transforms/fromList"
 import { throttle } from "../src/transforms/throttle"
 import { assertResultsEqualsWithTiming, collectWithTimings, timedSource } from "./timing-helpers"
 
 describe("throttle", () => {
-  test("first chunk immediate, subsequent throttled", async () => {
+  test.each([-1, NaN, Infinity])("rejects invalid interval %s", async (interval) => {
+    await expect(consume(throttle(fromList([1]), interval, (xs) => xs[0]))).rejects.toThrow(/finite non-negative/)
+  })
+
+  test("waits one interval for the first and final batch and preserves the return", async () => {
+    vi.useFakeTimers()
+    try {
+      async function* source() {
+        yield "a"
+        yield "b"
+        return "done"
+      }
+      const iter = throttle(source(), 100, (xs) => xs.join(""))
+      let settled = false
+      const first = iter.next().then((result) => {
+        settled = true
+        return result
+      })
+      await vi.advanceTimersByTimeAsync(99)
+      expect(settled).toBe(false)
+      await vi.advanceTimersByTimeAsync(1)
+      await expect(first).resolves.toEqual({ done: false, value: "ab" })
+      await expect(iter.next()).resolves.toEqual({ done: true, value: "done" })
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+
+  test("merges arrivals into windows starting with the first value", async () => {
     // Items arrive at: 0ms, 5ms, 10ms
     const source = timedSource([
       { value: "a", time: 1 * 0 },
