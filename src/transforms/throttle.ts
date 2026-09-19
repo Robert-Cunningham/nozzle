@@ -1,10 +1,14 @@
 import { Channel, ChannelClosedError } from "../primitives"
 
 /**
- * Throttles the output from a source, with special timing behavior:
- * - The first chunk is yielded immediately
- * - Subsequent chunks are batched and yielded together after the interval
- * - If no chunks arrive during an interval, the next chunk is yielded immediately when it arrives
+ * Batches values into time windows, then yields the merged batch.
+ * The first value opens a window lasting intervalMs; it is not emitted immediately.
+ * Values arriving within that window are merged and emitted when its timer expires.
+ * After an idle period, the next value opens a new window. A final partial batch
+ * waits for its existing timer. An interval of zero passes values through unchanged.
+ * Source errors are surfaced immediately after already-emitted batches; an unfinished
+ * batch is discarded. The source is consumed eagerly, so slow consumers can build
+ * up an unbounded queue of merged batches.
  *
  * @group Timing
  * @param source The async iterable source of values.
@@ -13,7 +17,7 @@ import { Channel, ChannelClosedError } from "../primitives"
  *
  * @example
  * ```ts
- * nz(["a", "b", "c", "d"]).throttle(100, chunks => chunks.join("")) // => "a" (0ms), "bcd" (100ms)
+ * nz(["a", "b", "c", "d"]).throttle(100, chunks => chunks.join("")) // => "abcd" (100ms)
  * ```
  */
 export const throttle = async function* <T, R = any>(
@@ -21,8 +25,11 @@ export const throttle = async function* <T, R = any>(
   intervalMs: number,
   merge: (values: T[]) => T,
 ): AsyncGenerator<T, R> {
+  if (!Number.isFinite(intervalMs) || intervalMs < 0) {
+    throw new Error("throttle interval must be a finite non-negative number")
+  }
   // Special case: zero interval means passthrough
-  if (intervalMs <= 0) return yield* source
+  if (intervalMs === 0) return yield* source
 
   const iterator = source[Symbol.asyncIterator]()
   const output = new Channel<T, R>({
