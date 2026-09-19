@@ -82,7 +82,13 @@ async function main() {
   // Combine with template (use function to avoid $ being interpreted as replacement pattern)
   const template = fs.readFileSync("README.template.md", "utf-8")
   const readme = template.replace("{{reference}}", () => docs)
-  fs.writeFileSync("README.md", readme)
+  if (process.argv.includes("--check")) {
+    if (fs.readFileSync("README.md", "utf-8") !== readme) {
+      throw new Error("README.md is out of date. Run pnpm run docs and commit the result.")
+    }
+  } else {
+    fs.writeFileSync("README.md", readme)
+  }
 
   console.log(`Generated docs for ${functions.length} functions in ${sortedGroups.length} groups`)
 }

@@ -23,25 +23,34 @@
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
   "exports": {
-    "require": "./dist/index.js",
-    "import": "./dist/index.mjs"
+    "import": {
+      "types": "./dist/index.d.mts",
+      "default": "./dist/index.mjs"
+    },
+    "require": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
   },
   "types": "./dist/index.d.ts",
   "scripts": {
-    "build-fast": "tsup src/index.ts --format cjs,esm",
-    "build": "tsup src/index.ts --format cjs,esm --dts",
+    "build-fast": "tsup src/index.ts --format cjs,esm --target es2022",
+    "build": "tsup src/index.ts --format cjs,esm --target es2022 --dts --clean",
     "test": "vitest run",
     "lint": "prettier --check .",
     "lint:fix": "prettier --write .",
     "docs": "node --import tsx scripts/generate-docs.ts",
     "demos": "tsx scripts/viz/demos/generate-readme-demos.ts",
-    "prepublishOnly": "pnpm run build && pnpm run docs",
-    "prerelease": "pnpm run build && pnpm run docs && pnpm run lint && pnpm run test",
+    "prepublishOnly": "pnpm run check",
+    "prerelease": "pnpm run check",
     "release:patch": "pnpm run prerelease && npm version patch && npm publish && git push --follow-tags",
     "release:minor": "pnpm run prerelease && npm version minor && npm publish && git push --follow-tags",
     "release:major": "pnpm run prerelease && npm version major && npm publish && git push --follow-tags",
-    "release:dry": "pnpm run prerelease && npm pack --dry-run",
-    "typecheck": "tsc --noEmit"
+    "release:dry": "pnpm run check && npm pack --dry-run --ignore-scripts",
+    "typecheck": "tsc --noEmit",
+    "docs:check": "node --import tsx scripts/generate-docs.ts --check",
+    "test:package": "node scripts/check-package.mjs",
+    "check": "pnpm run typecheck && pnpm run docs:check && pnpm run lint && pnpm run test && pnpm run build && pnpm run test:package"
   },
   "license": "MIT",
   "devDependencies": {
@@ -57,5 +66,13 @@
     "typescript": "5.8.3",
     "vitest": "3.2.1"
   },
-  "packageManager": "pnpm@12.5.1+sha512.e3f305bc784a2bc89f5ad3b6138889470fae8d2af5f36b61216ec91c2c3d64089775f9de38aac331044ea40f245cb0d5666392dfdf65824e1907ef6a2c62de5f"
+  "packageManager": "pnpm@12.5.1+sha512.e3f305bc784a2bc89f5ad3b6138889470fae8d2af5f36b61216ec91c2c3d64089775f9de38aac331044ea40f245cb0d5666392dfdf65824e1907ef6a2c62de5f",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Robert-Cunningham/nozzle.git"
+  },
+  "homepage": "https://github.com/Robert-Cunningham/nozzle#readme",
+  "bugs": {
+    "url": "https://github.com/Robert-Cunningham/nozzle/issues"
+  }
 }
