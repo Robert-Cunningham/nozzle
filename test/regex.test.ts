@@ -3,6 +3,10 @@ import "../src/regex"
 import { earliestPossibleMatchIndex, escapeRegex } from "../src/regex"
 import { generalRegex } from "../src/streamingRegex"
 
+test("importing regex helpers does not modify RegExp.prototype", () => {
+  expect(Object.prototype.hasOwnProperty.call(RegExp.prototype, "toPartialMatchRegex")).toBe(false)
+})
+
 describe("earliestPossibleMatchIndex", () => {
   test("aba test", () => {
     const regex = /a[ab]*a/

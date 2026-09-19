@@ -1,11 +1,8 @@
 // https://stackoverflow.com/questions/22483214/regex-check-if-input-still-has-chances-to-become-matching/41580048#41580048
-type PartialMatchRegex = RegExp & {
-  toPartialMatchRegex: () => RegExp
-}
-;(RegExp.prototype as PartialMatchRegex).toPartialMatchRegex = function () {
-  var re = this,
-    source = this.source,
-    i = 0
+export function toPartialMatchRegex(regex: RegExp): RegExp {
+  const re = regex
+  const source = regex.source
+  let i = 0
 
   function process() {
     var result = "",
@@ -149,11 +146,11 @@ type PartialMatchRegex = RegExp & {
     return result
   }
 
-  return new RegExp(process(), this.flags)
+  return new RegExp(process(), regex.flags)
 }
 
 export function earliestPossibleMatchIndex(text: string, regex: RegExp): { start: number; end: number } {
-  const match = (regex as PartialMatchRegex).toPartialMatchRegex().exec(text)
+  const match = toPartialMatchRegex(regex).exec(text)
   return match ? { start: match.index, end: match.index + match[0].length } : { start: text.length, end: text.length }
 }
 
