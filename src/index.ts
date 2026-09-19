@@ -30,56 +30,27 @@
 
 import { Pipeline } from "./pipeline"
 import * as tx from "./transforms"
-import { Iterable, StringIterable } from "./types"
-
-// Helper function to convert sync iterables to async iterables
-function ensureAsyncIterable<T>(source: T[] | globalThis.Iterable<T> | AsyncIterable<T>): AsyncIterable<T> {
-  // Check if it's already an async iterable
-  if (source && typeof source === "object" && Symbol.asyncIterator in source) {
-    return source as AsyncIterable<T>
+// Preserve both yield and return types when adapting synchronous sources.
+function ensureAsyncIterable<T, R>(source: globalThis.Iterable<T, R> | AsyncIterable<T, R>): AsyncIterable<T, R> {
+  if (Symbol.asyncIterator in Object(source)) {
+    return source as AsyncIterable<T, R>
   }
-  // Check if it's a sync iterable (arrays, strings, Sets, Maps, etc.)
-  if (
-    Array.isArray(source) ||
-    (source && typeof source === "object" && Symbol.iterator in source) ||
-    typeof source === "string"
-  ) {
-    return (async function* () {
-      for (const item of source as globalThis.Iterable<T>) {
-        yield item
-      }
+  if (Symbol.iterator in Object(source)) {
+    return (async function* (): AsyncGenerator<T, R> {
+      return yield* source as globalThis.Iterable<T, R>
     })()
-  } else {
-    return source as AsyncIterable<T>
   }
+  throw new TypeError("nz expects a synchronous or asynchronous iterable")
 }
 
-// 1. the callable builder - overloaded for string and generic types
-function _p(src: StringIterable): Pipeline<string>
-function _p(src: string[]): Pipeline<string>
-function _p<T>(src: Iterable<T>): Pipeline<T>
-function _p<T>(src: T[]): Pipeline<T>
-function _p<T>(src: globalThis.Iterable<T>): Pipeline<T>
-function _p<T, R>(src: Iterable<T>): Pipeline<T, R>
-function _p<T, R>(src: T[]): Pipeline<T, R>
-function _p<T, R>(src: globalThis.Iterable<T>): Pipeline<T, R>
-function _p<T, R>(src: Iterable<T> | T[] | globalThis.Iterable<T>) {
-  const asyncIterable = ensureAsyncIterable(src as T[] | globalThis.Iterable<T> | AsyncIterable<T>)
-  return new Pipeline<T, R>(asyncIterable)
+function pipeline<T>(src: readonly T[]): Pipeline<T, undefined>
+function pipeline<T, R = undefined>(src: globalThis.Iterable<T, R> | AsyncIterable<T, R>): Pipeline<T, R>
+function pipeline<T, R>(src: globalThis.Iterable<T, R> | AsyncIterable<T, R>): Pipeline<T, R> {
+  return new Pipeline(ensureAsyncIterable(src))
 }
 
-// 2. merge in the stand-alone helpers *at type level*
 /** @hidden */
-export const nz: {
-  (src: StringIterable): Pipeline<string>
-  (src: string[]): Pipeline<string>
-  <T>(src: Iterable<T>): Pipeline<T>
-  <T>(src: T[]): Pipeline<T>
-  <T>(src: globalThis.Iterable<T>): Pipeline<T>
-  <T, R>(src: Iterable<T>): Pipeline<T, R>
-  <T, R>(src: T[]): Pipeline<T, R>
-  <T, R>(src: globalThis.Iterable<T>): Pipeline<T, R>
-} & typeof tx = Object.assign(_p, tx)
+export const nz = Object.assign(pipeline, tx)
 
 // re-export everything else for tree-shaking users
 export * from "./transforms"
