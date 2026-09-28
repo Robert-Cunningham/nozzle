@@ -1,33 +1,31 @@
 import { pathToFileURL } from "node:url"
-import { generateWebm } from "../generateWebm.js"
 import { nz } from "../../../src/index.js"
-import { timedSource, timelineFromStream, timelineFromTokens } from "./helpers.js"
+import { renderDemo } from "../gif.js"
+import { pendingByConsumption, recordTokens, sourceTokens, timedSource, type Chunk } from "./helpers.js"
 
 export async function generateTimingDemo() {
-  console.log("Generating timing demo GIF...")
-
-  const inputTokens = [
-    { value: "The quick brown fox ", time: 0 },
-    { value: "jumps over the ", time: 70 },
-    { value: "lazy dog.", time: 140 },
+  // Bursty, irregular provider output.
+  const chunks: Chunk[] = [
+    { value: "The quick ", time: 0 },
+    { value: "brown fox jumps over ", time: 250 },
+    { value: "the lazy dog.", time: 1400 },
   ]
 
-  const input = timelineFromTokens(inputTokens)
-  const output = await timelineFromStream(nz(timedSource(inputTokens)).splitAfter(" ").compact().minInterval(130))
+  const output = await recordTokens(nz(timedSource(chunks)).splitAfter(" ").compact().minInterval(220), chunks)
 
-  console.log("Input tokens:", input)
-  console.log("Output tokens:", output)
-
-  await generateWebm(input, output, "./assets/demo-timing.gif", {
-    holdDuration: 1400,
-  })
-
-  console.log("Done! GIF saved to assets/demo-timing.gif")
+  await renderDemo(
+    {
+      caption: 'nz(stream).splitAfter(" ").compact().minInterval(220)',
+      rows: [
+        { label: "SOURCE", tokens: sourceTokens(chunks) },
+        { label: "OUTPUT", tokens: output, pending: pendingByConsumption(chunks, output, (t) => t.text.length) },
+      ],
+      legend: ["chunk", "held"],
+    },
+    "./assets/demo-timing",
+  )
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
-  generateTimingDemo().catch((error) => {
-    console.error(error)
-    process.exit(1)
-  })
+  generateTimingDemo()
 }

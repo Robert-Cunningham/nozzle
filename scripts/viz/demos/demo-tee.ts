@@ -1,69 +1,43 @@
 import { pathToFileURL } from "node:url"
-import { generateRowsGif, type TimestampedText } from "../generateWebm.js"
 import { nz } from "../../../src/index.js"
-import { timedSource, timelineFromTokens } from "./helpers.js"
+import { renderDemo, type Token } from "../gif.js"
+import { arrivedBy, pendingByConsumption, recordTokens, sourceTokens, timedSource, type Chunk } from "./helpers.js"
 
 export async function generateTeeDemo() {
-  console.log("Generating tee demo GIF...")
-
-  const inputTokens = [
-    { value: "Streaming ", time: 0 },
-    { value: "to the user ", time: 180 },
-    { value: "while saving ", time: 360 },
-    { value: "the reply.", time: 540 },
+  const chunks: Chunk[] = [
+    { value: "Streaming to ", time: 0 },
+    { value: "the user while ", time: 450 },
+    { value: "saving the reply.", time: 900 },
   ]
 
-  const input = timelineFromTokens(inputTokens)
-  const [displayStream, storageStream] = nz(timedSource(inputTokens)).tee(2)
-
+  const [display, storage] = nz(timedSource(chunks)).tee(2)
   const start = Date.now()
 
-  const displayPromise = (async (): Promise<TimestampedText[]> => {
-    const values: TimestampedText[] = []
-    for await (const chunk of displayStream) {
-      values.push({
-        text: chunk,
-        ts: Math.round((Date.now() - start) / 10) * 10,
-      })
-    }
-    return values
-  })()
+  const [shown, saved] = await Promise.all([
+    recordTokens(display.splitAfter(" ").compact().minInterval(220), chunks),
+    storage.consume().then((consumed): Token[] => {
+      const elapsed = Date.now() - start
+      const ts = chunks.map((c) => c.time).find((time) => elapsed >= time && elapsed - time < 40) ?? elapsed
+      return [{ text: `saved ✓ ${consumed.string().length} chars`, ts, kind: "object" }]
+    }),
+  ])
 
-  const storagePromise = (async (): Promise<TimestampedText[]> => {
-    const consumed = await storageStream.consume()
-    return [
-      {
-        text: `saved: ${consumed.string()}`,
-        ts: Math.round((Date.now() - start) / 10) * 10,
-      },
-    ]
-  })()
+  const savedAt = saved[0].ts
 
-  const [display, storage] = await Promise.all([displayPromise, storagePromise])
-
-  console.log("Input tokens:", input)
-  console.log("Display tokens:", display)
-  console.log("Storage tokens:", storage)
-
-  await generateRowsGif(
-    [
-      { label: "SOURCE", tokens: input },
-      { label: "DISPLAY", tokens: display },
-      { label: "STORAGE", tokens: storage },
-    ],
-    "./assets/demo-tee.gif",
+  await renderDemo(
     {
-      height: 240,
-      holdDuration: 1300,
+      caption: "const [display, storage] = nz(stream).tee(2)",
+      rows: [
+        { label: "SOURCE", tokens: sourceTokens(chunks) },
+        { label: "DISPLAY", tokens: shown, pending: pendingByConsumption(chunks, shown, (t) => t.text.length) },
+        { label: "STORAGE", tokens: saved, pending: (t) => (t < savedAt ? arrivedBy(chunks, t) : "") },
+      ],
+      legend: ["chunk", "held", "object"],
     },
+    "./assets/demo-tee",
   )
-
-  console.log("Done! GIF saved to assets/demo-tee.gif")
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
-  generateTeeDemo().catch((error) => {
-    console.error(error)
-    process.exit(1)
-  })
+  generateTeeDemo()
 }

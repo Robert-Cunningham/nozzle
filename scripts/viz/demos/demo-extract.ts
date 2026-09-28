@@ -1,37 +1,46 @@
 import { pathToFileURL } from "node:url"
-import { generateWebm } from "../generateWebm.js"
 import { nz } from "../../../src/index.js"
-import { timedSource, timelineFromStream, timelineFromTokens } from "./helpers.js"
+import { renderDemo } from "../gif.js"
+import { arrivedBy, recordTokens, sourceTokens, timedSource, type Chunk } from "./helpers.js"
 
 export async function generateExtractDemo() {
-  console.log("Generating extract demo GIF...")
-
-  const inputTokens = [
-    { value: "Sure.\n```ts\n", time: 0 },
-    { value: "const title = ", time: 180 },
-    { value: "await page.title()\n", time: 360 },
-    { value: "return title\n", time: 540 },
-    { value: "```\nDone.", time: 720 },
+  // Both fences are split across chunks.
+  const chunks: Chunk[] = [
+    { value: "Sure, here it is.\n``", time: 0 },
+    { value: "`ts\nconst title = ", time: 550 },
+    { value: "await page.title()\n", time: 1100 },
+    { value: "return title\n``", time: 1650 },
+    { value: "`\nDone!", time: 2200 },
   ]
 
-  const input = timelineFromTokens(inputTokens)
-  const output = await timelineFromStream(nz(timedSource(inputTokens)).after("```ts\n").before("```"))
+  const output = await recordTokens(nz(timedSource(chunks)).after("```ts\n").before("```"), chunks)
 
-  console.log("Input tokens:", input)
-  console.log("Output tokens:", output)
+  const full = chunks.map((c) => c.value).join("")
+  const bodyStart = full.indexOf("```ts\n") + "```ts\n".length
+  const bodyEnd = full.indexOf("```", bodyStart)
 
-  await generateWebm(input, output, "./assets/demo-extract.gif", {
-    height: 320,
-    fontSize: 18,
-    holdDuration: 1200,
-  })
+  // Only text inside the fenced block is headed for the output; show what's buffered there.
+  const pending = (t: number) => {
+    const arrived = arrivedBy(chunks, t)
+    if (arrived.length < bodyStart) return ""
+    const closed = arrived.length >= bodyEnd + 3
+    const emitted = output.filter((token) => token.ts <= t).reduce((sum, token) => sum + token.text.length, 0)
+    return arrived.slice(bodyStart, closed ? bodyEnd : arrived.length).slice(emitted)
+  }
 
-  console.log("Done! GIF saved to assets/demo-extract.gif")
+  await renderDemo(
+    {
+      caption: 'nz(stream).after("```ts\\n").before("```")',
+      rows: [
+        { label: "SOURCE", tokens: sourceTokens(chunks) },
+        { label: "OUTPUT", tokens: output, pending },
+      ],
+      legend: ["chunk", "held"],
+    },
+    "./assets/demo-extract",
+  )
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
-  generateExtractDemo().catch((error) => {
-    console.error(error)
-    process.exit(1)
-  })
+  generateExtractDemo()
 }

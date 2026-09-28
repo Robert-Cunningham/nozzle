@@ -1,38 +1,47 @@
 import { pathToFileURL } from "node:url"
-import { generateWebm } from "../generateWebm.js"
 import { nz } from "../../../src/index.js"
-import { timedSource, timelineFromStream, timelineFromTokens } from "./helpers.js"
+import { renderDemo } from "../gif.js"
+import { pendingByConsumption, recordTokens, sourceTokens, timedSource, type Chunk } from "./helpers.js"
 
 export async function generateParseDemo() {
-  console.log("Generating parse demo GIF...")
-
-  // Input tokens with image references split across weird chunk boundaries
-  // This demonstrates how nozzle handles streaming text where patterns span chunks
-  const inputTokens = [
+  // The markers straddle chunk boundaries on purpose.
+  const chunks: Chunk[] = [
     { value: "Here is im", time: 0 },
-    { value: "g-abc", time: 180 },
-    { value: "123 and im", time: 360 },
-    { value: "g-xyz", time: 540 },
-    { value: "789.", time: 720 },
+    { value: "g-abc", time: 550 },
+    { value: "123 and im", time: 1100 },
+    { value: "g-xyz", time: 1650 },
+    { value: "789.", time: 2200 },
   ]
 
-  const input = timelineFromTokens(inputTokens)
-
-  const output = await timelineFromStream(
-    nz(timedSource(inputTokens)).parse(/img-(\w+)/g, (match) => ({ type: "image", id: match[1] })),
+  const sources = new Map<string, string>()
+  const output = await recordTokens(
+    nz(timedSource(chunks)).parse(/img-(\w+)/g, (m) => ({ type: "image", id: m[1] })),
+    chunks,
+    (value) => {
+      if (typeof value === "string") return { text: value, ts: 0 }
+      const text = `image:${value.id}`
+      sources.set(text, `img-${value.id}`)
+      return { text, ts: 0, kind: "object" }
+    },
   )
 
-  console.log("Input tokens:", input)
-  console.log("Output tokens:", output)
-
-  await generateWebm(input, output, "./assets/demo-parse.gif")
-
-  console.log("Done! GIF saved to assets/demo-parse.gif")
+  await renderDemo(
+    {
+      caption: `nz(stream).parse(/img-(\\w+)/g, (m) => ({ type: "image", id: m[1] }))`,
+      rows: [
+        { label: "SOURCE", tokens: sourceTokens(chunks) },
+        {
+          label: "OUTPUT",
+          tokens: output,
+          pending: pendingByConsumption(chunks, output, (t) => (sources.get(t.text) ?? t.text).length),
+        },
+      ],
+      legend: ["chunk", "held", "object"],
+    },
+    "./assets/demo-parse",
+  )
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
-  generateParseDemo().catch((error) => {
-    console.error(error)
-    process.exit(1)
-  })
+  generateParseDemo()
 }
