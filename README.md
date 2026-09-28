@@ -30,7 +30,8 @@ It helps when provider chunks are not the chunks your app wants: parse structure
 npm i nozzle-js # or pnpm / bun / yarn
 ```
 
-Nozzle has ESM and CJS builds and works with any sync or async iterable.
+Nozzle has ESM and CJS builds and works with any sync or async iterable or Web `ReadableStream`.
+Use `.toReadableStream()` to hand a pipeline to a `Response` or `pipeThrough`.
 
 <!-- prettier-ignore -->
 ```ts
@@ -1288,6 +1289,34 @@ function fromList<T>(list: T[]): AsyncGenerator<T>;
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
 | `list` | T[] | An array of values. |
+</details>
+
+---
+
+### `toReadableStream`
+
+```ts
+return new Response(nz(llmTextStream).minInterval(40).toReadableStream().pipeThrough(new TextEncoderStream()))
+```
+
+Converts an async iterable into a Web `ReadableStream`.
+
+The stream pulls from the source only when its reader asks for a value, so
+nothing is read ahead and timing transforms keep their pacing. Cancelling the
+stream closes the source iterator. The source's return value is discarded,
+because Web Streams have no return value.
+
+<details><summary>Details</summary>
+
+```ts
+function toReadableStream<T>(source: AsyncIterable<T>): ReadableStream<T>;
+```
+
+#### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `source` | AsyncIterable\<T\> | The async iterable to read from. |
 </details>
 
 ---

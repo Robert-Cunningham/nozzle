@@ -323,6 +323,13 @@ export class Pipeline<T = string, R = any> implements AsyncIterable<T, R> {
   /**
    * @hidden
    */
+  toReadableStream(): ReadableStream<T> {
+    return tx.toReadableStream(this.src)
+  }
+
+  /**
+   * @hidden
+   */
   value(): Iterable<T, R> {
     return this.src
   }
