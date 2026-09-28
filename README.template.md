@@ -30,7 +30,8 @@ It helps when provider chunks are not the chunks your app wants: parse structure
 npm i nozzle-js # or pnpm / bun / yarn
 ```
 
-Nozzle has ESM and CJS builds and works with any sync or async iterable.
+Nozzle has ESM and CJS builds and works with any sync or async iterable or Web `ReadableStream`.
+Use `.toReadableStream()` to hand a pipeline to a `Response` or `pipeThrough`.
 
 <!-- prettier-ignore -->
 ```ts

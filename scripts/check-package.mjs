@@ -60,6 +60,8 @@ async function main() {
   function* source() { yield "a"; return 42 }
   assert.equal((await nz(source()).map(x => x.toUpperCase()).consume()).return(), 42)
   assert.deepEqual((await nz(["hi"]).flatMap(x => x.split("")).consume()).list(), ["h", "i"])
+  const roundTrip = nz(nz(["a,", "b"]).toReadableStream()).split(",")
+  assert.deepEqual((await roundTrip.consume()).list(), ["a", "b"])
 }
 main().catch(error => { console.error(error); process.exitCode = 1 })
 `
@@ -90,7 +92,9 @@ const wrong: Pipeline<string, boolean> = nz(source())
 const stopped: Pipeline<string, number | undefined> = nz(source()).takeWhile(() => false)
 // @ts-expect-error An early-stopped source may not have a final return value.
 stopped.mapReturn(value => value.toFixed())
-void [iter, chars, syncPipeline, wrong, stopped]
+const web: ReadableStream<string> = nz(["a"]).toReadableStream()
+const fromWeb: Pipeline<string, undefined> = nz(web)
+void [iter, chars, syncPipeline, wrong, stopped, fromWeb]
 `
   for (const extension of ["mts", "cts"]) {
     writeFileSync(join(temporary, `consumer.${extension}`), types)
