@@ -68,12 +68,10 @@ export const asyncMap = async function* <T, U, R = any>(
     try {
       promise = Promise.resolve(fn(value))
         .then((value): Result<U> => ({ ok: true, value }))
-        .catch(
-          (err): Result<U> => ({
-            ok: false,
-            error: err,
-          }),
-        )
+        .catch((err): Result<U> => ({
+          ok: false,
+          error: err,
+        }))
     } catch (err) {
       promise = Promise.resolve({
         ok: false,
