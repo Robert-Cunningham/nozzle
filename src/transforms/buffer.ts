@@ -16,7 +16,9 @@ import { Channel } from "../primitives"
  *
  * @example
  * ```ts
- * nz(["a", "b", "c"]).tap(x => console.log(`consumed: ${x}`)).buffer(2).tap(x => console.log(`yielded: ${x}`)) // => consumed: a, consumed: b, yielded: a, consumed: c, yielded: b, yielded: c
+ * nz(["a", "b", "c"]).buffer(2) // => "a", "b", "c"
+ * // While a slow consumer handles "a", the source is read ahead:
+ * // consumed: a, yielded: a, consumed: b, consumed: c, yielded: b, yielded: c
  * ```
  */
 export const buffer = async function* <T, R = any>(source: AsyncIterable<T, R>, n?: number): AsyncGenerator<T, R> {

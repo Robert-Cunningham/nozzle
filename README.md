@@ -298,9 +298,7 @@ function head<T, R = any>(iterator: AsyncIterable<T, R>): AsyncGenerator<T, R | 
 | `iterator` | AsyncIterable\<T, R\> | An asynchronous iterable of values. |
 </details>
 
-### See
-
-{@link at}, {@link tail}, {@link initial}, {@link last}
+See also: [`at`](#at), [`tail`](#tail), [`initial`](#initial), [`last`](#last)
 
 ---
 
@@ -782,6 +780,11 @@ These features throw an error because they cannot work reliably with streaming:
 | Lookbehinds | `(?<=...)`, `(?<!...)` | Content to look behind may have already been yielded |
 | Backreferences | `\1`, `\k<name>` | Referenced group may span chunks or be partially buffered |
 | Multiline mode | `/pattern/m` | `^`/`$` would behave inconsistently at arbitrary chunk boundaries |
+| Anchors | `^`, `$` | The start and end of the stream are not known mid-stream; use `before`/`after` |
+| Word boundaries | `\b`, `\B` | The neighboring character may be in a chunk that has not arrived |
+| Unicode escapes | `\uXXXX`, `\u{...}` | Not analyzed for partial matches; use literal characters |
+| Sticky and Unicode-sets flags | `/pattern/y`, `/pattern/v` | Not supported by the partial matcher |
+| Empty matches | `/x?/`, `/a{0,}/` | A pattern that can match nothing would match between every character |
 
 ### Patterns That Delay Output
 
@@ -996,6 +999,30 @@ function throttle<T, R = any>(source: AsyncIterable<T, R>, intervalMs: number, m
 
 ## Buffering
 
+### `aperture`
+
+```ts
+nz([1, 2, 3, 4, 5]).aperture(3) // => [1, 2, 3], [2, 3, 4], [3, 4, 5]
+```
+
+Creates a sliding window of size n over the input stream, yielding arrays of consecutive elements.
+
+<details><summary>Details</summary>
+
+```ts
+function aperture<T, R = any>(source: Iterable<T, R>, n: number): AsyncGenerator<T[], R | undefined>;
+```
+
+#### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `source` | Iterable\<T, R\> | An iterable to create windows over. |
+| `n` | number | The size of each window. |
+</details>
+
+---
+
 ### `batch`
 
 ```ts
@@ -1024,7 +1051,9 @@ function batch<T, R = any>(source: AsyncIterable<T, R>, size: number): AsyncGene
 ### `buffer`
 
 ```ts
-nz(["a", "b", "c"]).tap(x => console.log(`consumed: ${x}`)).buffer(2).tap(x => console.log(`yielded: ${x}`)) // => consumed: a, consumed: b, yielded: a, consumed: c, yielded: b, yielded: c
+nz(["a", "b", "c"]).buffer(2) // => "a", "b", "c"
+// While a slow consumer handles "a", the source is read ahead:
+// consumed: a, yielded: a, consumed: b, consumed: c, yielded: b, yielded: c
 ```
 
 Buffers up to N items from the source iterator, consuming them eagerly
@@ -1306,6 +1335,8 @@ nothing is read ahead and timing transforms keep their pacing. Cancelling the
 stream closes the source iterator. The source's return value is discarded,
 because Web Streams have no return value.
 
+Added in 0.12.0, along with `ReadableStream` sources for `nz()`.
+
 <details><summary>Details</summary>
 
 ```ts
@@ -1317,32 +1348,6 @@ function toReadableStream<T>(source: AsyncIterable<T>): ReadableStream<T>;
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
 | `source` | AsyncIterable\<T\> | The async iterable to read from. |
-</details>
-
----
-
-## Functions
-
-### `aperture`
-
-```ts
-nz([1, 2, 3, 4, 5]).aperture(3) // => [1, 2, 3], [2, 3, 4], [3, 4, 5]
-```
-
-Creates a sliding window of size n over the input stream, yielding arrays of consecutive elements.
-
-<details><summary>Details</summary>
-
-```ts
-function aperture<T, R = any>(source: Iterable<T, R>, n: number): AsyncGenerator<T[], R | undefined>;
-```
-
-#### Parameters
-
-| Parameter | Type | Description |
-| ------ | ------ | ------ |
-| `source` | Iterable\<T, R\> | An iterable to create windows over. |
-| `n` | number | The size of each window. |
 </details>
 
 ## Development

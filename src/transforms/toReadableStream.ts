@@ -6,6 +6,8 @@
  * stream closes the source iterator. The source's return value is discarded,
  * because Web Streams have no return value.
  *
+ * Added in 0.12.0, along with `ReadableStream` sources for `nz()`.
+ *
  * @group Conversion
  * @param source - The async iterable to read from.
  * @returns A `ReadableStream` that yields each value from the source.

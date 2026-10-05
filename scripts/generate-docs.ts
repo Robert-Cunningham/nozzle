@@ -31,7 +31,6 @@ const GROUP_ORDER: Record<string, number> = {
   "Error Handling": 11,
   "Return Values": 12,
   Conversion: 13,
-  Functions: 14,
   Other: 99,
 }
 
@@ -275,11 +274,12 @@ function renderFunction(r: DeclarationReflection): string {
   const seeTags = comment?.blockTags?.filter((t) => t.tag === "@see") ?? []
   if (seeTags.length) {
     parts.push("")
-    parts.push("### See")
-    parts.push("")
-    for (const tag of seeTags) {
-      parts.push(Comment.combineDisplayParts(tag.content).trim())
-    }
+    const links = seeTags.map((tag) =>
+      Comment.combineDisplayParts(tag.content)
+        .trim()
+        .replace(/\{@link (\w+)\}/g, (_, name) => `[\`${name}\`](#${name.toLowerCase()})`),
+    )
+    parts.push(`See also: ${links.join(", ")}`)
   }
 
   return parts.join("\n")

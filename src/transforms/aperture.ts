@@ -4,7 +4,7 @@ import { Iterable } from "../types"
 /**
  * Creates a sliding window of size n over the input stream, yielding arrays of consecutive elements.
  *
- * @group Functions
+ * @group Buffering
  * @param source - An iterable to create windows over.
  * @param n - The size of each window.
  * @returns An asynchronous generator that yields arrays of consecutive elements.
