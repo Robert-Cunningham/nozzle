@@ -5,7 +5,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "cd \"$CLAUDE_PROJECT_DIR\" && pnpx prettier --write .",
+            "command": "cd \"$CLAUDE_PROJECT_DIR\" && pnpm exec prettier --write .",
             "timeout": 300
           }
         ]

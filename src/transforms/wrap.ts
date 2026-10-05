@@ -2,9 +2,7 @@
  * A wrapped iterator result.
  */
 export type WrappedResult<T, R = any> =
-  | { type: "value"; value: T }
-  | { type: "return"; value: R }
-  | { type: "error"; error: unknown }
+  { type: "value"; value: T } | { type: "return"; value: R } | { type: "error"; error: unknown }
 
 /**
  * Wraps an iterator to catch any errors and return them in a result object format.

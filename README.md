@@ -187,7 +187,7 @@ Finds the first value from the input stream that matches the predicate.
 <details><summary>Details</summary>
 
 ```ts
-function find<T>(iterator: AsyncIterable<T>, predicate: (chunk: T) => boolean): Promise<undefined | T>;
+function find<T>(iterator: AsyncIterable<T>, predicate: (chunk: T) => boolean): Promise<T | undefined>;
 ```
 
 #### Parameters
@@ -239,7 +239,7 @@ Supports negative indices to count from the end.
 <details><summary>Details</summary>
 
 ```ts
-function at<T>(iterator: AsyncIterable<T>, index: number): Promise<undefined | T>;
+function at<T>(iterator: AsyncIterable<T>, index: number): Promise<T | undefined>;
 ```
 
 #### Parameters
@@ -263,7 +263,7 @@ Returns the first value from the input stream.
 <details><summary>Details</summary>
 
 ```ts
-function first<T>(iterator: AsyncIterable<T>): Promise<undefined | T>;
+function first<T>(iterator: AsyncIterable<T>): Promise<T | undefined>;
 ```
 
 #### Parameters
@@ -288,7 +288,7 @@ Early termination may return undefined instead of the source's final value.
 <details><summary>Details</summary>
 
 ```ts
-function head<T, R = any>(iterator: AsyncIterable<T, R>): AsyncGenerator<T, undefined | R, undefined>;
+function head<T, R = any>(iterator: AsyncIterable<T, R>): AsyncGenerator<T, R | undefined, undefined>;
 ```
 
 #### Parameters
@@ -338,7 +338,7 @@ Returns the last value from the input stream.
 <details><summary>Details</summary>
 
 ```ts
-function last<T>(iterator: AsyncIterable<T>): Promise<undefined | T>;
+function last<T>(iterator: AsyncIterable<T>): Promise<T | undefined>;
 ```
 
 #### Parameters
@@ -366,7 +366,7 @@ the source return value on completion.
 
 ```ts
 function slice<T, R = any>(iterator: AsyncIterable<T, R>, start: number, end?: undefined): AsyncGenerator<T, R, undefined>;
-function slice<T, R = any>(iterator: AsyncIterable<T, R>, start: number, end: undefined | number): AsyncGenerator<T, undefined | R, undefined>;
+function slice<T, R = any>(iterator: AsyncIterable<T, R>, start: number, end: number | undefined): AsyncGenerator<T, R | undefined, undefined>;
 ```
 
 #### Parameters
@@ -375,7 +375,7 @@ function slice<T, R = any>(iterator: AsyncIterable<T, R>, start: number, end: un
 | ------ | ------ | ------ |
 | `iterator` | AsyncIterable\<T, R\> | The async iterable to slice |
 | `start` | number | Starting index (inclusive). Negative values count from end. |
-| `end` | undefined \| number | Ending index (exclusive). Negative values count from end. If undefined, slices to end. |
+| `end` | number \| undefined | Ending index (exclusive). Negative values count from end. If undefined, slices to end. |
 </details>
 
 ---
@@ -441,7 +441,7 @@ Early termination may return undefined instead of the source's final value.
 <details><summary>Details</summary>
 
 ```ts
-function takeUntil<T, R = any>(source: AsyncIterable<T, R>, predicate: (value: T) => boolean): AsyncGenerator<T, undefined | R, undefined>;
+function takeUntil<T, R = any>(source: AsyncIterable<T, R>, predicate: (value: T) => boolean): AsyncGenerator<T, R | undefined, undefined>;
 ```
 
 #### Parameters
@@ -467,7 +467,7 @@ Early termination may return undefined instead of the source's final value.
 <details><summary>Details</summary>
 
 ```ts
-function takeWhile<T, R = any>(source: AsyncIterable<T, R>, predicate: (value: T) => boolean): AsyncGenerator<T, undefined | R, undefined>;
+function takeWhile<T, R = any>(source: AsyncIterable<T, R>, predicate: (value: T) => boolean): AsyncGenerator<T, R | undefined, undefined>;
 ```
 
 #### Parameters
@@ -523,7 +523,7 @@ Early termination may return undefined instead of the source's final value.
 <details><summary>Details</summary>
 
 ```ts
-function before<R = any>(source: StringIterable<R>, separator: string | RegExp): AsyncGenerator<string, undefined | R, undefined>;
+function before<R = any>(source: StringIterable<R>, separator: string | RegExp): AsyncGenerator<string, R | undefined, undefined>;
 ```
 
 #### Parameters
@@ -1148,7 +1148,7 @@ Catches an upstream error and optionally yields replacement values.
 <details><summary>Details</summary>
 
 ```ts
-function recover<T, R = any>(source: AsyncIterable<T, R>, handler: (error: unknown) => RecoverResult<T>): AsyncGenerator<T, undefined | R, undefined>;
+function recover<T, R = any>(source: AsyncIterable<T, R>, handler: (error: unknown) => RecoverResult<T>): AsyncGenerator<T, R | undefined, undefined>;
 ```
 
 #### Parameters
@@ -1334,7 +1334,7 @@ Creates a sliding window of size n over the input stream, yielding arrays of con
 <details><summary>Details</summary>
 
 ```ts
-function aperture<T, R = any>(source: Iterable<T, R>, n: number): AsyncGenerator<T[], undefined | R>;
+function aperture<T, R = any>(source: Iterable<T, R>, n: number): AsyncGenerator<T[], R | undefined>;
 ```
 
 #### Parameters
