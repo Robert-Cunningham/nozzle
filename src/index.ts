@@ -2,10 +2,10 @@
  * Nozzle provides utility functions for working with async iterables in a functional and chainable manner.
 
  * The individual functions can be invoked directly on async iterables:
-* ```ts
+ * ```ts
  * async function* generate() { yield 1; yield 2; yield 3 }
- * for await (filter(generate(), x => x > 1)) {
- *   console.log(x) // 2, 3 
+ * for await (const x of filter(generate(), x => x > 1)) {
+ *   console.log(x) // 2, 3
  * }
  * ```
  * 

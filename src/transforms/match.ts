@@ -27,6 +27,11 @@ import { scan } from "./scan"
  * | Lookbehinds | `(?<=...)`, `(?<!...)` | Content to look behind may have already been yielded |
  * | Backreferences | `\1`, `\k<name>` | Referenced group may span chunks or be partially buffered |
  * | Multiline mode | `/pattern/m` | `^`/`$` would behave inconsistently at arbitrary chunk boundaries |
+ * | Anchors | `^`, `$` | The start and end of the stream are not known mid-stream; use `before`/`after` |
+ * | Word boundaries | `\b`, `\B` | The neighboring character may be in a chunk that has not arrived |
+ * | Unicode escapes | `\uXXXX`, `\u{...}` | Not analyzed for partial matches; use literal characters |
+ * | Sticky and Unicode-sets flags | `/pattern/y`, `/pattern/v` | Not supported by the partial matcher |
+ * | Empty matches | `/x?/`, `/a{0,}/` | A pattern that can match nothing would match between every character |
  *
  * ### Patterns That Delay Output
  *
