@@ -5,6 +5,15 @@ import { fromList } from "../src/transforms/fromList"
 import { scan } from "../src/transforms/scan"
 
 describe("assertSupportedRegex", () => {
+  test("should throw a clear error for non-RegExp patterns", async () => {
+    expect(() => assertSupportedRegex("foo" as unknown as RegExp)).toThrow(/Expected a RegExp, got string/)
+    await expect(
+      nz(["foo"])
+        .replace("foo" as unknown as RegExp, "x")
+        .consume(),
+    ).rejects.toThrow(TypeError)
+  })
+
   describe("backreferences", () => {
     test("should throw for numeric backreference \\1", () => {
       expect(() => assertSupportedRegex(/(.)\1/)).toThrow(/backreference/)

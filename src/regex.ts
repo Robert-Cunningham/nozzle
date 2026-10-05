@@ -192,6 +192,10 @@ export const toRegex = (pattern: RegExp | string) => {
  * @throws Error if the regex contains unsupported features.
  */
 export function assertSupportedRegex(regex: RegExp): void {
+  if (!(regex instanceof RegExp) && Object.prototype.toString.call(regex) !== "[object RegExp]") {
+    throw new TypeError(`Expected a RegExp, got ${regex === null ? "null" : typeof regex}`)
+  }
+
   const source = regex.source
 
   // Check for multiline flag
