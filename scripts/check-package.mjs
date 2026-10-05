@@ -22,7 +22,10 @@ function run(command, args, cwd = temporary) {
 }
 
 try {
-  const [packed] = JSON.parse(run(npm, ["pack", "--ignore-scripts", "--json", "--pack-destination", temporary], root))
+  // npm 12 keys the result by package name; earlier versions return an array.
+  const [packed] = Object.values(
+    JSON.parse(run(npm, ["pack", "--ignore-scripts", "--json", "--pack-destination", temporary], root)),
+  )
   const files = packed.files.map((file) => file.path)
   for (const required of [
     "dist/index.js",
