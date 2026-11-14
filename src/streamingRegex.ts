@@ -67,7 +67,6 @@ export async function* generalRegex(
       }
 
       const { start, end } = earliestPossibleMatchIndex(buffer, base)
-      // console.log( "buffer", buffer, "base", base, "start", start, "end", end, "len", buffer.length,)
 
       // yield anything which cannot be matched.
       if (start > 0) {

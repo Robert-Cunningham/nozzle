@@ -1,6 +1,6 @@
 import { describe, expect, test } from "vitest"
-import { at } from "./at"
-import { fromList } from "./fromList"
+import { at } from "../src/transforms/at"
+import { fromList } from "../src/transforms/fromList"
 
 describe("at", () => {
   test("should return element at positive index", async () => {
