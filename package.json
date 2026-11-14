@@ -53,6 +53,9 @@
     "check": "pnpm run typecheck && pnpm run docs:check && pnpm run lint && pnpm run test && pnpm run build && pnpm run test:package"
   },
   "license": "MIT",
+  "engines": {
+    "node": ">=22"
+  },
   "devDependencies": {
     "@egoist/prettier-config": "1.0.0",
     "@types/fluent-ffmpeg": "^2.1.28",
