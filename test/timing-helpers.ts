@@ -1,7 +1,9 @@
 /**
  * Timing test utilities for testing async stream behavior
  */
-import { expect } from "vitest"
+import { expect, vi } from "vitest"
+
+const realSetImmediate = setImmediate
 
 /**
  * Creates an async iterable with specified delays between items
@@ -35,17 +37,41 @@ export async function* delayedStream<T>(items: T[], delayMs: number = 10): Async
 }
 
 /**
- * Collects items with timestamps relative to a start time
+ * Collects items with timestamps relative to a start time.
+ *
+ * Runs on fake timers so timestamps are exact and independent of machine load.
+ * The stream must schedule its timers lazily (while being consumed), not before this call.
  */
 export async function collectWithTimings<T>(stream: AsyncIterable<T>): Promise<Array<{ item: T; timestamp: number }>> {
-  const results: Array<{ item: T; timestamp: number }> = []
-  const startTime = Date.now()
+  const ownsTimers = !vi.isFakeTimers()
+  if (ownsTimers) vi.useFakeTimers()
+  try {
+    const results: Array<{ item: T; timestamp: number }> = []
+    const startTime = Date.now()
+    let settled = false
 
-  for await (const item of stream) {
-    results.push({ item, timestamp: Date.now() - startTime })
+    const collecting = (async () => {
+      try {
+        for await (const item of stream) {
+          results.push({ item, timestamp: Date.now() - startTime })
+        }
+      } finally {
+        settled = true
+      }
+    })()
+    collecting.catch(() => {})
+
+    while (!settled) {
+      await vi.advanceTimersToNextTimerAsync()
+      // Let real I/O and pending promise chains settle before advancing again.
+      await new Promise((resolve) => realSetImmediate(resolve))
+    }
+    await collecting
+
+    return results
+  } finally {
+    if (ownsTimers) vi.useRealTimers()
   }
-
-  return results
 }
 
 /**
