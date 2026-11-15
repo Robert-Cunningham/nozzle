@@ -22,11 +22,6 @@
 
 Nozzle is a small TypeScript library for handling text streamed from LLMs. Its functions buffer only where necessary and otherwise emit chunks as soon as possible. For example, regexes buffer a potential match only until it's confirmed or rejected, and emit everything around it immediately.
 
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="assets/demo-parse-dark.gif" />
-  <img src="assets/demo-parse.gif" alt="Parse demo: an image marker split across chunks is detected and replaced with an object" />
-</picture>
-
 ## Quickstart
 
 ```bash
@@ -38,9 +33,12 @@ import { nz } from "nozzle-js"
 
 const parts = nz(textStream).parse(/img-(\w+)/g, (m) => ({ src: m[1] }))
 
-for await (const part of parts) {
-  // "Here is ", { src: "abc123" }, " and ", { src: "xyz789" }, "."
-}
+for await (const part of parts) console.log(part)
+
+/*
+ * in:   "Here is im"  "g-abc"  "123 and im"                "g-xyz"  "789."
+ * out:  "Here is "             { src: "abc123" }  " and "           { src: "xyz789" }  "."
+ */
 ```
 
 `nz()` accepts any sync or async iterable.
@@ -71,11 +69,6 @@ nz(res.body!.pipeThrough(new TextDecoderStream()))
 
 ### Extract a generated section
 
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="assets/demo-extract-dark.gif" />
-  <img src="assets/demo-extract.gif" alt="Extracting a fenced code block whose fences are split across chunks" />
-</picture>
-
 Stream just the code block to a preview while the model is still writing, then save it.
 
 <!-- prettier-ignore -->
@@ -87,14 +80,14 @@ const code = await nz(stream)
   .consume()
 
 await saveSnippet(code.string())
+
+/*
+ * in:   "Sure!\n``"  "`ts\nconst x = "  "await f()\n"  "return x\n``"  "`\nDone!"
+ * out:               "const x = "       "await f()\n"  "return x\n"
+ */
 ````
 
 ### Smooth chunky provider output
-
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="assets/demo-timing-dark.gif" />
-  <img src="assets/demo-timing.gif" alt="Bursty source chunks released as evenly paced words" />
-</picture>
 
 Providers often deliver text in bursts. Re-chunk into words and release them at a steady pace.
 
@@ -104,6 +97,11 @@ const smooth = nz(stream)
   .splitAfter(" ")
   .compact()
   .minInterval(40)
+
+/*
+ * in:   The quick ...... brown fox jumps over ................ the lazy dog.
+ * out:  The .. quick .. brown .. fox .. jumps .. over .. the .. lazy .. dog.
+ */
 ```
 
 ## Guarantees
