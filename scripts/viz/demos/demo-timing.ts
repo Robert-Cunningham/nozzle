@@ -1,33 +1,58 @@
 import { pathToFileURL } from "node:url"
-import { generateWebm } from "../generateWebm.js"
 import { nz } from "../../../src/index.js"
-import { timedSource, timelineFromStream, timelineFromTokens } from "./helpers.js"
+import { renderDemo } from "../gif.js"
+import { LEAD_MS, toSteps, type CharFate } from "./helpers.js"
+
+const INTERVAL_MS = 300
+/** Recorded times snap to this grid, which absorbs timer jitter. */
+const SNAP_MS = 50
 
 export async function generateTimingDemo() {
-  console.log("Generating timing demo GIF...")
-
-  const inputTokens = [
-    { value: "The quick brown fox ", time: 0 },
-    { value: "jumps over the ", time: 70 },
-    { value: "lazy dog.", time: 140 },
+  // Bursty, irregular provider output.
+  const chunks = [
+    { text: "The quick ", time: 0 },
+    { text: "brown fox jumps over ", time: 300 },
+    { text: "the lazy dog.", time: 1900 },
   ]
 
-  const input = timelineFromTokens(inputTokens)
-  const output = await timelineFromStream(nz(timedSource(inputTokens)).splitAfter(" ").compact().minInterval(130))
+  // This pipeline is about time, so run it against the clock and record when each word comes out.
+  const start = Date.now()
+  async function* source() {
+    for (const chunk of chunks) {
+      await new Promise((resolve) => setTimeout(resolve, Math.max(0, chunk.time - (Date.now() - start))))
+      yield chunk.text
+    }
+  }
+  const words: Array<{ text: string; time: number }> = []
+  for await (const text of nz(source()).splitAfter(" ").compact().minInterval(INTERVAL_MS)) {
+    words.push({ text, time: Math.round((Date.now() - start) / SNAP_MS) * SNAP_MS })
+  }
 
-  console.log("Input tokens:", input)
-  console.log("Output tokens:", output)
-
-  await generateWebm(input, output, "./assets/demo-timing.gif", {
-    holdDuration: 1400,
+  const times = [...new Set([...chunks, ...words].map((event) => event.time))].sort((a, b) => a - b)
+  const moments = times.map((time) => ({
+    at: LEAD_MS + time,
+    arrived: chunks
+      .filter((chunk) => chunk.time <= time)
+      .map((chunk) => chunk.text)
+      .join(""),
+    time,
+  }))
+  const steps = toSteps(moments, ({ at, arrived }) => {
+    const time = moments.find((m) => m.at === at)!.time
+    const released = words
+      .filter((word) => word.time <= time)
+      .map((word) => word.text)
+      .join("").length
+    // Words that have arrived wait, held, until their turn.
+    return [...arrived].map((_, i): CharFate => ({ fate: i < released ? "out" : "held", key: "" }))
   })
 
-  console.log("Done! GIF saved to assets/demo-timing.gif")
+  await renderDemo(
+    { chunks: chunks.map((chunk) => ({ text: chunk.text, at: LEAD_MS + chunk.time })), steps, size: "26px" },
+    "./assets/demo-timing",
+  )
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
-  generateTimingDemo().catch((error) => {
-    console.error(error)
-    process.exit(1)
-  })
+  generateTimingDemo()
 }

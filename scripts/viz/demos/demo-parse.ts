@@ -1,38 +1,49 @@
 import { pathToFileURL } from "node:url"
-import { generateWebm } from "../generateWebm.js"
 import { nz } from "../../../src/index.js"
-import { timedSource, timelineFromStream, timelineFromTokens } from "./helpers.js"
+import { renderDemo } from "../gif.js"
+import { LEAD_MS, toSteps, yieldsByChunk, type CharFate } from "./helpers.js"
+
+const STEP_MS = 850
 
 export async function generateParseDemo() {
-  console.log("Generating parse demo GIF...")
-
-  // Input tokens with image references split across weird chunk boundaries
-  // This demonstrates how nozzle handles streaming text where patterns span chunks
-  const inputTokens = [
-    { value: "Here is im", time: 0 },
-    { value: "g-abc", time: 180 },
-    { value: "123 and im", time: 360 },
-    { value: "g-xyz", time: 540 },
-    { value: "789.", time: 720 },
-  ]
-
-  const input = timelineFromTokens(inputTokens)
-
-  const output = await timelineFromStream(
-    nz(timedSource(inputTokens)).parse(/img-(\w+)/g, (match) => ({ type: "image", id: match[1] })),
+  // The markers straddle chunk boundaries on purpose.
+  const texts = ["Here is im", "g-abc", "123 and im", "g-xyz", "789."]
+  const byChunk = await yieldsByChunk(texts, (source) =>
+    nz(source).parse(/img-(\w+)/g, (m) => ({ type: "image", id: m[1] })),
+  )
+  // Each yielded value accounts for a stretch of source text, in order.
+  const outs = byChunk.flatMap((values, chunk) =>
+    values
+      .filter((value) => value !== "")
+      .map((value) =>
+        typeof value === "string"
+          ? { chunk, fate: "out" as const, length: value.length, id: undefined }
+          : { chunk, fate: "obj" as const, length: `img-${value.id}`.length, id: value.id },
+      ),
   )
 
-  console.log("Input tokens:", input)
-  console.log("Output tokens:", output)
+  const moments = texts.map((_, chunk) => ({
+    at: LEAD_MS + chunk * STEP_MS,
+    arrived: texts.slice(0, chunk + 1).join(""),
+    chunk,
+  }))
+  const steps = toSteps(moments, (moment) => {
+    const chunk = moments.find((m) => m.at === moment.at)!.chunk
+    const fates: CharFate[] = []
+    outs
+      .filter((o) => o.chunk <= chunk)
+      .forEach((o, index) => {
+        for (let i = 0; i < o.length; i++) fates.push({ fate: o.fate, key: String(index), id: o.id })
+      })
+    // Whatever has arrived but not been yielded is being held as a possible match.
+    while (fates.length < moment.arrived.length) fates.push({ fate: "held", key: "" })
+    return fates
+  })
 
-  await generateWebm(input, output, "./assets/demo-parse.gif")
-
-  console.log("Done! GIF saved to assets/demo-parse.gif")
+  const chunks = texts.map((text, chunk) => ({ text, at: moments[chunk].at }))
+  await renderDemo({ chunks, steps, size: "27px" }, "./assets/demo-parse")
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
-  generateParseDemo().catch((error) => {
-    console.error(error)
-    process.exit(1)
-  })
+  generateParseDemo()
 }
