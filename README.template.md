@@ -1,6 +1,6 @@
 <div align="center">
   <img src="assets/nozzle.webp" alt="Nozzle" width="220" />
-  <p><strong>Chunk-aware primitives for streaming text.</strong></p>
+  <p><strong>A text streaming library that emits when possible and buffers where necessary.</strong></p>
   <a href="https://www.npmjs.com/package/nozzle-js"><img src="https://badgen.net/npm/v/nozzle-js" /></a>
   <a href="https://bundlejs.com/?q=nozzle-js"><img src="https://img.shields.io/bundlejs/size/nozzle-js?label=minzip" /></a>
   <img src="https://badgen.net/badge/dependencies/0/green" />
