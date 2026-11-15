@@ -21,8 +21,7 @@
     }
     return ranges
       .map((r) => {
-        if (r.fate === "obj")
-          return `<span class="pill" style="opacity:${fade(t, r.bornAt)}">image <b>${esc(r.id)}</b></span>`
+        if (r.fate === "obj") return `<span class="pill" style="opacity:${fade(t, r.bornAt)}">${esc(r.label)}</span>`
         // Only text that just arrived fades in; text that merely changed fate switches at once.
         const kind = r.fate === "out" ? (demo.highlightKept ? "keep" : "") : r.fate
         return `<span class="${kind}" style="opacity:${fade(t, r.arrivedAt)}">${esc(r.text)}</span>`

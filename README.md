@@ -13,7 +13,7 @@
   <span>&nbsp;•&nbsp;</span>
   <a href="#api-at-a-glance">API</a>
   <span>&nbsp;•&nbsp;</span>
-  <a href="#guarantees-and-limits">Guarantees</a>
+  <a href="#guarantees">Guarantees</a>
   <span>&nbsp;•&nbsp;</span>
   <a href="#reference">Reference</a>
 </div>
@@ -36,10 +36,10 @@ npm i nozzle-js # or pnpm / bun / yarn
 ```ts
 import { nz } from "nozzle-js"
 
-const parts = nz(textStream).parse(/img-(\w+)/g, (m) => ({ type: "image", id: m[1] }))
+const parts = nz(textStream).parse(/img-(\w+)/g, (m) => ({ src: m[1] }))
 
 for await (const part of parts) {
-  // "Here is ", { type: "image", id: "abc123" }, " and ", { type: "image", id: "xyz789" }, "."
+  // "Here is ", { src: "abc123" }, " and ", { src: "xyz789" }, "."
 }
 ```
 
@@ -71,6 +71,11 @@ nz(res.body!.pipeThrough(new TextDecoderStream()))
 
 ### Extract a generated section
 
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="assets/demo-extract-dark.gif" />
+  <img src="assets/demo-extract.gif" alt="Extracting a fenced code block whose fences are split across chunks" />
+</picture>
+
 Stream just the code block to a preview while the model is still writing, then save it.
 
 <!-- prettier-ignore -->
@@ -84,12 +89,12 @@ const code = await nz(stream)
 await saveSnippet(code.string())
 ````
 
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="assets/demo-extract-dark.gif" />
-  <img src="assets/demo-extract.gif" alt="Extracting a fenced code block whose fences are split across chunks" />
-</picture>
-
 ### Smooth chunky provider output
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="assets/demo-timing-dark.gif" />
+  <img src="assets/demo-timing.gif" alt="Bursty source chunks released as evenly paced words" />
+</picture>
 
 Providers often deliver text in bursts. Re-chunk into words and release them at a steady pace.
 
@@ -101,18 +106,7 @@ const smooth = nz(stream)
   .minInterval(40)
 ```
 
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="assets/demo-timing-dark.gif" />
-  <img src="assets/demo-timing.gif" alt="Bursty source chunks released as evenly paced words" />
-</picture>
-
-## Versus
-
-- **A hand-written `for await` loop.** Fine for `map` and `filter`. Matching `/img-(\w+)/` when the marker spans chunks means writing a buffer that knows how much text is safe to release. Nozzle is that buffer, tested for regexes, separators, and prefixes/suffixes.
-- **RxJS / IxJS.** General-purpose operator libraries without text operators that work across chunk boundaries. Nozzle stays in plain async iterables, so pipelines drop into `for await`, `Response`, and SDKs that already use them, and it preserves generator return values.
-- **Your SDK's smoothing.** Nozzle's timing operators work on any source and compose with the parsing ones.
-
-## Guarantees and limits
+## Guarantees
 
 - Pipelines are lazy: nothing runs until you `for await` or `.consume()`. Generator sources are single-use.
 - Breaking out of a loop early closes upstream iterators. Cancelling in-flight I/O is up to the source/provider.

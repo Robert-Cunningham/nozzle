@@ -23,8 +23,8 @@ export interface Range {
   arrivedAt: number
   /** When it took its current fate. */
   bornAt: number
-  /** Label for an `obj` range. */
-  id?: string
+  /** What to show in place of the source text of an `obj` range: the yielded object, as code. */
+  label?: string
 }
 
 /** The whole stream so far, as it stands from `at` until the next step. */
@@ -72,7 +72,6 @@ function pageHtml(demo: Demo, theme: Theme): string {
     -webkit-font-smoothing: antialiased;
   }
   .pill { display: inline-block; background: var(--accent-bg); color: var(--accent); border-radius: 9px; padding: 1px 12px; font-size: .8em; line-height: 1.75; }
-  .pill b { font-weight: 700; }
   .held { color: var(--held); border-bottom: 2px dotted var(--held); }
   .drop { color: var(--drop); }
   .keep { background: var(--accent-bg); border-radius: 3px; padding: 3px 0; -webkit-box-decoration-break: clone; box-decoration-break: clone; }

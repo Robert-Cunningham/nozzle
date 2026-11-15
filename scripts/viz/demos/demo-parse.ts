@@ -8,17 +8,15 @@ const STEP_MS = 850
 export async function generateParseDemo() {
   // The markers straddle chunk boundaries on purpose.
   const texts = ["Here is im", "g-abc", "123 and im", "g-xyz", "789."]
-  const byChunk = await yieldsByChunk(texts, (source) =>
-    nz(source).parse(/img-(\w+)/g, (m) => ({ type: "image", id: m[1] })),
-  )
+  const byChunk = await yieldsByChunk(texts, (source) => nz(source).parse(/img-(\w+)/g, (m) => ({ src: m[1] })))
   // Each yielded value accounts for a stretch of source text, in order.
   const outs = byChunk.flatMap((values, chunk) =>
     values
       .filter((value) => value !== "")
       .map((value) =>
         typeof value === "string"
-          ? { chunk, fate: "out" as const, length: value.length, id: undefined }
-          : { chunk, fate: "obj" as const, length: `img-${value.id}`.length, id: value.id },
+          ? { chunk, fate: "out" as const, length: value.length, label: undefined }
+          : { chunk, fate: "obj" as const, length: `img-${value.src}`.length, label: `{ src: "${value.src}" }` },
       ),
   )
 
@@ -33,7 +31,7 @@ export async function generateParseDemo() {
     outs
       .filter((o) => o.chunk <= chunk)
       .forEach((o, index) => {
-        for (let i = 0; i < o.length; i++) fates.push({ fate: o.fate, key: String(index), id: o.id })
+        for (let i = 0; i < o.length; i++) fates.push({ fate: o.fate, key: String(index), label: o.label })
       })
     // Whatever has arrived but not been yielded is being held as a possible match.
     while (fates.length < moment.arrived.length) fates.push({ fate: "held", key: "" })

@@ -7,7 +7,7 @@ export const LEAD_MS = 600
 export interface CharFate {
   fate: Fate
   key: string
-  id?: string
+  label?: string
 }
 
 /**
@@ -71,7 +71,7 @@ export function toSteps(
           fate: f.fate,
           arrivedAt: arrivedAt[i],
           bornAt: bornAt[i],
-          id: f.id,
+          label: f.label,
         })
       }
     })
