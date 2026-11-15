@@ -1,6 +1,6 @@
 <div align="center">
   <img src="assets/nozzle.webp" alt="Nozzle" width="220" />
-  <p><strong>Regex, split, and pace streaming LLM text — across chunk boundaries.</strong></p>
+  <p><strong>Chunk-aware primitives for streaming text.</strong></p>
   <a href="https://www.npmjs.com/package/nozzle-js"><img src="https://badgen.net/npm/v/nozzle-js" /></a>
   <a href="https://bundlejs.com/?q=nozzle-js"><img src="https://img.shields.io/bundlejs/size/nozzle-js?label=minzip" /></a>
   <img src="https://badgen.net/badge/dependencies/0/green" />
@@ -20,7 +20,7 @@
 
 ---
 
-Nozzle is a small TypeScript library for handling text streamed from LLMs. Its regex, split, and extract functions match across chunk boundaries, emitting text as soon as it can't be part of a match and buffering anything that might be used for a future match.
+Nozzle is a small TypeScript library for handling text streamed from LLMs. Its functions buffer only where necessary and otherwise emit chunks as soon as possible. For example, regexes buffer a potential match only until it's confirmed or rejected, and emit everything around it immediately.
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="assets/demo-parse-dark.gif" />
