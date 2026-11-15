@@ -18,20 +18,47 @@ import * as fs from "fs"
 
 /** Group ordering (descriptions come from @groupDescription in source) */
 const GROUP_ORDER: Record<string, number> = {
-  Elements: 1,
-  Indexing: 2,
-  Filtering: 3,
-  Splitting: 4,
-  Accumulation: 5,
-  Transformation: 6,
-  Regex: 7,
-  Timing: 8,
+  Regex: 1,
+  Splitting: 2,
+  Timing: 3,
+  Elements: 4,
+  Transformation: 5,
+  Filtering: 6,
+  Indexing: 7,
+  Accumulation: 8,
   Buffering: 9,
   "Side Effects": 10,
   "Error Handling": 11,
-  "Return Values": 12,
-  Conversion: 13,
+  Conversion: 12,
+  "Return Values": 13,
   Other: 99,
+}
+
+/**
+ * Joins hard-wrapped prose into one line per paragraph or list item, so the README source does not
+ * carry the line breaks of the doc comments. Code blocks, tables, and headings are left alone.
+ */
+function unwrap(markdown: string): string {
+  const out: string[] = []
+  let inCode = false
+  let joinable = false
+  for (const line of markdown.split("\n")) {
+    const text = line.trim()
+    if (text.startsWith("```")) {
+      inCode = !inCode
+      joinable = false
+      out.push(line)
+      continue
+    }
+    const startsBlock = text === "" || /^([-*+] |\d+\. |[|#>]|<)/.test(text)
+    if (!inCode && joinable && !startsBlock) {
+      out[out.length - 1] += ` ${text}`
+      continue
+    }
+    out.push(line)
+    joinable = !inCode && text !== "" && !/^[|#<]/.test(text)
+  }
+  return out.join("\n")
 }
 
 async function main() {
@@ -69,8 +96,9 @@ async function main() {
       // Sort functions within group alphabetically
       funcs.sort((a, b) => a.name.localeCompare(b.name))
 
-      const groupHeader = `## ${groupName}`
-      const groupDesc = groupDescriptions[groupName]
+      const groupHeader = `### ${groupName}`
+      // Group descriptions are written one heading level up, for a group at "##".
+      const groupDesc = groupDescriptions[groupName] && unwrap(groupDescriptions[groupName]).replace(/^#/gm, "##")
       const descSection = groupDesc ? `\n\n${groupDesc}` : ""
       const funcDocs = funcs.map(renderFunction).join("\n\n---\n\n")
 
@@ -234,8 +262,8 @@ function renderFunction(r: DeclarationReflection): string {
   // Build output
   const parts: string[] = []
 
-  // Heading (### since groups are ##)
-  parts.push(`### \`${r.name}\``)
+  // Heading (#### since groups are ###)
+  parts.push(`#### \`${r.name}\``)
   parts.push("")
 
   // Examples first (just the code, no heading)
@@ -246,7 +274,7 @@ function renderFunction(r: DeclarationReflection): string {
 
   // Description
   if (description) {
-    parts.push(description)
+    parts.push(unwrap(description))
     parts.push("")
   }
 
@@ -263,7 +291,7 @@ function renderFunction(r: DeclarationReflection): string {
   parts.push("")
 
   if (paramsTable) {
-    parts.push("#### Parameters")
+    parts.push("##### Parameters")
     parts.push("")
     parts.push(paramsTable)
   }

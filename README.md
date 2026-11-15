@@ -1,28 +1,31 @@
 <div align="center">
-  <img src="assets/nozzle.webp" alt="Nozzle Logo" width="40%" />
-  <br />
+  <img src="assets/nozzle.webp" alt="Nozzle" width="220" />
+  <p><strong>Regex, split, and pace streaming LLM text — across chunk boundaries.</strong></p>
   <a href="https://www.npmjs.com/package/nozzle-js"><img src="https://badgen.net/npm/v/nozzle-js" /></a>
+  <a href="https://bundlejs.com/?q=nozzle-js"><img src="https://img.shields.io/bundlejs/size/nozzle-js?label=minzip" /></a>
+  <img src="https://badgen.net/badge/dependencies/0/green" />
   <a href="https://github.com/robert-cunningham/nozzle/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue" /></a>
-  <a href="https://bundlephobia.com/result?p=nozzle-js"><img src="https://badgen.net/bundlephobia/minzip/nozzle-js"></a>
   <br />
   <br />
   <a href="#quickstart">Quickstart</a>
-  <span>&nbsp;&nbsp;•&nbsp;&nbsp;</span>
+  <span>&nbsp;•&nbsp;</span>
   <a href="#recipes">Recipes</a>
-  <span>&nbsp;&nbsp;•&nbsp;&nbsp;</span>
+  <span>&nbsp;•&nbsp;</span>
+  <a href="#api-at-a-glance">API</a>
+  <span>&nbsp;•&nbsp;</span>
+  <a href="#guarantees-and-limits">Guarantees</a>
+  <span>&nbsp;•&nbsp;</span>
   <a href="#reference">Reference</a>
-  <br />
-  <hr />
 </div>
 
-<!-- [![npm version][npm-src]][npm-href]
-[![Bundle size][bundlephobia-src]][bundlephobia-href]
-[![License][license-src]][license-href]
--->
+---
 
-Nozzle is a small TypeScript library for transforming async iterables, especially streamed text from LLMs.
+Nozzle is a small TypeScript library for handling text streamed from LLMs. Its regex, split, and extract functions match across chunk boundaries, emitting text as soon as it can't be part of a match and buffering anything that might be used for a future match.
 
-It helps when provider chunks are not the chunks your app wants: parse structured markers, split text into useful pieces, fan out one stream to multiple consumers, extract generated sections, or smooth token timing without waiting for the whole response.
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="assets/demo-parse-dark.gif" />
+  <img src="assets/demo-parse.gif" alt="Parse demo: an image marker split across chunks is detected and replaced with an object" />
+</picture>
 
 ## Quickstart
 
@@ -30,55 +33,45 @@ It helps when provider chunks are not the chunks your app wants: parse structure
 npm i nozzle-js # or pnpm / bun / yarn
 ```
 
-Nozzle has ESM and CJS builds and works with any sync or async iterable or Web `ReadableStream`.
-Use `.toReadableStream()` to hand a pipeline to a `Response` or `pipeThrough`.
-
-<!-- prettier-ignore -->
 ```ts
 import { nz } from "nozzle-js"
 
-const pacedWords = nz(llmTextStream)
-  .splitAfter(" ")
-  .compact()
-  .minInterval(40)
+const parts = nz(textStream).parse(/img-(\w+)/g, (m) => ({ type: "image", id: m[1] }))
 
-for await (const word of pacedWords) {
-  process.stdout.write(word)
+for await (const part of parts) {
+  // "Here is ", { type: "image", id: "abc123" }, " and ", { type: "image", id: "xyz789" }, "."
 }
 ```
 
+`nz()` accepts any sync or async iterable.
+
+<details><summary>Getting a text stream from your provider</summary>
+
+```ts
+// Vercel AI SDK
+const { textStream } = streamText({ model, prompt })
+nz(textStream)
+
+// OpenAI
+const stream = await openai.chat.completions.create({ ...args, stream: true })
+nz(stream).map((chunk) => chunk.choices[0]?.delta?.content ?? "")
+
+// Anthropic
+const stream = anthropic.messages.stream({ ...args })
+nz(stream).map((e) => (e.type === "content_block_delta" && e.delta.type === "text_delta" ? e.delta.text : ""))
+
+// fetch
+const res = await fetch(url)
+nz(res.body!.pipeThrough(new TextDecoderStream()))
+```
+
+</details>
+
 ## Recipes
 
-### Parse structured markers as they stream
-
-```ts
-const stream = await openai.chat.completions.create({ ...args, stream: true })
-
-const parts = nz(stream)
-  .map((chunk) => chunk.choices[0]?.delta?.content ?? "")
-  .parse(/img-(\w+)/g, (match) => ({ type: "image", id: match[1] }))
-
-// yields: "Here is ", { type: "image", id: "abc123" }, " for you"
-```
-
-![Parse Demo](assets/demo-parse.gif)
-
-### Branch one stream for UI and storage
-
-```ts
-const [displayStream, storageStream] = nz(stream).tee(2)
-
-const displayPromise = (async () => {
-  for await (const chunk of displayStream) process.stdout.write(chunk)
-})()
-
-const [, consumed] = await Promise.all([displayPromise, storageStream.consume()])
-conversation.push({ role: "assistant", content: consumed.string() })
-```
-
-![Tee Demo](assets/demo-tee.gif)
-
 ### Extract a generated section
+
+Stream just the code block to a preview while the model is still writing, then save it.
 
 <!-- prettier-ignore -->
 ````ts
@@ -91,396 +84,224 @@ const code = await nz(stream)
 await saveSnippet(code.string())
 ````
 
-![Extract Demo](assets/demo-extract.gif)
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="assets/demo-extract-dark.gif" />
+  <img src="assets/demo-extract.gif" alt="Extracting a fenced code block whose fences are split across chunks" />
+</picture>
 
 ### Smooth chunky provider output
 
+Providers often deliver text in bursts. Re-chunk into words and release them at a steady pace.
+
 <!-- prettier-ignore -->
 ```ts
-const smoothStream = nz(stream)
+const smooth = nz(stream)
   .splitAfter(" ")
   .compact()
   .minInterval(40)
 ```
 
-![Timing Demo](assets/demo-timing.gif)
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="assets/demo-timing-dark.gif" />
+  <img src="assets/demo-timing.gif" alt="Bursty source chunks released as evenly paced words" />
+</picture>
 
-## Behavior
+## Versus
 
-- Pipelines are consumed with `for await` or `.consume()`. Generator sources are single-use.
-- `.consume()` retains all values; use `.list()`, `.string()`, or `.return()` on its result.
-- Early exit closes upstream iterators. Pending I/O needs cancellation from the source/provider.
-- `buffer()`, `tee`, and `asyncMap` can buffer without a limit; concurrency is not a queue limit.
-- Regexes match across chunks. Anchors, word boundaries, lookarounds, backreferences,
-  Unicode escapes (`\uXXXX`, `\u{…}`), `m`/`y`/`v`, and nullable patterns are rejected. The explicit empty separator splits
-  UTF-16 code units. Unfinished matches buffer input; match indices are buffer-local.
+- **A hand-written `for await` loop.** Fine for `map` and `filter`. Matching `/img-(\w+)/` when the marker spans chunks means writing a buffer that knows how much text is safe to release. Nozzle is that buffer, tested for regexes, separators, and prefixes/suffixes.
+- **RxJS / IxJS.** General-purpose operator libraries without text operators that work across chunk boundaries. Nozzle stays in plain async iterables, so pipelines drop into `for await`, `Response`, and SDKs that already use them, and it preserves generator return values.
+- **Your SDK's smoothing.** Nozzle's timing operators work on any source and compose with the parsing ones.
+
+## Guarantees and limits
+
+- Pipelines are lazy: nothing runs until you `for await` or `.consume()`. Generator sources are single-use.
+- Breaking out of a loop early closes upstream iterators. Cancelling in-flight I/O is up to the source/provider.
+- Errors from the source, including errors raised in timers, surface where you `await`, so `try/catch` works.
+- Generator return values pass through transforms (see `mapReturn`, `consume().return()`).
+
+## API at a glance
+
+| Group              | Functions                                                                                                                                     |
+| ------------------ | --------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Regex**          | [`parse`](#parse) · [`scan`](#scan) · [`match`](#match) · [`replace`](#replace)                                                               |
+| **Splitting**      | [`split`](#split) · [`splitAfter`](#splitafter) · [`splitBefore`](#splitbefore) · [`after`](#after) · [`before`](#before) · [`chunk`](#chunk) |
+| **Timing**         | [`minInterval`](#mininterval) · [`throttle`](#throttle)                                                                                       |
+| **Elements**       | [`map`](#map) · [`asyncMap`](#asyncmap) · [`filter`](#filter) · [`find`](#find)                                                               |
+| **Transformation** | [`flatMap`](#flatmap) · [`flatten`](#flatten)                                                                                                 |
+| **Filtering**      | [`compact`](#compact) · [`takeWhile`](#takewhile) · [`takeUntil`](#takeuntil)                                                                 |
+| **Indexing**       | [`first`](#first) · [`last`](#last) · [`at`](#at) · [`head`](#head) · [`tail`](#tail) · [`initial`](#initial) · [`slice`](#slice)             |
+| **Accumulation**   | [`accumulate`](#accumulate) · [`diff`](#diff) · [`reduce`](#reduce)                                                                           |
+| **Buffering**      | [`batch`](#batch) · [`buffer`](#buffer) · [`withContext`](#withcontext) · [`aperture`](#aperture)                                             |
+| **Side effects**   | [`tap`](#tap) · [`tee`](#tee)                                                                                                                 |
+| **Errors**         | [`recover`](#recover) · [`wrap`](#wrap) · [`unwrap`](#unwrap)                                                                                 |
+| **Conversion**     | [`consume`](#consume) · [`toReadableStream`](#toreadablestream) · [`fromList`](#fromlist) · [`mapReturn`](#mapreturn)                         |
 
 ## Reference
 
-## Elements
+### Regex
 
-### `asyncMap`
+These functions use JavaScript regular expressions to search, match, and transform streaming text.
+
+Nozzle handles matching patterns across chunk boundaries by buffering text internally. Non-matching text is yielded as soon as it's certain not to be part of a match, while potential matches are held back until confirmed.
+
+#### Unsupported Features
+
+These features throw an error because they cannot work reliably with streaming:
+
+| Feature | Example | Why |
+| ------- | ------- | --- |
+| Lookaheads | `(?=...)`, `(?!...)` | Content to look ahead may not have arrived yet |
+| Lookbehinds | `(?<=...)`, `(?<!...)` | Content to look behind may have already been yielded |
+| Backreferences | `\1`, `\k<name>` | Referenced group may span chunks or be partially buffered |
+| Multiline mode | `/pattern/m` | `^`/`$` would behave inconsistently at arbitrary chunk boundaries |
+| Anchors | `^`, `$` | The start and end of the stream are not known mid-stream; use `before`/`after` |
+| Word boundaries | `\b`, `\B` | The neighboring character may be in a chunk that has not arrived |
+| Unicode escapes | `\uXXXX`, `\u{...}` | Not analyzed for partial matches; use literal characters |
+| Sticky and Unicode-sets flags | `/pattern/y`, `/pattern/v` | Not supported by the partial matcher |
+| Empty matches | `/x?/`, `/a{0,}/` | A pattern that can match nothing would match between every character |
+
+#### Patterns That Delay Output
+
+Some patterns force nozzle to buffer text longer than you might expect:
+
+- **Open-ended quantifiers at pattern end**: `/hello.+/g` buffers everything after "hello" until the stream ends—`.+` can always match more. Use a delimiter instead: `/hello[^!]+/g` matches until `!`, allowing earlier output.
+
+- **Alternations with shared prefixes**: `/cat|caterpillar/g` buffers "cat" until enough text arrives to rule out "caterpillar". Put longer alternatives first: `/caterpillar|cat/g`.
+
+- **Optional suffixes**: `/items?/g` buffers "item" to check for a trailing "s". This is usually fine, but `/data.*?end/g` buffers from "data" until "end" appears.
+
+#### Global vs Non-Global
+
+- **Global (`/pattern/g`)**: Finds all matches throughout the stream
+- **Non-global (`/pattern/`)**: Finds only the first match, then passes remaining text through unchanged
+
+#### `match`
 
 ```ts
-nz(["hello", "world"]).asyncMap(async x => x.toUpperCase()) // => "HELLO", "WORLD"
-nz(["api/users", "api/posts"]).asyncMap(async url => fetch(url).then(r => r.json())) // => [userData], [postsData]
-nz(urls).asyncMap(fetchJson, { concurrency: 4 })
+nz(["a", "b", "b", "a"]).match(/a([ab]*)a/g) // => ["abba", "bb"] (match arrays with capture groups)
 ```
 
-Transforms each value from the input stream using the provided async function.
-Starts the async function for each item as soon as it comes off the source iterator,
-up to the configured concurrency limit. Results are yielded in source order, not
-completion order, so a later item can finish first but will not be yielded or thrown
-until all earlier items have settled.
-Concurrency limits active calls, not queued results. Slow consumers can cause
-unbounded buffering. Cancellation does not abort already-started mapper calls.
+Extracts matches of a regex pattern from the input stream.
+
+Uses earliestPossibleMatchIndex to efficiently skip tokens as soon as we know they don't match the regex, while holding back potential matches until we can determine if they match.
+
+Built on: `scan(input, regex).filter(x => 'match' in x).map(x => x.match)`
 
 <details><summary>Details</summary>
 
 ```ts
-function asyncMap<T, U, R = any>(iterator: AsyncIterable<T, R>, fn: (value: T) => Promise<U>, options?: AsyncMapOptions): AsyncGenerator<U, R>;
+function match<R = any>(input: AsyncIterable<string, R>, regex: RegExp): AsyncGenerator<RegExpExecArray, R, undefined>;
 ```
 
-#### Parameters
+##### Parameters
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
-| `iterator` | AsyncIterable\<T, R\> | An asynchronous iterable of strings. |
-| `fn` | (value: T) =\> Promise\<U\> | An async function that transforms each string value. |
-| `options` | AsyncMapOptions | Optional configuration. |
+| `input` | AsyncIterable\<string, R\> | An asynchronous iterable of strings. |
+| `regex` | RegExp | The regular expression pattern to match. |
 </details>
 
 ---
 
-### `filter`
+#### `parse`
 
 ```ts
-nz(["Hello", "Hi", "World"]).filter(chunk => chunk.length > 4) // => "Hello", "World"
+// Extract UUIDs from text
+nz(["Now I'm taking uuid-asdf-flkj and adding it to uuid-fslkj-alkjlsf."])
+  .parse(/uuid-(?<id>\w+)-\w+/g, m => ({ id: m.groups!.id }))
+// yields: "Now I'm taking ", { id: "asdf" }, " and adding it to ", { id: "fslkj" }, "."
+
+// Parse numbers from text
+nz(["The answer is 42 and also 123"])
+  .parse(/\d+/g, m => parseInt(m[0], 10))
+// yields: "The answer is ", 42, " and also ", 123
 ```
 
-Filters the input stream based on a predicate function.
+Parses input for regex matches, yielding text as-is and transforming matches.
+
+This transform is useful for extracting structured data from text streams. Non-matching text is passed through as strings, while matches are transformed using the provided function.
 
 <details><summary>Details</summary>
 
 ```ts
-function filter<T, R = any>(iterator: AsyncIterable<T, R>, predicate: (chunk: T) => boolean): AsyncGenerator<T, R, undefined>;
+function parse<T, R = any>(input: AsyncIterable<string, R>, regex: RegExp, transform: (match: RegExpExecArray) => T): AsyncGenerator<string | T, R, undefined>;
 ```
 
-#### Parameters
+##### Parameters
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
-| `iterator` | AsyncIterable\<T, R\> | An asynchronous iterable of strings. |
-| `predicate` | (chunk: T) =\> boolean | A function that returns true for items to keep. |
+| `input` | AsyncIterable\<string, R\> | An asynchronous iterable of strings. |
+| `regex` | RegExp | The regular expression pattern to match. |
+| `transform` | (match: RegExpExecArray) =\> T | A function that transforms each match into a desired type. |
 </details>
 
 ---
 
-### `find`
+#### `replace`
 
 ```ts
-await nz(["apple", "banana", "cherry"]).find(chunk => chunk.startsWith("b")) // => "banana"
+nz(["a", "b", "b", "a"]).replace(/a[ab]*a/g, "X") // => "X"
 ```
 
-Finds the first value from the input stream that matches the predicate.
+Replaces matches of a regex pattern with a replacement string in the input stream.
+
+Uses earliestPossibleMatchIndex to efficiently yield tokens as soon as we know they don't match the regex, while holding back potential matches until we can determine if they should be replaced.
+
+Built on: `scan(input, regex).map(x => 'text' in x ? x.text : x.match[0].replace(regex, replacement))`
 
 <details><summary>Details</summary>
 
 ```ts
-function find<T>(iterator: AsyncIterable<T>, predicate: (chunk: T) => boolean): Promise<T | undefined>;
+function replace<R = any>(input: AsyncIterable<string, R>, regex: RegExp, replacement: string): AsyncGenerator<string, R, undefined>;
 ```
 
-#### Parameters
+##### Parameters
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
-| `iterator` | AsyncIterable\<T\> | An asynchronous iterable of values. |
-| `predicate` | (chunk: T) =\> boolean | A function that returns true for the item to find. |
+| `input` | AsyncIterable\<string, R\> | An asynchronous iterable of strings. |
+| `regex` | RegExp | The regular expression pattern to match. |
+| `replacement` | string | The string to replace matches with. |
 </details>
 
 ---
 
-### `map`
+#### `scan`
 
 ```ts
-nz(["hello", "world"]).map(x => x.toUpperCase()) // => "HELLO", "WORLD"
+nz(["hello world"]).scan(/\w+/g)
+// yields: { match: [...] }, { text: " " }, { match: [...] }
+
+nz(["Now I'm taking uuid-asdf-flkj..."]).scan(/uuid-(\w+)-\w+/g)
+// yields: { text: "Now I'm taking " }, { match: [...] }, { text: "..." }
 ```
 
-Transforms each value from the input stream using the provided function.
+Scans input for regex matches, yielding interleaved text and match results.
+
+This is the foundational regex transform that other transforms build on. It efficiently yields non-matching text as soon as we're certain it can't match, while holding back potential matches until we can determine their boundaries.
+
+Note: Empty text strings are never yielded.
 
 <details><summary>Details</summary>
 
 ```ts
-function map<T, U, R = any>(iterator: AsyncIterable<T, R>, fn: (value: T) => U): AsyncGenerator<U, R, undefined>;
+function scan<R = any>(input: AsyncIterable<string, R>, regex: RegExp): AsyncGenerator<ScanResult, R, undefined>;
 ```
 
-#### Parameters
+##### Parameters
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
-| `iterator` | AsyncIterable\<T, R\> | An asynchronous iterable of strings. |
-| `fn` | (value: T) =\> U | A function that transforms each string value. |
+| `input` | AsyncIterable\<string, R\> | An asynchronous iterable of strings. |
+| `regex` | RegExp | The regular expression pattern to match. |
 </details>
 
 ---
 
-## Indexing
+### Splitting
 
-### `at`
-
-```ts
-await nz(["a", "b", "c", "d", "e"]).at(2) // => "c"
-await nz(["a", "b", "c", "d", "e"]).at(-1) // => "e"
-```
-
-Returns the element at the specified index in the input stream.
-Supports negative indices to count from the end.
-
-<details><summary>Details</summary>
-
-```ts
-function at<T>(iterator: AsyncIterable<T>, index: number): Promise<T | undefined>;
-```
-
-#### Parameters
-
-| Parameter | Type | Description |
-| ------ | ------ | ------ |
-| `iterator` | AsyncIterable\<T\> | An asynchronous iterable of values. |
-| `index` | number | The index to access. Negative values count from the end. |
-</details>
-
----
-
-### `first`
-
-```ts
-await nz(["Hello", "World", "!"]).first() // => "Hello"
-```
-
-Returns the first value from the input stream.
-
-<details><summary>Details</summary>
-
-```ts
-function first<T>(iterator: AsyncIterable<T>): Promise<T | undefined>;
-```
-
-#### Parameters
-
-| Parameter | Type | Description |
-| ------ | ------ | ------ |
-| `iterator` | AsyncIterable\<T\> | An asynchronous iterable of values. |
-</details>
-
----
-
-### `head`
-
-```ts
-nz(["Hello", "World", "!"]).head() // => "Hello"
-```
-
-Yields only the first value from the input stream.
-
-Early termination may return undefined instead of the source's final value.
-
-<details><summary>Details</summary>
-
-```ts
-function head<T, R = any>(iterator: AsyncIterable<T, R>): AsyncGenerator<T, R | undefined, undefined>;
-```
-
-#### Parameters
-
-| Parameter | Type | Description |
-| ------ | ------ | ------ |
-| `iterator` | AsyncIterable\<T, R\> | An asynchronous iterable of values. |
-</details>
-
-See also: [`at`](#at), [`tail`](#tail), [`initial`](#initial), [`last`](#last)
-
----
-
-### `initial`
-
-```ts
-nz(["Hello", "World", "!"]).initial() // => "Hello", "World"
-```
-
-Yields all values except the last from the input stream.
-
-<details><summary>Details</summary>
-
-```ts
-function initial<T, R = any>(iterator: AsyncIterable<T, R>): AsyncGenerator<T, R, undefined>;
-```
-
-#### Parameters
-
-| Parameter | Type | Description |
-| ------ | ------ | ------ |
-| `iterator` | AsyncIterable\<T, R\> | An asynchronous iterable of values. |
-</details>
-
----
-
-### `last`
-
-```ts
-await nz(["Hello", "World", "!"]).last() // => "!"
-```
-
-Returns the last value from the input stream.
-
-<details><summary>Details</summary>
-
-```ts
-function last<T>(iterator: AsyncIterable<T>): Promise<T | undefined>;
-```
-
-#### Parameters
-
-| Parameter | Type | Description |
-| ------ | ------ | ------ |
-| `iterator` | AsyncIterable\<T\> | An asynchronous iterable of values. |
-</details>
-
----
-
-### `slice`
-
-```ts
-nz(["a", "b", "c", "d", "e"]).slice(1, 3) // => "b", "c"
-nz(["a", "b", "c", "d", "e"]).slice(-2) // => "d", "e"
-```
-
-Yields a slice of the input stream between start and end indices.
-Supports negative indices by maintaining an internal buffer.
-A bounded slice may stop early and return undefined. Without an end, it preserves
-the source return value on completion.
-
-<details><summary>Details</summary>
-
-```ts
-function slice<T, R = any>(iterator: AsyncIterable<T, R>, start: number, end?: undefined): AsyncGenerator<T, R, undefined>;
-function slice<T, R = any>(iterator: AsyncIterable<T, R>, start: number, end: number | undefined): AsyncGenerator<T, R | undefined, undefined>;
-```
-
-#### Parameters
-
-| Parameter | Type | Description |
-| ------ | ------ | ------ |
-| `iterator` | AsyncIterable\<T, R\> | The async iterable to slice |
-| `start` | number | Starting index (inclusive). Negative values count from end. |
-| `end` | number \| undefined | Ending index (exclusive). Negative values count from end. If undefined, slices to end. |
-</details>
-
----
-
-### `tail`
-
-```ts
-nz(["Hello", "World", "!"]).tail() // => "World", "!"
-```
-
-Yields all values except the first from the input stream.
-
-<details><summary>Details</summary>
-
-```ts
-function tail<T, R = any>(iterator: AsyncIterable<T, R>): AsyncGenerator<T, R, undefined>;
-```
-
-#### Parameters
-
-| Parameter | Type | Description |
-| ------ | ------ | ------ |
-| `iterator` | AsyncIterable\<T, R\> | An asynchronous iterable of values. |
-</details>
-
----
-
-## Filtering
-
-### `compact`
-
-```ts
-nz(["Hello", "", "World", ""]).compact() // => "Hello", "World"
-```
-
-Filters out empty strings from the input stream.
-
-<details><summary>Details</summary>
-
-```ts
-function compact<R = any>(iterator: AsyncIterable<string, R>): AsyncGenerator<string, R, undefined>;
-```
-
-#### Parameters
-
-| Parameter | Type | Description |
-| ------ | ------ | ------ |
-| `iterator` | AsyncIterable\<string, R\> | An asynchronous iterable of strings. |
-</details>
-
----
-
-### `takeUntil`
-
-```ts
-nz([1, 2, 3, 4]).takeUntil(n => n === 3) // => 1, 2
-```
-
-Yields values until the predicate matches, excluding the matching value.
-
-Early termination may return undefined instead of the source's final value.
-
-<details><summary>Details</summary>
-
-```ts
-function takeUntil<T, R = any>(source: AsyncIterable<T, R>, predicate: (value: T) => boolean): AsyncGenerator<T, R | undefined, undefined>;
-```
-
-#### Parameters
-
-| Parameter | Type | Description |
-| ------ | ------ | ------ |
-| `source` | AsyncIterable\<T, R\> | An asynchronous iterable of values. |
-| `predicate` | (value: T) =\> boolean | A function that returns true for the value that should stop the stream. |
-</details>
-
----
-
-### `takeWhile`
-
-```ts
-nz([1, 2, 3, 1]).takeWhile(n => n < 3) // => 1, 2
-```
-
-Yields values while the predicate matches, excluding the first non-matching value.
-
-Early termination may return undefined instead of the source's final value.
-
-<details><summary>Details</summary>
-
-```ts
-function takeWhile<T, R = any>(source: AsyncIterable<T, R>, predicate: (value: T) => boolean): AsyncGenerator<T, R | undefined, undefined>;
-```
-
-#### Parameters
-
-| Parameter | Type | Description |
-| ------ | ------ | ------ |
-| `source` | AsyncIterable\<T, R\> | An asynchronous iterable of values. |
-| `predicate` | (value: T) =\> boolean | A function that returns true for values to keep. |
-</details>
-
----
-
-## Splitting
-
-### `after`
+#### `after`
 
 ```ts
 nz(["a", "b", "c", "d", "e"]).after(/bc/) // => "d", "e"
@@ -496,7 +317,7 @@ Built on: `scan(source, regex)` skipping until first match, then yielding everyt
 function after<R = any>(source: StringIterable<R>, pattern: string | RegExp): AsyncGenerator<string, R, undefined>;
 ```
 
-#### Parameters
+##### Parameters
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
@@ -506,7 +327,7 @@ function after<R = any>(source: StringIterable<R>, pattern: string | RegExp): As
 
 ---
 
-### `before`
+#### `before`
 
 ```ts
 nz(["a", "b", "c", "d", "e"]).before("cd") // => "a", "b"
@@ -524,7 +345,7 @@ Early termination may return undefined instead of the source's final value.
 function before<R = any>(source: StringIterable<R>, separator: string | RegExp): AsyncGenerator<string, R | undefined, undefined>;
 ```
 
-#### Parameters
+##### Parameters
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
@@ -534,14 +355,13 @@ function before<R = any>(source: StringIterable<R>, separator: string | RegExp):
 
 ---
 
-### `chunk`
+#### `chunk`
 
 ```ts
 nz(["a", "b", "c", "d", "e", "f"]).chunk(3) // => "abc", "def"
 ```
 
-Groups input tokens into chunks of the specified size and yields the joined result.
-Takes N input items and yields N/size output items, where each output is the concatenation of size input items.
+Groups input tokens into chunks of the specified size and yields the joined result. Takes N input items and yields N/size output items, where each output is the concatenation of size input items.
 
 <details><summary>Details</summary>
 
@@ -549,7 +369,7 @@ Takes N input items and yields N/size output items, where each output is the con
 function chunk<R = any>(source: AsyncIterable<string, R>, size: number): AsyncGenerator<string, R, undefined>;
 ```
 
-#### Parameters
+##### Parameters
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
@@ -559,7 +379,7 @@ function chunk<R = any>(source: AsyncIterable<string, R>, size: number): AsyncGe
 
 ---
 
-### `split`
+#### `split`
 
 ```ts
 nz(["hello,world,test"]).split(",") // => "hello", "world", "test"
@@ -575,7 +395,7 @@ Built on: `scan(source, regex)` accumulating text between matches
 function split<R = any>(source: AsyncIterable<string, R>, separator: string | RegExp): AsyncGenerator<string, R, undefined>;
 ```
 
-#### Parameters
+##### Parameters
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
@@ -585,14 +405,13 @@ function split<R = any>(source: AsyncIterable<string, R>, separator: string | Re
 
 ---
 
-### `splitAfter`
+#### `splitAfter`
 
 ```ts
 nz(["hello,world,test"]).splitAfter(",") // => "hello,", "world,", "test"
 ```
 
-Takes incoming chunks, merges them, and then splits them by a string separator,
-keeping the separator at the end of each part (except the last).
+Takes incoming chunks, merges them, and then splits them by a string separator, keeping the separator at the end of each part (except the last).
 
 Built on: `scan(source, regex)` with separator appended to each segment
 
@@ -602,7 +421,7 @@ Built on: `scan(source, regex)` with separator appended to each segment
 function splitAfter<R = any>(source: AsyncIterable<string, R>, separator: string | RegExp): AsyncGenerator<string, R, undefined>;
 ```
 
-#### Parameters
+##### Parameters
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
@@ -612,14 +431,13 @@ function splitAfter<R = any>(source: AsyncIterable<string, R>, separator: string
 
 ---
 
-### `splitBefore`
+#### `splitBefore`
 
 ```ts
 nz(["hello,world,test"]).splitBefore(",") // => "hello", ",world", ",test"
 ```
 
-Takes incoming chunks, merges them, and then splits them by a string separator,
-keeping the separator at the beginning of each part (except the first).
+Takes incoming chunks, merges them, and then splits them by a string separator, keeping the separator at the beginning of each part (except the first).
 
 Built on: `scan(source, regex)` with separator prepended to each segment after first
 
@@ -629,7 +447,7 @@ Built on: `scan(source, regex)` with separator prepended to each segment after f
 function splitBefore<R = any>(source: AsyncIterable<string, R>, separator: string | RegExp): AsyncGenerator<string, R, undefined>;
 ```
 
-#### Parameters
+##### Parameters
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
@@ -639,82 +457,161 @@ function splitBefore<R = any>(source: AsyncIterable<string, R>, separator: strin
 
 ---
 
-## Accumulation
+### Timing
 
-### `accumulate`
+#### `minInterval`
 
 ```ts
-nz(["This ", "is ", "a ", "test!"]).accumulate() // => "This ", "This is ", "This is a ", "This is a test!"
+nz(["a", "b", "c"]).minInterval(100) // => "a" (0ms), "b" (100ms), "c" (200ms)
 ```
 
-Yields a cumulative prefix of the input stream.
+Enforces a minimum delay between adjacent tokens in a stream. The first token is yielded immediately, then subsequent tokens are delayed to ensure at least `delayMs` milliseconds pass between each yield.
 
 <details><summary>Details</summary>
 
 ```ts
-function accumulate<R = any>(iterator: AsyncIterable<string, R>): AsyncGenerator<string, R, undefined>;
+function minInterval<T, R = any>(source: AsyncIterable<T, R>, delayMs: number): AsyncGenerator<T, R, undefined>;
 ```
 
-#### Parameters
+##### Parameters
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
-| `iterator` | AsyncIterable\<string, R\> | An asynchronous iterable of strings. |
+| `source` | AsyncIterable\<T, R\> | The async iterable source of tokens. |
+| `delayMs` | number | The minimum delay in milliseconds between adjacent tokens. |
 </details>
 
 ---
 
-### `diff`
+#### `throttle`
 
 ```ts
-nz(["This ", "This is ", "This is a ", "This is a test!"]).diff().value() // => "This ", "is ", "a ", "test!"
+nz(["a", "b", "c", "d"]).throttle(100, chunks => chunks.join("")) // => "abcd" (100ms)
 ```
 
-Yields the difference between the current and previous string in the input stream.
+Batches values into time windows, then yields the merged batch. The first value opens a window lasting intervalMs; it is not emitted immediately. Values arriving within that window are merged and emitted when its timer expires. After an idle period, the next value opens a new window. A final partial batch waits for its existing timer. An interval of zero passes values through unchanged. Source errors are surfaced immediately after already-emitted batches; an unfinished batch is discarded. The source is consumed eagerly, so slow consumers can build up an unbounded queue of merged batches.
 
 <details><summary>Details</summary>
 
 ```ts
-function diff<R = any>(iterator: AsyncIterable<string, R>): AsyncGenerator<string, R, undefined>;
+function throttle<T, R = any>(source: AsyncIterable<T, R>, intervalMs: number, merge: (values: T[]) => T): AsyncGenerator<T, R>;
 ```
 
-#### Parameters
+##### Parameters
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
-| `iterator` | AsyncIterable\<string, R\> | An asynchronous iterable of strings. |
+| `source` | AsyncIterable\<T, R\> | The async iterable source of values. |
+| `intervalMs` | number | The throttling interval in milliseconds. |
+| `merge` | (values: T[]) =\> T | - |
 </details>
 
 ---
 
-### `reduce`
+### Elements
+
+#### `asyncMap`
 
 ```ts
-nz([1, 2, 3, 4]).reduce((acc, n) => acc + n, 0) // => 1, 3, 6, 10
+nz(["hello", "world"]).asyncMap(async x => x.toUpperCase()) // => "HELLO", "WORLD"
+nz(["api/users", "api/posts"]).asyncMap(async url => fetch(url).then(r => r.json())) // => [userData], [postsData]
+nz(urls).asyncMap(fetchJson, { concurrency: 4 })
 ```
 
-Yields progressive accumulated values using a reducer function.
+Transforms each value from the input stream using the provided async function. Starts the async function for each item as soon as it comes off the source iterator, up to the configured concurrency limit. Results are yielded in source order, not completion order, so a later item can finish first but will not be yielded or thrown until all earlier items have settled. Concurrency limits active calls, not queued results. Slow consumers can cause unbounded buffering. Cancellation does not abort already-started mapper calls.
 
 <details><summary>Details</summary>
 
 ```ts
-function reduce<T, A, R = any>(source: AsyncIterable<T, R>, reducer: (accumulator: A, current: T, index: number) => A, initial: A): AsyncGenerator<A, R, undefined>;
+function asyncMap<T, U, R = any>(iterator: AsyncIterable<T, R>, fn: (value: T) => Promise<U>, options?: AsyncMapOptions): AsyncGenerator<U, R>;
 ```
 
-#### Parameters
+##### Parameters
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
-| `source` | AsyncIterable\<T, R\> | An asynchronous iterable of values. |
-| `reducer` | (accumulator: A, current: T, index: number) =\> A | A function that combines the accumulator with each value. |
-| `initial` | A | The initial accumulator value. |
+| `iterator` | AsyncIterable\<T, R\> | An asynchronous iterable of strings. |
+| `fn` | (value: T) =\> Promise\<U\> | An async function that transforms each string value. |
+| `options` | AsyncMapOptions | Optional configuration. |
 </details>
 
 ---
 
-## Transformation
+#### `filter`
 
-### `flatMap`
+```ts
+nz(["Hello", "Hi", "World"]).filter(chunk => chunk.length > 4) // => "Hello", "World"
+```
+
+Filters the input stream based on a predicate function.
+
+<details><summary>Details</summary>
+
+```ts
+function filter<T, R = any>(iterator: AsyncIterable<T, R>, predicate: (chunk: T) => boolean): AsyncGenerator<T, R, undefined>;
+```
+
+##### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `iterator` | AsyncIterable\<T, R\> | An asynchronous iterable of strings. |
+| `predicate` | (chunk: T) =\> boolean | A function that returns true for items to keep. |
+</details>
+
+---
+
+#### `find`
+
+```ts
+await nz(["apple", "banana", "cherry"]).find(chunk => chunk.startsWith("b")) // => "banana"
+```
+
+Finds the first value from the input stream that matches the predicate.
+
+<details><summary>Details</summary>
+
+```ts
+function find<T>(iterator: AsyncIterable<T>, predicate: (chunk: T) => boolean): Promise<T | undefined>;
+```
+
+##### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `iterator` | AsyncIterable\<T\> | An asynchronous iterable of values. |
+| `predicate` | (chunk: T) =\> boolean | A function that returns true for the item to find. |
+</details>
+
+---
+
+#### `map`
+
+```ts
+nz(["hello", "world"]).map(x => x.toUpperCase()) // => "HELLO", "WORLD"
+```
+
+Transforms each value from the input stream using the provided function.
+
+<details><summary>Details</summary>
+
+```ts
+function map<T, U, R = any>(iterator: AsyncIterable<T, R>, fn: (value: T) => U): AsyncGenerator<U, R, undefined>;
+```
+
+##### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `iterator` | AsyncIterable\<T, R\> | An asynchronous iterable of strings. |
+| `fn` | (value: T) =\> U | A function that transforms each string value. |
+</details>
+
+---
+
+### Transformation
+
+#### `flatMap`
 
 ```ts
 nz(["hi", "ok"]).flatMap(word => word.split("")) // => "h", "i", "o", "k"
@@ -729,7 +626,7 @@ Transforms each value from the input stream into zero or more output values.
 function flatMap<T, U, R = any>(source: AsyncIterable<T, R>, fn: (value: T) => Iterable<U, any, any> | AsyncIterable<U, any, any>): AsyncGenerator<U, R, undefined>;
 ```
 
-#### Parameters
+##### Parameters
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
@@ -739,7 +636,7 @@ function flatMap<T, U, R = any>(source: AsyncIterable<T, R>, fn: (value: T) => I
 
 ---
 
-### `flatten`
+#### `flatten`
 
 ```ts
 nz([["a", "b"], ["c", "d"], ["e"]]).flatten() // => "a", "b", "c", "d", "e"
@@ -753,7 +650,7 @@ Flattens nested arrays or iterables into a single stream.
 function flatten<T, R = any>(src: Iterable<Iterable<T> | T[], R>): AsyncGenerator<T, R, undefined>;
 ```
 
-#### Parameters
+##### Parameters
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
@@ -762,244 +659,332 @@ function flatten<T, R = any>(src: Iterable<Iterable<T> | T[], R>): AsyncGenerato
 
 ---
 
-## Regex
+### Filtering
 
-These functions use JavaScript regular expressions to search, match, and transform streaming text.
-
-Nozzle handles matching patterns across chunk boundaries by buffering text internally.
-Non-matching text is yielded as soon as it's certain not to be part of a match, while
-potential matches are held back until confirmed.
-
-### Unsupported Features
-
-These features throw an error because they cannot work reliably with streaming:
-
-| Feature | Example | Why |
-| ------- | ------- | --- |
-| Lookaheads | `(?=...)`, `(?!...)` | Content to look ahead may not have arrived yet |
-| Lookbehinds | `(?<=...)`, `(?<!...)` | Content to look behind may have already been yielded |
-| Backreferences | `\1`, `\k<name>` | Referenced group may span chunks or be partially buffered |
-| Multiline mode | `/pattern/m` | `^`/`$` would behave inconsistently at arbitrary chunk boundaries |
-| Anchors | `^`, `$` | The start and end of the stream are not known mid-stream; use `before`/`after` |
-| Word boundaries | `\b`, `\B` | The neighboring character may be in a chunk that has not arrived |
-| Unicode escapes | `\uXXXX`, `\u{...}` | Not analyzed for partial matches; use literal characters |
-| Sticky and Unicode-sets flags | `/pattern/y`, `/pattern/v` | Not supported by the partial matcher |
-| Empty matches | `/x?/`, `/a{0,}/` | A pattern that can match nothing would match between every character |
-
-### Patterns That Delay Output
-
-Some patterns force nozzle to buffer text longer than you might expect:
-
-- **Open-ended quantifiers at pattern end**: `/hello.+/g` buffers everything after "hello"
-  until the stream ends—`.+` can always match more. Use a delimiter instead: `/hello[^!]+/g`
-  matches until `!`, allowing earlier output.
-
-- **Alternations with shared prefixes**: `/cat|caterpillar/g` buffers "cat" until enough
-  text arrives to rule out "caterpillar". Put longer alternatives first: `/caterpillar|cat/g`.
-
-- **Optional suffixes**: `/items?/g` buffers "item" to check for a trailing "s". This is
-  usually fine, but `/data.*?end/g` buffers from "data" until "end" appears.
-
-### Global vs Non-Global
-
-- **Global (`/pattern/g`)**: Finds all matches throughout the stream
-- **Non-global (`/pattern/`)**: Finds only the first match, then passes remaining text through unchanged
-
-### `match`
+#### `compact`
 
 ```ts
-nz(["a", "b", "b", "a"]).match(/a([ab]*)a/g) // => ["abba", "bb"] (match arrays with capture groups)
+nz(["Hello", "", "World", ""]).compact() // => "Hello", "World"
 ```
 
-Extracts matches of a regex pattern from the input stream.
-
-Uses earliestPossibleMatchIndex to efficiently skip tokens as soon as we know
-they don't match the regex, while holding back potential matches until we can
-determine if they match.
-
-Built on: `scan(input, regex).filter(x => 'match' in x).map(x => x.match)`
+Filters out empty strings from the input stream.
 
 <details><summary>Details</summary>
 
 ```ts
-function match<R = any>(input: AsyncIterable<string, R>, regex: RegExp): AsyncGenerator<RegExpExecArray, R, undefined>;
+function compact<R = any>(iterator: AsyncIterable<string, R>): AsyncGenerator<string, R, undefined>;
 ```
 
-#### Parameters
+##### Parameters
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
-| `input` | AsyncIterable\<string, R\> | An asynchronous iterable of strings. |
-| `regex` | RegExp | The regular expression pattern to match. |
+| `iterator` | AsyncIterable\<string, R\> | An asynchronous iterable of strings. |
 </details>
 
 ---
 
-### `parse`
+#### `takeUntil`
 
 ```ts
-// Extract UUIDs from text
-nz(["Now I'm taking uuid-asdf-flkj and adding it to uuid-fslkj-alkjlsf."])
-  .parse(/uuid-(?<id>\w+)-\w+/g, m => ({ id: m.groups!.id }))
-// yields: "Now I'm taking ", { id: "asdf" }, " and adding it to ", { id: "fslkj" }, "."
-
-// Parse numbers from text
-nz(["The answer is 42 and also 123"])
-  .parse(/\d+/g, m => parseInt(m[0], 10))
-// yields: "The answer is ", 42, " and also ", 123
+nz([1, 2, 3, 4]).takeUntil(n => n === 3) // => 1, 2
 ```
 
-Parses input for regex matches, yielding text as-is and transforming matches.
+Yields values until the predicate matches, excluding the matching value.
 
-This transform is useful for extracting structured data from text streams.
-Non-matching text is passed through as strings, while matches are transformed
-using the provided function.
+Early termination may return undefined instead of the source's final value.
 
 <details><summary>Details</summary>
 
 ```ts
-function parse<T, R = any>(input: AsyncIterable<string, R>, regex: RegExp, transform: (match: RegExpExecArray) => T): AsyncGenerator<string | T, R, undefined>;
+function takeUntil<T, R = any>(source: AsyncIterable<T, R>, predicate: (value: T) => boolean): AsyncGenerator<T, R | undefined, undefined>;
 ```
 
-#### Parameters
+##### Parameters
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
-| `input` | AsyncIterable\<string, R\> | An asynchronous iterable of strings. |
-| `regex` | RegExp | The regular expression pattern to match. |
-| `transform` | (match: RegExpExecArray) =\> T | A function that transforms each match into a desired type. |
+| `source` | AsyncIterable\<T, R\> | An asynchronous iterable of values. |
+| `predicate` | (value: T) =\> boolean | A function that returns true for the value that should stop the stream. |
 </details>
 
 ---
 
-### `replace`
+#### `takeWhile`
 
 ```ts
-nz(["a", "b", "b", "a"]).replace(/a[ab]*a/g, "X") // => "X"
+nz([1, 2, 3, 1]).takeWhile(n => n < 3) // => 1, 2
 ```
 
-Replaces matches of a regex pattern with a replacement string in the input stream.
+Yields values while the predicate matches, excluding the first non-matching value.
 
-Uses earliestPossibleMatchIndex to efficiently yield tokens as soon as we know
-they don't match the regex, while holding back potential matches until we can
-determine if they should be replaced.
-
-Built on: `scan(input, regex).map(x => 'text' in x ? x.text : x.match[0].replace(regex, replacement))`
+Early termination may return undefined instead of the source's final value.
 
 <details><summary>Details</summary>
 
 ```ts
-function replace<R = any>(input: AsyncIterable<string, R>, regex: RegExp, replacement: string): AsyncGenerator<string, R, undefined>;
+function takeWhile<T, R = any>(source: AsyncIterable<T, R>, predicate: (value: T) => boolean): AsyncGenerator<T, R | undefined, undefined>;
 ```
 
-#### Parameters
+##### Parameters
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
-| `input` | AsyncIterable\<string, R\> | An asynchronous iterable of strings. |
-| `regex` | RegExp | The regular expression pattern to match. |
-| `replacement` | string | The string to replace matches with. |
+| `source` | AsyncIterable\<T, R\> | An asynchronous iterable of values. |
+| `predicate` | (value: T) =\> boolean | A function that returns true for values to keep. |
 </details>
 
 ---
 
-### `scan`
+### Indexing
+
+#### `at`
 
 ```ts
-nz(["hello world"]).scan(/\w+/g)
-// yields: { match: [...] }, { text: " " }, { match: [...] }
-
-nz(["Now I'm taking uuid-asdf-flkj..."]).scan(/uuid-(\w+)-\w+/g)
-// yields: { text: "Now I'm taking " }, { match: [...] }, { text: "..." }
+await nz(["a", "b", "c", "d", "e"]).at(2) // => "c"
+await nz(["a", "b", "c", "d", "e"]).at(-1) // => "e"
 ```
 
-Scans input for regex matches, yielding interleaved text and match results.
-
-This is the foundational regex transform that other transforms build on.
-It efficiently yields non-matching text as soon as we're certain it can't match,
-while holding back potential matches until we can determine their boundaries.
-
-Note: Empty text strings are never yielded.
+Returns the element at the specified index in the input stream. Supports negative indices to count from the end.
 
 <details><summary>Details</summary>
 
 ```ts
-function scan<R = any>(input: AsyncIterable<string, R>, regex: RegExp): AsyncGenerator<ScanResult, R, undefined>;
+function at<T>(iterator: AsyncIterable<T>, index: number): Promise<T | undefined>;
 ```
 
-#### Parameters
+##### Parameters
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
-| `input` | AsyncIterable\<string, R\> | An asynchronous iterable of strings. |
-| `regex` | RegExp | The regular expression pattern to match. |
+| `iterator` | AsyncIterable\<T\> | An asynchronous iterable of values. |
+| `index` | number | The index to access. Negative values count from the end. |
 </details>
 
 ---
 
-## Timing
-
-### `minInterval`
+#### `first`
 
 ```ts
-nz(["a", "b", "c"]).minInterval(100) // => "a" (0ms), "b" (100ms), "c" (200ms)
+await nz(["Hello", "World", "!"]).first() // => "Hello"
 ```
 
-Enforces a minimum delay between adjacent tokens in a stream.
-The first token is yielded immediately, then subsequent tokens are delayed
-to ensure at least `delayMs` milliseconds pass between each yield.
+Returns the first value from the input stream.
 
 <details><summary>Details</summary>
 
 ```ts
-function minInterval<T, R = any>(source: AsyncIterable<T, R>, delayMs: number): AsyncGenerator<T, R, undefined>;
+function first<T>(iterator: AsyncIterable<T>): Promise<T | undefined>;
 ```
 
-#### Parameters
+##### Parameters
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
-| `source` | AsyncIterable\<T, R\> | The async iterable source of tokens. |
-| `delayMs` | number | The minimum delay in milliseconds between adjacent tokens. |
+| `iterator` | AsyncIterable\<T\> | An asynchronous iterable of values. |
 </details>
 
 ---
 
-### `throttle`
+#### `head`
 
 ```ts
-nz(["a", "b", "c", "d"]).throttle(100, chunks => chunks.join("")) // => "abcd" (100ms)
+nz(["Hello", "World", "!"]).head() // => "Hello"
 ```
 
-Batches values into time windows, then yields the merged batch.
-The first value opens a window lasting intervalMs; it is not emitted immediately.
-Values arriving within that window are merged and emitted when its timer expires.
-After an idle period, the next value opens a new window. A final partial batch
-waits for its existing timer. An interval of zero passes values through unchanged.
-Source errors are surfaced immediately after already-emitted batches; an unfinished
-batch is discarded. The source is consumed eagerly, so slow consumers can build
-up an unbounded queue of merged batches.
+Yields only the first value from the input stream.
+
+Early termination may return undefined instead of the source's final value.
 
 <details><summary>Details</summary>
 
 ```ts
-function throttle<T, R = any>(source: AsyncIterable<T, R>, intervalMs: number, merge: (values: T[]) => T): AsyncGenerator<T, R>;
+function head<T, R = any>(iterator: AsyncIterable<T, R>): AsyncGenerator<T, R | undefined, undefined>;
 ```
 
-#### Parameters
+##### Parameters
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
-| `source` | AsyncIterable\<T, R\> | The async iterable source of values. |
-| `intervalMs` | number | The throttling interval in milliseconds. |
-| `merge` | (values: T[]) =\> T | - |
+| `iterator` | AsyncIterable\<T, R\> | An asynchronous iterable of values. |
+</details>
+
+See also: [`at`](#at), [`tail`](#tail), [`initial`](#initial), [`last`](#last)
+
+---
+
+#### `initial`
+
+```ts
+nz(["Hello", "World", "!"]).initial() // => "Hello", "World"
+```
+
+Yields all values except the last from the input stream.
+
+<details><summary>Details</summary>
+
+```ts
+function initial<T, R = any>(iterator: AsyncIterable<T, R>): AsyncGenerator<T, R, undefined>;
+```
+
+##### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `iterator` | AsyncIterable\<T, R\> | An asynchronous iterable of values. |
 </details>
 
 ---
 
-## Buffering
+#### `last`
 
-### `aperture`
+```ts
+await nz(["Hello", "World", "!"]).last() // => "!"
+```
+
+Returns the last value from the input stream.
+
+<details><summary>Details</summary>
+
+```ts
+function last<T>(iterator: AsyncIterable<T>): Promise<T | undefined>;
+```
+
+##### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `iterator` | AsyncIterable\<T\> | An asynchronous iterable of values. |
+</details>
+
+---
+
+#### `slice`
+
+```ts
+nz(["a", "b", "c", "d", "e"]).slice(1, 3) // => "b", "c"
+nz(["a", "b", "c", "d", "e"]).slice(-2) // => "d", "e"
+```
+
+Yields a slice of the input stream between start and end indices. Supports negative indices by maintaining an internal buffer. A bounded slice may stop early and return undefined. Without an end, it preserves the source return value on completion.
+
+<details><summary>Details</summary>
+
+```ts
+function slice<T, R = any>(iterator: AsyncIterable<T, R>, start: number, end?: undefined): AsyncGenerator<T, R, undefined>;
+function slice<T, R = any>(iterator: AsyncIterable<T, R>, start: number, end: number | undefined): AsyncGenerator<T, R | undefined, undefined>;
+```
+
+##### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `iterator` | AsyncIterable\<T, R\> | The async iterable to slice |
+| `start` | number | Starting index (inclusive). Negative values count from end. |
+| `end` | number \| undefined | Ending index (exclusive). Negative values count from end. If undefined, slices to end. |
+</details>
+
+---
+
+#### `tail`
+
+```ts
+nz(["Hello", "World", "!"]).tail() // => "World", "!"
+```
+
+Yields all values except the first from the input stream.
+
+<details><summary>Details</summary>
+
+```ts
+function tail<T, R = any>(iterator: AsyncIterable<T, R>): AsyncGenerator<T, R, undefined>;
+```
+
+##### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `iterator` | AsyncIterable\<T, R\> | An asynchronous iterable of values. |
+</details>
+
+---
+
+### Accumulation
+
+#### `accumulate`
+
+```ts
+nz(["This ", "is ", "a ", "test!"]).accumulate() // => "This ", "This is ", "This is a ", "This is a test!"
+```
+
+Yields a cumulative prefix of the input stream.
+
+<details><summary>Details</summary>
+
+```ts
+function accumulate<R = any>(iterator: AsyncIterable<string, R>): AsyncGenerator<string, R, undefined>;
+```
+
+##### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `iterator` | AsyncIterable\<string, R\> | An asynchronous iterable of strings. |
+</details>
+
+---
+
+#### `diff`
+
+```ts
+nz(["This ", "This is ", "This is a ", "This is a test!"]).diff().value() // => "This ", "is ", "a ", "test!"
+```
+
+Yields the difference between the current and previous string in the input stream.
+
+<details><summary>Details</summary>
+
+```ts
+function diff<R = any>(iterator: AsyncIterable<string, R>): AsyncGenerator<string, R, undefined>;
+```
+
+##### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `iterator` | AsyncIterable\<string, R\> | An asynchronous iterable of strings. |
+</details>
+
+---
+
+#### `reduce`
+
+```ts
+nz([1, 2, 3, 4]).reduce((acc, n) => acc + n, 0) // => 1, 3, 6, 10
+```
+
+Yields progressive accumulated values using a reducer function.
+
+<details><summary>Details</summary>
+
+```ts
+function reduce<T, A, R = any>(source: AsyncIterable<T, R>, reducer: (accumulator: A, current: T, index: number) => A, initial: A): AsyncGenerator<A, R, undefined>;
+```
+
+##### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `source` | AsyncIterable\<T, R\> | An asynchronous iterable of values. |
+| `reducer` | (accumulator: A, current: T, index: number) =\> A | A function that combines the accumulator with each value. |
+| `initial` | A | The initial accumulator value. |
+</details>
+
+---
+
+### Buffering
+
+#### `aperture`
 
 ```ts
 nz([1, 2, 3, 4, 5]).aperture(3) // => [1, 2, 3], [2, 3, 4], [3, 4, 5]
@@ -1013,7 +998,7 @@ Creates a sliding window of size n over the input stream, yielding arrays of con
 function aperture<T, R = any>(source: Iterable<T, R>, n: number): AsyncGenerator<T[], R | undefined>;
 ```
 
-#### Parameters
+##### Parameters
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
@@ -1023,7 +1008,7 @@ function aperture<T, R = any>(source: Iterable<T, R>, n: number): AsyncGenerator
 
 ---
 
-### `batch`
+#### `batch`
 
 ```ts
 nz([1, 2, 3, 4, 5]).batch(2) // => [1, 2], [3, 4], [5]
@@ -1038,7 +1023,7 @@ Groups input values into arrays of the specified size.
 function batch<T, R = any>(source: AsyncIterable<T, R>, size: number): AsyncGenerator<T[], R, undefined>;
 ```
 
-#### Parameters
+##### Parameters
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
@@ -1048,7 +1033,7 @@ function batch<T, R = any>(source: AsyncIterable<T, R>, size: number): AsyncGene
 
 ---
 
-### `buffer`
+#### `buffer`
 
 ```ts
 nz(["a", "b", "c"]).buffer(2) // => "a", "b", "c"
@@ -1056,13 +1041,9 @@ nz(["a", "b", "c"]).buffer(2) // => "a", "b", "c"
 // consumed: a, yielded: a, consumed: b, consumed: c, yielded: b, yielded: c
 ```
 
-Buffers up to N items from the source iterator, consuming them eagerly
-and yielding them on demand. If n is undefined, buffers unlimited items.
+Buffers up to N items from the source iterator, consuming them eagerly and yielding them on demand. If n is undefined, buffers unlimited items.
 
-The buffer() function "slurps up" as much of the input iterator as it can
-as fast as it can, storing items in an internal buffer. When items are
-requested from the buffer, they are yielded from this pre-filled buffer.
-This creates a decoupling between the consumption rate and the production rate.
+The buffer() function "slurps up" as much of the input iterator as it can as fast as it can, storing items in an internal buffer. When items are requested from the buffer, they are yielded from this pre-filled buffer. This creates a decoupling between the consumption rate and the production rate.
 
 <details><summary>Details</summary>
 
@@ -1070,7 +1051,7 @@ This creates a decoupling between the consumption rate and the production rate.
 function buffer<T, R = any>(source: AsyncIterable<T, R>, n?: number): AsyncGenerator<T, R>;
 ```
 
-#### Parameters
+##### Parameters
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
@@ -1080,7 +1061,7 @@ function buffer<T, R = any>(source: AsyncIterable<T, R>, n?: number): AsyncGener
 
 ---
 
-### `withContext`
+#### `withContext`
 
 ```ts
 nz([1, 2, 3]).withContext({ before: 1, after: 1 })
@@ -1089,11 +1070,7 @@ nz([1, 2, 3]).withContext({ before: 1, after: 1 })
 // { past: [2], current: 3, upcoming: [], index: 2 }
 ```
 
-Yields each item with bounded neighboring context in source order.
-`before` and `after` default to zero and must be nonnegative safe integers.
-Lookahead delays emission until `after` items arrive or the source ends.
-Context is shorter at stream boundaries. Each output has independent arrays;
-the items themselves are shared. The source's return value is preserved.
+Yields each item with bounded neighboring context in source order. `before` and `after` default to zero and must be nonnegative safe integers. Lookahead delays emission until `after` items arrive or the source ends. Context is shorter at stream boundaries. Each output has independent arrays; the items themselves are shared. The source's return value is preserved.
 
 <details><summary>Details</summary>
 
@@ -1101,7 +1078,7 @@ the items themselves are shared. The source's return value is preserved.
 function withContext<T, R = any>(source: Iterable<T, R>, options: WithContextOptions): AsyncGenerator<ItemContext<T>, R>;
 ```
 
-#### Parameters
+##### Parameters
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
@@ -1111,9 +1088,9 @@ function withContext<T, R = any>(source: Iterable<T, R>, options: WithContextOpt
 
 ---
 
-## Side Effects
+### Side Effects
 
-### `tap`
+#### `tap`
 
 ```ts
 nz(["Hello", "World", "!"]).tap(x => console.log(`yielded: ${x}`)) // => "Hello", "World", "!" (logs: yielded: Hello, yielded: World, yielded: !)
@@ -1127,7 +1104,7 @@ Executes a side effect for each value without modifying the stream.
 function tap<T, R = any>(iterator: AsyncIterable<T, R>, fn: (value: T) => void): AsyncGenerator<T, R, undefined>;
 ```
 
-#### Parameters
+##### Parameters
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
@@ -1137,15 +1114,13 @@ function tap<T, R = any>(iterator: AsyncIterable<T, R>, fn: (value: T) => void):
 
 ---
 
-### `tee`
+#### `tee`
 
 ```ts
 const [stream1, stream2] = nz(["a", "b", "c"]).tee(2) // => Two independent streams of "a", "b", "c"
 ```
 
-Splits a single iterator into N independent iterables.
-Starts reading eagerly on the first branch read. Branch queues are unbounded;
-consume every branch or close unused branches with iterator.return().
+Splits a single iterator into N independent iterables. Starts reading eagerly on the first branch read. Branch queues are unbounded; consume every branch or close unused branches with iterator.return().
 
 <details><summary>Details</summary>
 
@@ -1153,7 +1128,7 @@ consume every branch or close unused branches with iterator.return().
 function tee<T, R = any>(iterator: AsyncIterator<T, R>, n: number): AsyncGenerator<T, R, any>[];
 ```
 
-#### Parameters
+##### Parameters
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
@@ -1163,9 +1138,9 @@ function tee<T, R = any>(iterator: AsyncIterator<T, R>, n: number): AsyncGenerat
 
 ---
 
-## Error Handling
+### Error Handling
 
-### `recover`
+#### `recover`
 
 ```ts
 nz(stream).recover(() => ["[stream failed]"])
@@ -1180,7 +1155,7 @@ Catches an upstream error and optionally yields replacement values.
 function recover<T, R = any>(source: AsyncIterable<T, R>, handler: (error: unknown) => RecoverResult<T>): AsyncGenerator<T, R | undefined, undefined>;
 ```
 
-#### Parameters
+##### Parameters
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
@@ -1190,15 +1165,13 @@ function recover<T, R = any>(source: AsyncIterable<T, R>, handler: (error: unkno
 
 ---
 
-### `unwrap`
+#### `unwrap`
 
 ```ts
 nz(["hello", "world"]).wrap().unwrap() // => "hello", "world"
 ```
 
-Unwraps results from wrap() back into a normal iterator that throws/returns/yields.
-The opposite of wrap() - takes wrapped result objects and converts them back to normal
-iterator behavior.
+Unwraps results from wrap() back into a normal iterator that throws/returns/yields. The opposite of wrap() - takes wrapped result objects and converts them back to normal iterator behavior.
 
 <details><summary>Details</summary>
 
@@ -1206,7 +1179,7 @@ iterator behavior.
 function unwrap<T, R = any>(iterator: AsyncIterable<WrappedResult<T, R>>): AsyncGenerator<T, R, undefined>;
 ```
 
-#### Parameters
+##### Parameters
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
@@ -1215,16 +1188,14 @@ function unwrap<T, R = any>(iterator: AsyncIterable<WrappedResult<T, R>>): Async
 
 ---
 
-### `wrap`
+#### `wrap`
 
 ```ts
 nz(["hello", "world"]).wrap()
 // => {type: "value", value: "hello"}, {type: "value", value: "world"}, {type: "return", value: undefined}
 ```
 
-Wraps an iterator to catch any errors and return them in a result object format.
-Instead of throwing, errors are yielded as `{type: "error", error}` and successful values as
-`{type: "value", value}`.
+Wraps an iterator to catch any errors and return them in a result object format. Instead of throwing, errors are yielded as `{type: "error", error}` and successful values as `{type: "value", value}`.
 
 <details><summary>Details</summary>
 
@@ -1232,7 +1203,7 @@ Instead of throwing, errors are yielded as `{type: "error", error}` and successf
 function wrap<T, R = any>(iterator: AsyncIterable<T, R>): AsyncGenerator<WrappedResult<T, R>>;
 ```
 
-#### Parameters
+##### Parameters
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
@@ -1241,35 +1212,9 @@ function wrap<T, R = any>(iterator: AsyncIterable<T, R>): AsyncGenerator<Wrapped
 
 ---
 
-## Return Values
+### Conversion
 
-### `mapReturn`
-
-```ts
-nz(["a", "b"]).mapReturn(returnValue => returnValue?.toString() ?? "default") // => "a", "b" (with mapped return value)
-```
-
-Maps the return type of an iterator while preserving all yielded values unchanged.
-
-<details><summary>Details</summary>
-
-```ts
-function mapReturn<T, R, U>(iterator: AsyncIterable<T, R>, fn: (value: R) => U): AsyncGenerator<T, U, undefined>;
-```
-
-#### Parameters
-
-| Parameter | Type | Description |
-| ------ | ------ | ------ |
-| `iterator` | AsyncIterable\<T, R\> | An asynchronous iterable. |
-| `fn` | (value: R) =\> U | A function that transforms the return value. |
-</details>
-
----
-
-## Conversion
-
-### `consume`
+#### `consume`
 
 ```ts
 const consumed = await nz(["a", "b"]).consume()
@@ -1290,7 +1235,7 @@ Returns a ConsumedPipeline which provides access to both yielded values and retu
 function consume<T, R>(iterator: AsyncIterable<T, R>): Promise<ConsumedPipeline<T, R>>;
 ```
 
-#### Parameters
+##### Parameters
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
@@ -1299,7 +1244,7 @@ function consume<T, R>(iterator: AsyncIterable<T, R>): Promise<ConsumedPipeline<
 
 ---
 
-### `fromList`
+#### `fromList`
 
 ```ts
 nz(["Hello", "World", "!"]) // => "Hello", "World", "!"
@@ -1313,7 +1258,7 @@ Converts an array to an async iterator.
 function fromList<T>(list: T[]): AsyncGenerator<T>;
 ```
 
-#### Parameters
+##### Parameters
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
@@ -1322,7 +1267,7 @@ function fromList<T>(list: T[]): AsyncGenerator<T>;
 
 ---
 
-### `toReadableStream`
+#### `toReadableStream`
 
 ```ts
 return new Response(nz(llmTextStream).minInterval(40).toReadableStream().pipeThrough(new TextEncoderStream()))
@@ -1330,10 +1275,7 @@ return new Response(nz(llmTextStream).minInterval(40).toReadableStream().pipeThr
 
 Converts an async iterable into a Web `ReadableStream`.
 
-The stream pulls from the source only when its reader asks for a value, so
-nothing is read ahead and timing transforms keep their pacing. Cancelling the
-stream closes the source iterator. The source's return value is discarded,
-because Web Streams have no return value.
+The stream pulls from the source only when its reader asks for a value, so nothing is read ahead and timing transforms keep their pacing. Cancelling the stream closes the source iterator. The source's return value is discarded, because Web Streams have no return value.
 
 Added in 0.12.0, along with `ReadableStream` sources for `nz()`.
 
@@ -1343,11 +1285,37 @@ Added in 0.12.0, along with `ReadableStream` sources for `nz()`.
 function toReadableStream<T>(source: AsyncIterable<T>): ReadableStream<T>;
 ```
 
-#### Parameters
+##### Parameters
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
 | `source` | AsyncIterable\<T\> | The async iterable to read from. |
+</details>
+
+---
+
+### Return Values
+
+#### `mapReturn`
+
+```ts
+nz(["a", "b"]).mapReturn(returnValue => returnValue?.toString() ?? "default") // => "a", "b" (with mapped return value)
+```
+
+Maps the return type of an iterator while preserving all yielded values unchanged.
+
+<details><summary>Details</summary>
+
+```ts
+function mapReturn<T, R, U>(iterator: AsyncIterable<T, R>, fn: (value: R) => U): AsyncGenerator<T, U, undefined>;
+```
+
+##### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `iterator` | AsyncIterable\<T, R\> | An asynchronous iterable. |
+| `fn` | (value: R) =\> U | A function that transforms the return value. |
 </details>
 
 ## Development
@@ -1357,10 +1325,9 @@ pnpm install --frozen-lockfile
 pnpm run check
 ```
 
-Run `pnpm run docs` after editing API comments or this README's template.
+Run `pnpm run docs` after editing API comments or the README template.
 Run `pnpm run release:dry` to validate package contents without publishing.
-The `release:patch`, `release:minor`, and `release:major` scripts publish and push tags.
 
 ## License
 
-This library is licensed under the MIT license.
+MIT

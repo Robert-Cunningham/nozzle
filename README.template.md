@@ -1,28 +1,31 @@
 <div align="center">
-  <img src="assets/nozzle.webp" alt="Nozzle Logo" width="40%" />
-  <br />
+  <img src="assets/nozzle.webp" alt="Nozzle" width="220" />
+  <p><strong>Regex, split, and pace streaming LLM text — across chunk boundaries.</strong></p>
   <a href="https://www.npmjs.com/package/nozzle-js"><img src="https://badgen.net/npm/v/nozzle-js" /></a>
+  <a href="https://bundlejs.com/?q=nozzle-js"><img src="https://img.shields.io/bundlejs/size/nozzle-js?label=minzip" /></a>
+  <img src="https://badgen.net/badge/dependencies/0/green" />
   <a href="https://github.com/robert-cunningham/nozzle/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue" /></a>
-  <a href="https://bundlephobia.com/result?p=nozzle-js"><img src="https://badgen.net/bundlephobia/minzip/nozzle-js"></a>
   <br />
   <br />
   <a href="#quickstart">Quickstart</a>
-  <span>&nbsp;&nbsp;•&nbsp;&nbsp;</span>
+  <span>&nbsp;•&nbsp;</span>
   <a href="#recipes">Recipes</a>
-  <span>&nbsp;&nbsp;•&nbsp;&nbsp;</span>
+  <span>&nbsp;•&nbsp;</span>
+  <a href="#api-at-a-glance">API</a>
+  <span>&nbsp;•&nbsp;</span>
+  <a href="#guarantees-and-limits">Guarantees</a>
+  <span>&nbsp;•&nbsp;</span>
   <a href="#reference">Reference</a>
-  <br />
-  <hr />
 </div>
 
-<!-- [![npm version][npm-src]][npm-href]
-[![Bundle size][bundlephobia-src]][bundlephobia-href]
-[![License][license-src]][license-href]
--->
+---
 
-Nozzle is a small TypeScript library for transforming async iterables, especially streamed text from LLMs.
+Nozzle is a small TypeScript library for handling text streamed from LLMs. Its regex, split, and extract functions match across chunk boundaries, emitting text as soon as it can't be part of a match and buffering anything that might be used for a future match.
 
-It helps when provider chunks are not the chunks your app wants: parse structured markers, split text into useful pieces, fan out one stream to multiple consumers, extract generated sections, or smooth token timing without waiting for the whole response.
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="assets/demo-parse-dark.gif" />
+  <img src="assets/demo-parse.gif" alt="Parse demo: an image marker split across chunks is detected and replaced with an object" />
+</picture>
 
 ## Quickstart
 
@@ -30,55 +33,45 @@ It helps when provider chunks are not the chunks your app wants: parse structure
 npm i nozzle-js # or pnpm / bun / yarn
 ```
 
-Nozzle has ESM and CJS builds and works with any sync or async iterable or Web `ReadableStream`.
-Use `.toReadableStream()` to hand a pipeline to a `Response` or `pipeThrough`.
-
-<!-- prettier-ignore -->
 ```ts
 import { nz } from "nozzle-js"
 
-const pacedWords = nz(llmTextStream)
-  .splitAfter(" ")
-  .compact()
-  .minInterval(40)
+const parts = nz(textStream).parse(/img-(\w+)/g, (m) => ({ type: "image", id: m[1] }))
 
-for await (const word of pacedWords) {
-  process.stdout.write(word)
+for await (const part of parts) {
+  // "Here is ", { type: "image", id: "abc123" }, " and ", { type: "image", id: "xyz789" }, "."
 }
 ```
 
+`nz()` accepts any sync or async iterable.
+
+<details><summary>Getting a text stream from your provider</summary>
+
+```ts
+// Vercel AI SDK
+const { textStream } = streamText({ model, prompt })
+nz(textStream)
+
+// OpenAI
+const stream = await openai.chat.completions.create({ ...args, stream: true })
+nz(stream).map((chunk) => chunk.choices[0]?.delta?.content ?? "")
+
+// Anthropic
+const stream = anthropic.messages.stream({ ...args })
+nz(stream).map((e) => (e.type === "content_block_delta" && e.delta.type === "text_delta" ? e.delta.text : ""))
+
+// fetch
+const res = await fetch(url)
+nz(res.body!.pipeThrough(new TextDecoderStream()))
+```
+
+</details>
+
 ## Recipes
 
-### Parse structured markers as they stream
-
-```ts
-const stream = await openai.chat.completions.create({ ...args, stream: true })
-
-const parts = nz(stream)
-  .map((chunk) => chunk.choices[0]?.delta?.content ?? "")
-  .parse(/img-(\w+)/g, (match) => ({ type: "image", id: match[1] }))
-
-// yields: "Here is ", { type: "image", id: "abc123" }, " for you"
-```
-
-![Parse Demo](assets/demo-parse.gif)
-
-### Branch one stream for UI and storage
-
-```ts
-const [displayStream, storageStream] = nz(stream).tee(2)
-
-const displayPromise = (async () => {
-  for await (const chunk of displayStream) process.stdout.write(chunk)
-})()
-
-const [, consumed] = await Promise.all([displayPromise, storageStream.consume()])
-conversation.push({ role: "assistant", content: consumed.string() })
-```
-
-![Tee Demo](assets/demo-tee.gif)
-
 ### Extract a generated section
+
+Stream just the code block to a preview while the model is still writing, then save it.
 
 <!-- prettier-ignore -->
 ````ts
@@ -91,29 +84,57 @@ const code = await nz(stream)
 await saveSnippet(code.string())
 ````
 
-![Extract Demo](assets/demo-extract.gif)
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="assets/demo-extract-dark.gif" />
+  <img src="assets/demo-extract.gif" alt="Extracting a fenced code block whose fences are split across chunks" />
+</picture>
 
 ### Smooth chunky provider output
 
+Providers often deliver text in bursts. Re-chunk into words and release them at a steady pace.
+
 <!-- prettier-ignore -->
 ```ts
-const smoothStream = nz(stream)
+const smooth = nz(stream)
   .splitAfter(" ")
   .compact()
   .minInterval(40)
 ```
 
-![Timing Demo](assets/demo-timing.gif)
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="assets/demo-timing-dark.gif" />
+  <img src="assets/demo-timing.gif" alt="Bursty source chunks released as evenly paced words" />
+</picture>
 
-## Behavior
+## Versus
 
-- Pipelines are consumed with `for await` or `.consume()`. Generator sources are single-use.
-- `.consume()` retains all values; use `.list()`, `.string()`, or `.return()` on its result.
-- Early exit closes upstream iterators. Pending I/O needs cancellation from the source/provider.
-- `buffer()`, `tee`, and `asyncMap` can buffer without a limit; concurrency is not a queue limit.
-- Regexes match across chunks. Anchors, word boundaries, lookarounds, backreferences,
-  Unicode escapes (`\uXXXX`, `\u{…}`), `m`/`y`/`v`, and nullable patterns are rejected. The explicit empty separator splits
-  UTF-16 code units. Unfinished matches buffer input; match indices are buffer-local.
+- **A hand-written `for await` loop.** Fine for `map` and `filter`. Matching `/img-(\w+)/` when the marker spans chunks means writing a buffer that knows how much text is safe to release. Nozzle is that buffer, tested for regexes, separators, and prefixes/suffixes.
+- **RxJS / IxJS.** General-purpose operator libraries without text operators that work across chunk boundaries. Nozzle stays in plain async iterables, so pipelines drop into `for await`, `Response`, and SDKs that already use them, and it preserves generator return values.
+- **Your SDK's smoothing.** Nozzle's timing operators work on any source and compose with the parsing ones.
+
+## Guarantees and limits
+
+- Pipelines are lazy: nothing runs until you `for await` or `.consume()`. Generator sources are single-use.
+- Breaking out of a loop early closes upstream iterators. Cancelling in-flight I/O is up to the source/provider.
+- Errors from the source, including errors raised in timers, surface where you `await`, so `try/catch` works.
+- Generator return values pass through transforms (see `mapReturn`, `consume().return()`).
+
+## API at a glance
+
+| Group              | Functions                                                                                                                                     |
+| ------------------ | --------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Regex**          | [`parse`](#parse) · [`scan`](#scan) · [`match`](#match) · [`replace`](#replace)                                                               |
+| **Splitting**      | [`split`](#split) · [`splitAfter`](#splitafter) · [`splitBefore`](#splitbefore) · [`after`](#after) · [`before`](#before) · [`chunk`](#chunk) |
+| **Timing**         | [`minInterval`](#mininterval) · [`throttle`](#throttle)                                                                                       |
+| **Elements**       | [`map`](#map) · [`asyncMap`](#asyncmap) · [`filter`](#filter) · [`find`](#find)                                                               |
+| **Transformation** | [`flatMap`](#flatmap) · [`flatten`](#flatten)                                                                                                 |
+| **Filtering**      | [`compact`](#compact) · [`takeWhile`](#takewhile) · [`takeUntil`](#takeuntil)                                                                 |
+| **Indexing**       | [`first`](#first) · [`last`](#last) · [`at`](#at) · [`head`](#head) · [`tail`](#tail) · [`initial`](#initial) · [`slice`](#slice)             |
+| **Accumulation**   | [`accumulate`](#accumulate) · [`diff`](#diff) · [`reduce`](#reduce)                                                                           |
+| **Buffering**      | [`batch`](#batch) · [`buffer`](#buffer) · [`withContext`](#withcontext) · [`aperture`](#aperture)                                             |
+| **Side effects**   | [`tap`](#tap) · [`tee`](#tee)                                                                                                                 |
+| **Errors**         | [`recover`](#recover) · [`wrap`](#wrap) · [`unwrap`](#unwrap)                                                                                 |
+| **Conversion**     | [`consume`](#consume) · [`toReadableStream`](#toreadablestream) · [`fromList`](#fromlist) · [`mapReturn`](#mapreturn)                         |
 
 ## Reference
 
@@ -126,10 +147,9 @@ pnpm install --frozen-lockfile
 pnpm run check
 ```
 
-Run `pnpm run docs` after editing API comments or this README's template.
+Run `pnpm run docs` after editing API comments or the README template.
 Run `pnpm run release:dry` to validate package contents without publishing.
-The `release:patch`, `release:minor`, and `release:major` scripts publish and push tags.
 
 ## License
 
-This library is licensed under the MIT license.
+MIT
